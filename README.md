@@ -1,7 +1,7 @@
 
 # Identity PSK Manager for Cisco ISE
 
-&&IPSK Manager for Cideo ISE provides an easy integrate Management Portal for maintining Pre-Shared Keys and integrate&&
+**IPSK Manager for Cideo ISE provides an easy integrate Management Portal for maintining Pre-Shared Keys and integrate**
 ---
 
 
