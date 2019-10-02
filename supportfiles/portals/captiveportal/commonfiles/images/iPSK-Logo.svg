@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+Copyright (c) 2019 Cisco and/or its affiliates.
+
+This software is licensed to you under the terms of the Cisco Sample
+Code License, Version 1.1 (the "License"). You may obtain a copy of the
+License at
+
+			   https://developer.cisco.com/docs/licenses
+
+All use of the material herein must be in accordance with the terms of
+the License. All rights not expressly granted by the License are
+reserved. Unless required by applicable law or agreed to separately in
+writing, software distributed under the License is distributed on an "AS
+IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied.
+-->
+
+
+<!--
+AUTHOR(s):	Gary Oppel (gaoppel@cisco.com)
+-->
+
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="110.73404mm"
+   height="38.273632mm"
+   viewBox="0 0 110.73404 38.273633"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   sodipodi:docname="iPSK-Logo.svg">
+  <defs
+     id="defs2">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 148.5 : 1"
+       inkscape:vp_y="0 : 999.99997 : 0"
+       inkscape:vp_z="209.99999 : 148.5 : 1"
+       inkscape:persp3d-origin="105 : 98.999998 : 1"
+       id="perspective3731" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="7.9195959"
+     inkscape:cx="112.26449"
+     inkscape:cy="57.857649"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="3200"
+     inkscape:window-height="1706"
+     inkscape:window-x="2869"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     units="mm"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:snap-grids="true"
+     inkscape:snap-others="false" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+        <cc:license
+           rdf:resource="https://developer.cisco.com/docs/licenses" />
+        <dc:rights>
+          <cc:Agent>
+            <dc:title />
+          </cc:Agent>
+        </dc:rights>
+        <dc:contributor>
+          <cc:Agent>
+            <dc:title />
+          </cc:Agent>
+        </dc:contributor>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-5.8196898,-1.5611067)">
+    <path
+       style="fill:#1ba0d7;fill-opacity:1;stroke-width:0.24691597"
+       d="M 23.439453 16.396484 A 23.439792 21.062998 0 0 0 0 37.460938 A 23.439792 21.062998 0 0 0 23.439453 58.523438 A 23.439792 21.062998 0 0 0 46.878906 37.460938 A 23.439792 21.062998 0 0 0 23.439453 16.396484 z M 23.300781 23.115234 A 17.129037 14.896158 0 0 1 40.429688 38.011719 A 17.129037 14.896158 0 0 1 23.300781 52.90625 A 17.129037 14.896158 0 0 1 6.171875 38.011719 A 17.129037 14.896158 0 0 1 23.300781 23.115234 z "
+       transform="matrix(0.26458334,0,0,0.26458334,5.8196898,1.5611067)"
+       id="path3713" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:50.79999924px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#1ba0d7;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       x="16.51642"
+       y="39.165012"
+       id="text3725"><tspan
+         sodipodi:role="line"
+         id="tspan3723"
+         x="16.51642"
+         y="39.165012"
+         style="font-size:50.79999924px;fill:#1ba0d7;stroke-width:0.26458332;fill-opacity:1;">PSK</tspan></text>
+    <path
+       style="fill:#1ba0d7;fill-opacity:1;stroke-width:1.27947164"
+       d="M 13.830078 65.800781 L 13.830078 76.503906 L 18.765625 82.853516 L 13.830078 88.142578 L 13.830078 88.796875 L 18.802734 95.193359 L 13.830078 100.52148 L 13.830078 101.08789 L 18.837891 107.5332 L 13.830078 112.90234 L 13.830078 113.8125 L 16.773438 123.85547 L 13.830078 128.23047 L 13.830078 128.6582 L 26.263672 140.20117 L 26.263672 68.642578 L 27.273438 68.642578 L 27.273438 140.88086 L 32.832031 140.88086 L 32.832031 65.800781 L 13.830078 65.800781 z "
+       transform="matrix(0.26458334,0,0,0.26458334,5.8196898,1.5611067)"
+       id="rect3727" />
+  </g>
+</svg>

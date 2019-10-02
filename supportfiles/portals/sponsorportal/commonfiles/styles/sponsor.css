@@ -1,0 +1,81 @@
+/*
+Copyright (c) 2019 Cisco and/or its affiliates.
+
+This software is licensed to you under the terms of the Cisco Sample
+Code License, Version 1.1 (the "License"). You may obtain a copy of the
+License at
+
+			   https://developer.cisco.com/docs/licenses
+
+All use of the material herein must be in accordance with the terms of
+the License. All rights not expressly granted by the License are
+reserved. Unless required by applicable law or agreed to separately in
+writing, software distributed under the License is distributed on an "AS
+IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied.
+
+AUTHOR(s):	Gary Oppel (gaoppel@cisco.com)
+			Hosuk Won (howon@cisco.com)
+CONTRIBUTOR(s): Drew Betz (anbetz@cisco.com)
+*/
+
+
+html,
+body {
+  height: 100%;
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  display: -ms-flexbox;
+  -ms-flex-align: center;
+  align-items: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #f5f5f5;
+}
+/*Removed   display: flex; */
+
+.user-input::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #bfbfbf;
+  opacity: 1; /* Firefox */
+}
+
+.user-input:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: #bfbfbf;
+}
+
+.user-input::-ms-input-placeholder { /* Microsoft Edge */
+  color: #bfbfbf;
+}
+
+.popover {
+    background: #c6ffb3;
+}
+
+.popover.bottom .arrow:after {
+    border-bottom-color: #c6ffb3;
+}
+
+.info-option {
+	color: #bfbfbf;
+	height: 20px;
+	width: 20px;
+}
+
+.info-option:hover {
+	color: #000000;
+	height: 20px;
+	width: 20px;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px; /* Set the fixed height of the footer here */
+  line-height: 60px; /* Vertically center the text there */
+  background-color: #f5f5f5;
+}
