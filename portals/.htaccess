@@ -1,0 +1,26 @@
+Options -Indexes
+Options +FollowSymLinks
+
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+
+  RewriteEngine On
+  AddDefaultCharset UTF-8
+
+  <IfModule mod_env.c>
+    SetEnv HTTP_MOD_REWRITE On
+  </IfModule>
+  
+  #RewriteCond %{HTTPS} off
+  #RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  #RewriteCond %{REQUEST_FILENAME} (index\.php)
+  RewriteCond %{REQUEST_FILENAME} !(404\.php)
+  RewriteCond %{REQUEST_FILENAME} !(favicon\.ico|robots\.txt)
+
+  RewriteRule ^(.*)$ index.php?portal=$1 [L,QSA]
+
+</IfModule>
