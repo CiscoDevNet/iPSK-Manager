@@ -1,0 +1,12 @@
+
+Options -Indexes
+Options +FollowSymLinks
+
+ErrorDocument 404 /404.php
+
+DirectoryIndex index.php
+
+RedirectMatch 404 ^/ajax/?$
+RedirectMatch 404 ^/scripts/?$
+RedirectMatch 404 ^/images/?$
+RedirectMatch 404 ^/styles/?$
