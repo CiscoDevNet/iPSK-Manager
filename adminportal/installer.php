@@ -584,7 +584,7 @@ HTML;
 		</div>
 		<h1 class="h3 mt-2 mb-4 font-weight-normal">iPSK Manager Installer</h1>
 		<?php print $installerOutput;?>
-		<p class="mt-5 mb-0 text-muted">&copy; 2019 Cisco Systems, Inc.</p>
+		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2019 Cisco and/or its affiliates.</p>
 	</div>
   </body>
 </html>

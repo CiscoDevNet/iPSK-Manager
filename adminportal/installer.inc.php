@@ -407,7 +407,7 @@ SQL;
 	$sqlAlterTable[9] = "ALTER TABLE `portalPorts` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `portalPort` (`portalPort`)";
 	$sqlAlterTable[10] = "ALTER TABLE `settings` ADD PRIMARY KEY (`id`)";
 	$sqlAlterTable[11] = "ALTER TABLE `sites` ADD PRIMARY KEY (`id`)";
-	$sqlAlterTable[12] = "ALTER TABLE `logging` MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT";
+	$sqlAlterTable[12] = "ALTER TABLE `logging` ADD PRIMARY KEY (`id`);";
 	$sqlAlterTable[13] = "ALTER TABLE `sponsorGroupEPGMapping` ADD PRIMARY KEY (`id`), ADD KEY `portalId` (`sponsorGroupId`), ADD KEY `endpointGroupId` (`endpointGroupId`)";
 	$sqlAlterTable[14] = "ALTER TABLE `sponsorGroupInternalMapping` ADD PRIMARY KEY (`id`), ADD KEY `portalId` (`sponsorGroupId`), ADD KEY `endpointGroupId` (`internalGroupId`)";
 	$sqlAlterTable[15] = "ALTER TABLE `sponsorGroupPortalMapping` ADD PRIMARY KEY (`id`), ADD KEY `portalId` (`sponsorGroupId`), ADD KEY `endpointGroupId` (`sponsorPortalId`)";
@@ -440,7 +440,7 @@ SQL;
 	$sqlAlterTable[42] = "ALTER TABLE `unknownEndpoints` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT";
 	$sqlAlterTable[43] = "ALTER TABLE `userSidCache` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT";
 	$sqlAlterTable[44] = "ALTER TABLE `wirelessNetworks` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT";
-	$sqlAlterTable[45] = "ALTER TABLE `logging` ADD PRIMARY KEY (`id`);";
+	$sqlAlterTable[45] = "ALTER TABLE `logging` MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT";
 
 	//iPSK Manager - Table Contraints
 	$sqlConstraint[0] = "ALTER TABLE `endpointAssociations` ADD CONSTRAINT `endpointAssociations_ibfk_2` FOREIGN KEY (`epGroupId`) REFERENCES `endpointGroups` (`id`), ADD CONSTRAINT `endpointAssociations_ibfk_3` FOREIGN KEY (`endpointId`) REFERENCES `endpoints` (`id`)";
