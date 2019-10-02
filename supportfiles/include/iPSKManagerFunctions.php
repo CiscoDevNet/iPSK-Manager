@@ -71,10 +71,15 @@
 			return false;
 		}	
 	}
+	
+	function convertBinSID($binSid) {
+		//Break apart the byte stream
+		$stringSid = unpack('Crevision/x/nauthhigh/Nauthlow/V*', $binSid);
+		
+		//Rebuild in String Form
+		$secuirtyId = sprintf("S-%u-%d-%u-%u-%u-%u-%u", $stringSid['revision'], ($stringSid['authhigh'] << 32) + $stringSid['authlow'], $stringSid[1], $stringSid[2], $stringSid[3], $stringSid[4], $stringSid[5]);
 
-	function bin_to_str_sid($binsid) {
-
-		return "";
+		return $secuirtyId;
 	}
 
 	function generatePsk( $length = 8 ){

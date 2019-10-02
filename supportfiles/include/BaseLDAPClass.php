@@ -158,7 +158,7 @@
 						$_SESSION['fullName'] = (isset($entries[0]['name'][0])) ? $entries[0]['name'][0] : '';
 						$_SESSION['emailAddress'] = (isset($entries[0]['mail'][0])) ? $entries[0]['mail'][0] : '';
 						$_SESSION['logonUsername'] = $username;
-						$_SESSION['logonSID'] = bin_to_str_sid($entries[0]['objectsid'][0]);
+						$_SESSION['logonSID'] = convertBinSID($entries[0]['objectsid'][0]);
 						$_SESSION['logonDN'] = $userDN;
 						$_SESSION['logonDomain'] = $this->ldapDomain;
 						$_SESSION['authenticationGranted'] = true;
