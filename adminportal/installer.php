@@ -465,7 +465,7 @@ HTML;
 			Bail:
 			
 			if($_SESSION['installSuccess']){
-				$finalizeButton = '<input type="hidden" name="step" value="6"><input type="submit" id="btnFinalize" value="Finalize Installation" class="btn btn-primary shadow">';
+				$finalizeButton = '<input type="hidden" name="step" value="7"><input type="submit" id="btnFinalize" value="Finalize Installation" class="btn btn-primary shadow">';
 				$finalizeButtonScript = '$("#btnFinalize").click( function(event) {coaTimer = setInterval("redirectToAdminPortal()", 5000);});';
 				$finalErrorText = '<strong>Click Finalize Installation to finish the installation. <strong><br/> <p class="text-danger">Please Note: After you click finalize a file download will commence providing you with the Installation details and encryption key.</p>';
 			}else{
@@ -511,7 +511,7 @@ HTML;
 			</script>
 HTML;
 
-		}elseif($_POST['step'] == 6){
+		}elseif($_POST['step'] == 7){
 			if($_SESSION['installSuccess']){
 				header('Content-Description: File Transfer');
 				header('Content-Type: plain/text');
