@@ -76,11 +76,31 @@
 		while($row = $tcpPortListing->fetch_assoc()){
 			$portalSecure = ($row['portalSecure'] == 1) ? 'HTTPS' : 'HTTP';
 			
-			if($row['portalSecure'] == $portal['portalSecure'] && $row['portalPort'] == $portal['portalTcpPort']){
-				$pageTcpPortList .= '<option secured="'.$portalSecure.'" value="'.$row['id'].'" selected>'.$portalSecure." (".$row['portalPort'].')</option>';
+			$currentProtocol = (isset($_SERVER['HTTPS']) && 'on' == $_SERVER['HTTPS']) ? 'HTTPS' : 'HTTP';
+			
+			if($portalSecure == $currentProtocol){
+				if($_SERVER['SERVER_PORT'] != $row['portalPort']){
+					if($row['portalSecure'] == $portal['portalSecure'] && $row['portalPort'] == $portal['portalTcpPort']){
+						$pageTcpPortList .= '<option secured="'.$portalSecure.'" value="'.$row['id'].'" selected>'.$portalSecure." (".$row['portalPort'].')</option>';
+					}else{
+						$pageTcpPortList .= '<option secured="'.$portalSecure.'" value="'.$row['id'].'">'.$portalSecure." (".$row['portalPort'].')</option>';
+					}
+				}			
 			}else{
-				$pageTcpPortList .= '<option secured="'.$portalSecure.'" value="'.$row['id'].'">'.$portalSecure." (".$row['portalPort'].')</option>';
+				if($row['portalSecure'] == $portal['portalSecure'] && $row['portalPort'] == $portal['portalTcpPort']){
+					$pageTcpPortList .= '<option secured="'.$portalSecure.'" value="'.$row['id'].'" selected>'.$portalSecure." (".$row['portalPort'].')</option>';
+				}else{
+					$pageTcpPortList .= '<option secured="'.$portalSecure.'" value="'.$row['id'].'">'.$portalSecure." (".$row['portalPort'].')</option>';
+				}
 			}
+			
+			//Disabled displaying of Admin port to prevent accidental selection
+			//if($row['portalSecure'] == $portal['portalSecure'] && $row['portalPort'] == $portal['portalTcpPort']){
+			//	$pageTcpPortList .= '<option secured="'.$portalSecure.'" value="'.$row['id'].'" selected>'.$portalSecure." (".$row['portalPort'].')</option>';
+			//}else{
+			//	$pageTcpPortList .= '<option secured="'.$portalSecure.'" value="'.$row['id'].'">'.$portalSecure." (".$row['portalPort'].')</option>';
+			//}
+			
 		}
 	}
 	
