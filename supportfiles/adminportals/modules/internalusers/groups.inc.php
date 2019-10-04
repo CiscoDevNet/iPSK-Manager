@@ -65,7 +65,7 @@
 			<label class="font-weight-bold" for="groupName">Username:</label>
 			<div class="form-group input-group-sm font-weight-bold">
 				<input type="text" class="form-control shadow" id="userName" value="{$internalUser['userName']}" readonly>
-				<input type="hidden" validation-state="required" class="form-control shadow form-validation" id="userId" value="{$internalUser['id']}">
+				<input type="hidden" validation-state="notempty" class="form-control shadow form-validation" id="userId" value="{$internalUser['id']}">
 			</div>
 			<label class="font-weight-bold" for="availablegroups">Available Internal Groups:</label>
 			<div class="form-group input-group font-weight-bold">
@@ -86,7 +86,7 @@
 			<div class="row"></div>
 			<label class="font-weight-bold" for="memberof">Member Of:</label>
 			<div class="form-group input-group font-weight-bold">
-				<select class="form-control shadow form-validation" validation-state="minimum" id="memberof" multiple>
+				<select class="form-control shadow form-validation" validation-state="required" id="memberof" multiple>
 					$memberGroups	
 				</select>
 			</div>
