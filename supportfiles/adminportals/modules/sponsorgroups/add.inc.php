@@ -94,7 +94,7 @@ $htmlbody = <<<HTML
 						<div class="col">
 							<div class="form-group font-weight-bold">
 								<label class="font-weight-bold" for="authorizationGroups">Authorization Groups:</label>		
-								<select class="form-control shadow form-validation" validation-state="minimum" id="authorizationGroups" multiple>
+								<select class="form-control shadow form-validation" validation-state="required" id="authorizationGroups" multiple>
 									$authZGroups
 								</select>
 								<small id="authorizationGroupsBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
@@ -117,7 +117,7 @@ $htmlbody = <<<HTML
 						<div class="col">
 							<div class="form-group font-weight-bold">
 								<label class="font-weight-bold" for="endpointGroupMembers">Endpoint Group Members:</label>	
-								<select class="form-control shadow form-validation" validation-state="minimum" id="endpointGroupMembers" multiple>
+								<select class="form-control shadow form-validation" validation-state="required" id="endpointGroupMembers" multiple>
 									$endpointGroups
 								</select>
 								<small id="endpointGroupMembersBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
@@ -126,7 +126,7 @@ $htmlbody = <<<HTML
 						<div class="col">
 							<div class="form-group font-weight-bold">
 								<label class="font-weight-bold" for="wirelessNetworkMembers">Wireless Networks:</label>
-								<select class="form-control shadow form-validation" validation-state="minimum" id="wirelessNetworkMembers" multiple>
+								<select class="form-control shadow form-validation" validation-state="required" id="wirelessNetworkMembers" multiple>
 									$wirelessNetworks
 								</select>
 								<small id="wirelessNetworkMembersBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
