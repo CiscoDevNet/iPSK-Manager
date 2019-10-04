@@ -118,7 +118,7 @@ $htmlbody = <<<HTML
 				</div>
 				<div class="form-group input-group-sm font-weight-bold">
 					<label class="font-weight-bold" for="portalType">Portal Type:</label>
-					<select class="form-control shadow form-validation" validation-state="minimum" id="portalType">
+					<select class="form-control shadow form-validation" validation-state="required" id="portalType">
 						$portalTypes
 					</select>
 					<small id="endpointGroupMembersBlock" class="form-text text-muted">Select the Portal Type you wish to create</small>
@@ -143,14 +143,14 @@ $htmlbody = <<<HTML
 				</div>
 				<div class="form-group input-group-sm font-weight-bold">
 					<label class="font-weight-bold" for="authDirectory">Authentication Directory:</label>
-					<select class="form-control shadow form-validation" validation-state="minimum" id="authDirectory">
+					<select class="form-control shadow form-validation" validation-state="required" id="authDirectory">
 						<option value="0">Internal</option>
 						$ldapDirectoryList
 					</select>
 				</div>
 				<div class="form-group font-weight-bold">
 					<label class="font-weight-bold" for="sponsorGroups">Sponsor Group Members:</label>	
-					<select class="form-control shadow form-validation" validation-state="minimum" id="sponsorGroups" multiple>
+					<select class="form-control shadow form-validation" validation-state="required" id="sponsorGroups" multiple>
 						$sponsorGroups
 					</select>
 					<small id="endpointGroupMembersBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
