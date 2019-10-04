@@ -39,7 +39,7 @@
 					}
 				}else{
 					$randomPassword = $endpointGroupAuthorization['ciscoAVPairPSK'];
-					$randomPSK = "psk=".$userPsk;
+					$randomPSK = "psk=".$randomPassword;
 				}
 				
 				if($endpointGroupAuthorization['termLengthSeconds'] == 0){
