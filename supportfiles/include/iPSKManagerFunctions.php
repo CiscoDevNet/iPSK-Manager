@@ -91,7 +91,7 @@
 		$generatedPsk = "";
 		//Loop through and select random characters from the alphabet
 		for($char = 0; $char < $length; $char++){
-			$generatedPsk .= substr($alphabet, random_int(0,strlen($alphabet)),1);
+			$generatedPsk .= substr($alphabet, random_int(0,strlen($alphabet)) - 1, 1);
 		}
 
 		return $generatedPsk;
