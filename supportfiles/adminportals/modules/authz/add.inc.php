@@ -74,8 +74,8 @@ $htmlbody = <<<HTML
 		</div>
 		<label class="font-weight-bold" for="pskLength">Pre-Shared Key Length:</label>
 		<div class="form-group input-group-sm font-weight-bold">
-			<input type="text" class="form-control shadow form-validation" validation-state="required" id="pskLength" value="8">
-			<div class="invalid-feedback">Please enter a PSK length greater than 8 and less than 64</div>
+			<input type="text" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="1" validation-maximum-length="2" id="pskLength" value="8">
+			<div class="invalid-feedback">Please enter a PSK length between 8 and 64</div>
 		</div>
 		<div class="form-group input-group-sm font-weight-bold">
 			<label class="font-weight-bold" for="keyType">Pre-Shared Key Type:</label>
@@ -89,11 +89,11 @@ $htmlbody = <<<HTML
 			<div class="input-group-prepend shadow">
 				<span class="input-group-text font-weight-bold" id="basic-addon1">ASCII</span>
 			</div>
-			<input type="text" id="ciscoAVPairPSK" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="8" validation-maximum-length="64" value="" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true">
+			<input type="text" id="ciscoAVPairPSK" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="8" validation-maximum-length="64" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true">
 			<div class="input-group-append shadow">
 				<span class="input-group-text font-weight-bold" id="basic-addon1"><a id="generatepassword" data-command="generate" data-set="psk" href="#"><span id="passwordfeather" data-feather="shuffle"></span></a></span>
 			</div>
-			<div class="invalid-feedback">Please enter a Valid Pre-Shared Key (Minimum length of 8 characters)</div>
+			<div class="invalid-feedback">Please enter a Valid Pre-Shared Key (Key Length must be betwee 8-64 Characters Long)</div>
 		</div>
 		<div class="form-group input-group-sm font-weight-bold">
 			<label class="font-weight-bold" for="pskType">Random iPSK Type:</label>
@@ -125,6 +125,7 @@ $htmlbody = <<<HTML
 		if($("#ciscoAVPairPSK").val() == "Random"){
 			$("#ciscoAVPairPSK").val('');
 			$("#ciscoAVPairPSK").removeAttr('readonly');
+			$("#ciscoAVPairPSK").attr('validation-state', 'required');
 			$("#pskType").attr('disabled','true');
 			$("#pskMode").val('0');
 			$("#passwordfeather").attr('data-feather','shuffle');
@@ -132,6 +133,7 @@ $htmlbody = <<<HTML
 		}else if($("#ciscoAVPairPSK").val() != "Random"){
 			$("#ciscoAVPairPSK").val('Random');
 			$("#ciscoAVPairPSK").attr('readonly', 'readonly');
+			$("#ciscoAVPairPSK").attr('validation-state', 'special');
 			$("#pskType").removeAttr('disabled');
 			$("#pskMode").val('1');
 			$("#passwordfeather").attr('data-feather','slash');
