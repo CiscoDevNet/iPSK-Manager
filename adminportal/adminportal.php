@@ -133,6 +133,30 @@ HTML;
 					
 					print "Error Loading Menu";
 				}
+				
+				if(file_exists("../supportfiles/adminportals/modules/additionalmenus.json")){
+					
+					$fileContents = file_get_contents("../supportfiles/adminportals/modules/additionalmenus.json");
+					
+					$adminMenu = json_decode($fileContents,TRUE);
+					
+					if($adminMenu){
+						$itemCount = (isset($adminMenu['menuItems'])) ? $adminMenu['menuItems'] : 0;
+						$menuEnabled = (isset($adminMenu['menuEnabled'])) ? $adminMenu['menuEnabled'] : false;
+						
+						if($itemCount > 0 && $menuEnabled){
+							print '<hr class="m-0">';
+							
+							for($menuRow = 0; $menuRow < $adminMenu['menuItems']; $menuRow++) {
+								print "<li class=\"nav-item\">\n";
+								print "<a id=\"".$adminMenu[$menuRow]['id']."\" module=\"".$adminMenu[$menuRow]['module']."\" class=\"sideNav nav-link\" href=\"#\">\n";
+								print "<span data-feather=\"".$adminMenu[$menuRow]['data-feather']."\"></span>".$adminMenu[$menuRow]['menuText']."\n";
+								print "</a>\n";
+								print "</li>\n";
+							}
+						}
+					}
+				}
 ?>
 					</ul>
 				</div>
