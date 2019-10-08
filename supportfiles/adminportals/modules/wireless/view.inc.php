@@ -26,11 +26,13 @@
 
 		$wirelessNetwork = $ipskISEDB->getWirelessNetworkById($id);
 
-		$wirelessNetwork['createdBy'] = $ipskISEDB->getUserPrincipalNameFromCache($wirelessNetwork['createdBy']);
+		if($wirelessNetwork){
+			
+			$wirelessNetwork['createdBy'] = $ipskISEDB->getUserPrincipalNameFromCache($wirelessNetwork['createdBy']);
 
-		$wirelessNetwork['createdDate'] = date($globalDateOutputFormat, strtotime($wirelessNetwork['createdDate']));
+			$wirelessNetwork['createdDate'] = date($globalDateOutputFormat, strtotime($wirelessNetwork['createdDate']));
 	
-$htmlbody = <<<HTML
+			$htmlbody = <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="viewepggroup" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
@@ -85,7 +87,10 @@ $htmlbody = <<<HTML
 	});
 </script>
 HTML;
-
+		}else{
+			$htmlbody = "";
+		}
+		
 		print $htmlbody;
 	}
 ?>
