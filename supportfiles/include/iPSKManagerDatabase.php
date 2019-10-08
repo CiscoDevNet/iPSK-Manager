@@ -1540,6 +1540,39 @@
 				return false;
 			}
 		}
+
+		function getLogging($minute = 600){
+			$query = "SELECT `id`, `dateCreated`, `sessionID`, `fileName`, `functionName`, `className`, `classMethodName`, `lineNumber`, `message` FROM `logging` WHERE `dateCreated` BETWEEN DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL $minute MINUTE) AND CURRENT_TIMESTAMP() ORDER BY `dateCreated` DESC";
+			
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				if($queryResult->num_rows > 0){
+					return $queryResult;
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}
+		
+		function getLoggingById($id){
+			$query = "SELECT * FROM `logging` WHERE `id`='$id' LIMIT 1";
+			
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				if($queryResult->num_rows > 0){
+					$resultRow = $queryResult->fetch_assoc();
+					return $resultRow;
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}
 		
 		function getWirelessNetworkById($wirelessId){
 			$query = "SELECT * FROM wirelessNetworks WHERE id = $wirelessId LIMIT 1";
