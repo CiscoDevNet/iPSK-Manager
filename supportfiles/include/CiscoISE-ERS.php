@@ -91,8 +91,22 @@
 			$apiSession = $this->restCall($uriPath, "GET", $headerArray, true);
 			
 			if($apiSession["http_code"] == 200){
+				if($this->iPSKManagerClass){
+					//LOG::Entry
+					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+					$logMessage = "API-REQUEST:SUCCESS[authz_profile_found];";
+					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+				}
+				
 				return true;
 			}elseif($apiSession["http_code"] == 404){
+				if($this->iPSKManagerClass){
+					//LOG::Entry
+					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+					$logMessage = "API-REQUEST:FAILURE[failure_to_create_authz_profile];";
+					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+				}
+				
 				return false;
 			}
 			
