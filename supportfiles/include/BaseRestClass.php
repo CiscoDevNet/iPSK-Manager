@@ -33,7 +33,7 @@
 		private $restUsername;
 		private $restPassword;
 		private $restSSLVerifyPeer = true;
-		private $iPSKManagerClass;
+		protected $iPSKManagerClass;
 		
 		function __construct($hostname = null, $username = null, $password = null, $sslVerifypeer = true, $ipskManagerClass = false) {		
 			$this->restHost = $hostname;
