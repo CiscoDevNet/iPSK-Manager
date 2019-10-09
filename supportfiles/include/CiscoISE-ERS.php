@@ -196,7 +196,7 @@
 				}else{
 					if($this->iPSKManagerClass){
 						//LOG::Entry
-						$logData = $this->iPSKManagerClass->generateLogData(Array("authzProfileArray"=>$authzProfileArray), Array("authzJsonData"=>$authzJsonData)));
+						$logData = $this->iPSKManagerClass->generateLogData(Array("authzProfileArray"=>$authzProfileArray), Array("authzJsonData"=>$authzJsonData));
 						$logMessage = "API-REQUEST:FAILURE[failure_to_create_authz_profile];";
 						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					}
@@ -206,7 +206,7 @@
 			}else{
 				if($this->iPSKManagerClass){
 					//LOG::Entry
-					$logData = $this->iPSKManagerClass->generateLogData(Array("authzProfileArray"=>$authzProfileArray), Array("authzJsonData"=>$authzJsonData)));
+					$logData = $this->iPSKManagerClass->generateLogData(Array("authzProfileArray"=>$authzProfileArray), Array("authzJsonData"=>$authzJsonData));
 					$logMessage = "API-REQUEST:FAILURE[authz_profile_already_exists];";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
