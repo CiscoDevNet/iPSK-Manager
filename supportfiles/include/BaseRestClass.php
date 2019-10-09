@@ -113,7 +113,7 @@
 				curl_setopt($curlCall, CURLOPT_SSL_VERIFYPEER, $this->restSSLVerifyPeer );
 				
 				//Set the SSL status verification in the CURL object
-				curl_setopt($curlCall, CURLOPT_SSL_VERIFYSTATUS, $this->restSSLVerifyPeer );
+				//curl_setopt($curlCall, CURLOPT_SSL_VERIFYSTATUS, $this->restSSLVerifyPeer );
 				
 				//Set the Headers for the request in the CURL object
 				curl_setopt($curlCall, CURLOPT_HTTPHEADER, $restCallHeader);
@@ -154,6 +154,16 @@
 				
 				//Execute the Request and return the data response from the HTTP(s) server 
 				$responseOutput = curl_exec($curlCall);
+				
+				if($responseOutput === false){
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$curlerror = curl_error($curlCall);
+						$logData = $this->iPSKManagerClass->generateLogData(Array("curl_error"=>$curlerror));
+						$logMessage = "EXCEPTION:CAUGHT;EXCEPTION-ERROR:;";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+				}
 				
 				//extract the CURL response parameters
 				$responseArray = curl_getinfo($curlCall);

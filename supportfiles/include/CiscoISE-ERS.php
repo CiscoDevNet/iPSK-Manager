@@ -112,7 +112,7 @@
 				if($this->iPSKManagerClass){
 					//LOG::Entry
 					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
-					$logMessage = "API-REQUEST:FAILURE[ise_authz_profile_not_found];";
+					$logMessage = "API-REQUEST:FAILURE[ise_authz_profile_other_error];";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
 				
