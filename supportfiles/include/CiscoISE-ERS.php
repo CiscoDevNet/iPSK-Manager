@@ -107,8 +107,22 @@
 			$apiSession = $this->restCall($uriPath, "GET", $headerArray, true);
 			
 			if($apiSession["http_code"] == 200){
+				if($this->iPSKManagerClass){
+					//LOG::Entry
+					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+					$logMessage = "API-REQUEST:SUCCESS[authz_profile_found];";
+					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+				}
+				
 				return $apiSession["body"];
 			}elseif($apiSession["http_code"] == 404){
+				if($this->iPSKManagerClass){
+					//LOG::Entry
+					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+					$logMessage = "API-REQUEST:FAILURE[failure_to_create_authz_profile];";
+					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+				}
+				
 				return false;
 			}
 			
@@ -125,6 +139,13 @@
 			if($apiSession["http_code"] == 201){
 				return true;
 			}else{
+				if($this->iPSKManagerClass){
+					//LOG::Entry
+					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+					$logMessage = "API-REQUEST:FAILURE[create_auth_profile_failure];";
+					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+				}
+				
 				return false;
 			}
 			
@@ -141,6 +162,13 @@
 			if($apiSession["http_code"] == 200){
 				return true;
 			}else{
+				if($this->iPSKManagerClass){
+					//LOG::Entry
+					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+					$logMessage = "API-REQUEST:FAILURE[failure_to_update_endpoint_by_id];";
+					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+				}
+				
 				return false;
 			}
 		}
@@ -166,9 +194,23 @@
 				if($this->createAuthorizationProfile($authzJsonData)){
 					return true;
 				}else{
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("authzProfileArray"=>$authzProfileArray), Array("authzJsonData"=>$authzJsonData)));
+						$logMessage = "API-REQUEST:FAILURE[failure_to_create_authz_profile];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
 					return false;
 				}	
 			}else{
+				if($this->iPSKManagerClass){
+					//LOG::Entry
+					$logData = $this->iPSKManagerClass->generateLogData(Array("authzProfileArray"=>$authzProfileArray), Array("authzJsonData"=>$authzJsonData)));
+					$logMessage = "API-REQUEST:FAILURE[authz_profile_already_exists];";
+					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+				}
+				
 				return false;
 			}
 			
