@@ -109,8 +109,11 @@
 				//Set the request URL in the CURL object
 				curl_setopt($curlCall, CURLOPT_URL, $requestURL);
 				
-				//Set the SSL verification in the CURL object
+				//Set the SSL peer verification in the CURL object
 				curl_setopt($curlCall, CURLOPT_SSL_VERIFYPEER, $this->restSSLVerifyPeer );
+				
+				//Set the SSL status verification in the CURL object
+				curl_setopt($curlCall, CURLOPT_SSL_VERIFYSTATUS, $this->restSSLVerifyPeer );
 				
 				//Set the Headers for the request in the CURL object
 				curl_setopt($curlCall, CURLOPT_HTTPHEADER, $restCallHeader);
@@ -157,6 +160,7 @@
 				
 				//Close the CURL Object
 				curl_close ($curlCall);
+				
 			} catch (Exception $e) {
 				//Copy Trace Variables to new Variable
 				$exceptionData = $e->getTrace();

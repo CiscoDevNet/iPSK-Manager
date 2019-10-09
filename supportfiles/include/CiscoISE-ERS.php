@@ -94,7 +94,7 @@
 				if($this->iPSKManagerClass){
 					//LOG::Entry
 					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
-					$logMessage = "API-REQUEST:SUCCESS[authz_profile_found];";
+					$logMessage = "API-REQUEST:SUCCESS[ise_authz_profile_found];";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
 				
@@ -103,7 +103,7 @@
 				if($this->iPSKManagerClass){
 					//LOG::Entry
 					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
-					$logMessage = "API-REQUEST:FAILURE[failure_to_create_authz_profile];";
+					$logMessage = "API-REQUEST:FAILURE[ise_authz_profile_not_found];";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
 				
@@ -124,7 +124,7 @@
 				if($this->iPSKManagerClass){
 					//LOG::Entry
 					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
-					$logMessage = "API-REQUEST:SUCCESS[authz_profile_found];";
+					$logMessage = "API-REQUEST:SUCCESS[ise_authz_profile_found];";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
 				
@@ -133,7 +133,7 @@
 				if($this->iPSKManagerClass){
 					//LOG::Entry
 					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
-					$logMessage = "API-REQUEST:FAILURE[failure_to_create_authz_profile];";
+					$logMessage = "API-REQUEST:FAILURE[failure_to_create_ise_authz_profile];";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
 				
@@ -156,7 +156,7 @@
 				if($this->iPSKManagerClass){
 					//LOG::Entry
 					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
-					$logMessage = "API-REQUEST:FAILURE[create_auth_profile_failure];";
+					$logMessage = "API-REQUEST:FAILURE[create_ise_authz_profile_failure];";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
 				
@@ -179,7 +179,7 @@
 				if($this->iPSKManagerClass){
 					//LOG::Entry
 					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
-					$logMessage = "API-REQUEST:FAILURE[failure_to_update_endpoint_by_id];";
+					$logMessage = "API-REQUEST:FAILURE[failure_to_update_ise_endpoint_by_id];";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
 				
@@ -211,7 +211,7 @@
 					if($this->iPSKManagerClass){
 						//LOG::Entry
 						$logData = $this->iPSKManagerClass->generateLogData(Array("authzProfileArray"=>$authzProfileArray), Array("authzJsonData"=>$authzJsonData));
-						$logMessage = "API-REQUEST:FAILURE[failure_to_create_authz_profile];";
+						$logMessage = "API-REQUEST:FAILURE[failure_to_create_ise_authz_profile];";
 						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					}
 					
@@ -221,7 +221,7 @@
 				if($this->iPSKManagerClass){
 					//LOG::Entry
 					$logData = $this->iPSKManagerClass->generateLogData(Array("authzProfileArray"=>$authzProfileArray), Array("authzJsonData"=>$authzJsonData));
-					$logMessage = "API-REQUEST:FAILURE[authz_profile_already_exists];";
+					$logMessage = "API-REQUEST:FAILURE[authz_profile_ise_already_exists];";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
 				
