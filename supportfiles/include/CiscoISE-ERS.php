@@ -108,8 +108,16 @@
 				}
 				
 				return false;
+			}else{
+				if($this->iPSKManagerClass){
+					//LOG::Entry
+					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+					$logMessage = "API-REQUEST:FAILURE[ise_authz_profile_not_found];";
+					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+				}
+				
+				return false;
 			}
-			
 		}
 		
 		function getAuthorizationProfile($name){
@@ -134,6 +142,15 @@
 					//LOG::Entry
 					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
 					$logMessage = "API-REQUEST:FAILURE[failure_to_create_ise_authz_profile];";
+					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+				}
+				
+				return false;
+			}else{
+				if($this->iPSKManagerClass){
+					//LOG::Entry
+					$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+					$logMessage = "API-REQUEST:FAILURE[ise_authz_profile_not_found];";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
 				
