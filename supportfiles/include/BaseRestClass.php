@@ -113,7 +113,7 @@
 				curl_setopt($curlCall, CURLOPT_SSL_VERIFYPEER, $this->restSSLVerifyPeer );
 				
 				//Set the SSL status verification in the CURL object
-				//curl_setopt($curlCall, CURLOPT_SSL_VERIFYSTATUS, $this->restSSLVerifyPeer );
+				curl_setopt($curlCall, CURLOPT_SSL_VERIFYSTATUS, $this->restSSLVerifyPeer );
 				
 				//Set the Headers for the request in the CURL object
 				curl_setopt($curlCall, CURLOPT_HTTPHEADER, $restCallHeader);
