@@ -160,7 +160,7 @@
 						//LOG::Entry
 						$curlerror = curl_error($curlCall);
 						$logData = $this->iPSKManagerClass->generateLogData(Array("curl_error"=>$curlerror));
-						$logMessage = "EXCEPTION:CAUGHT;EXCEPTION-ERROR:;";
+						$logMessage = "EXCEPTION:CAUGHT;CURL-EXCEPTION:;CURL-ERROR-MESSAGE:".$curlerror.";";
 						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					}
 				}
@@ -187,7 +187,7 @@
 				if($this->iPSKManagerClass){
 					//LOG::Entry
 					$logData = $this->iPSKManagerClass->generateLogData(Array("exceptionData"=>$traceOutput), Array("restURLPath"=>$restURLPath), Array("restMethod"=>$restMethod), Array("restCallHeader"=>$restCallHeader), Array("basicAuth"=>$basicAuth));
-					$logMessage = "EXCEPTION:CAUGHT;EXCEPTION-ERROR:[".$e->getCode()."}];EXCEPTION-MESSAGE:".$e->getMessage().";HOSTNAME:".$_SERVER['SERVER_NAME'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";";
+					$logMessage = "EXCEPTION:CAUGHT;CURL-EXCEPTION:;EXCEPTION-ERROR:[".$e->getCode()."}];EXCEPTION-MESSAGE:".$e->getMessage().";HOSTNAME:".$_SERVER['SERVER_NAME'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";";
 					$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}
 				
