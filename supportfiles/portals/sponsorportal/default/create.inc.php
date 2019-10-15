@@ -81,7 +81,7 @@
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
 				if($ipskISEDB->emailEndpointGroup($sanitizedInput['associationGroup'])){
-					sendEmail($sanitizedInput['emailAddress'],"iPSK Wi-Fi Credentials","You have been successfully setup to connect to the Wi-Fi Network, please use the following SSID & Passcode:<br>SSID: <br>Password: ".$randomPassword."<br><br><br>Thank you!",$smtpSettings);
+					sendEmail($sanitizedInput['emailAddress'],"iPSK Wi-Fi Credentials","You have been successfully setup to connect to the Wi-Fi Network, please use the following Passcode:".$randomPassword."\n\nThank you!",$smtpSettings);
 				}
 				$pageData['createComplete'] .= "<h3>The Endpoint Association has successfully completed.</h3><h6>The uniquely generated Pre-Shared Key for the end point is:</h6>";
 			}else{
