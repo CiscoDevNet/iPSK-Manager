@@ -20,7 +20,7 @@
 	
 
 	
-$htmlbody = <<<HTML
+	$htmlbody = <<<HTML
 <script>
 		$.ajax({
 			url: "ajax/getmodule.php",
@@ -43,33 +43,34 @@ $htmlbody = <<<HTML
 </script>
 HTML;
 
-$failure = false;
+	$failure = false;
 
-if($sanitizedInput['authzPolicyName'] != "" && $sanitizedInput['termLengthSeconds'] < 157680000 && $sanitizedInput['ciscoAVPairPSK'] != ""){
-	if(isset($sanitizedInput['pskLength'])){
-		$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] == 0) ? 8 : $sanitizedInput['pskLength'];
-		$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] < 8) ? 8 : $sanitizedInput['pskLength'];
-		$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] > 64) ? 64 : $sanitizedInput['pskLength'];
-	}
-	
-	if($sanitizedInput['pskMode'] == 0){
-		if(strlen($sanitizedInput['ciscoAVPairPSK']) > 7){
-			$psk = $sanitizedInput['ciscoAVPairPSK'];
-		}else{
-			$failure = true;
+	if($sanitizedInput['authzPolicyName'] != "" && $sanitizedInput['termLengthSeconds'] < 157680000 && $sanitizedInput['ciscoAVPairPSK'] != ""){
+		if(isset($sanitizedInput['pskLength'])){
+			$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] == 0) ? 8 : $sanitizedInput['pskLength'];
+			$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] < 8) ? 8 : $sanitizedInput['pskLength'];
+			$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] > 64) ? 64 : $sanitizedInput['pskLength'];
 		}
-	}else{
-		if($sanitizedInput['pskType'] == 0){
-			$psk = "*devicerandom*";
+		
+		if($sanitizedInput['pskMode'] == 0){
+			if(strlen($sanitizedInput['ciscoAVPairPSK']) > 7){
+				$psk = $sanitizedInput['ciscoAVPairPSK'];
+			}else{
+				$failure = true;
+			}
 		}else{
-			$psk = "*userrandom*";
+			if($sanitizedInput['pskType'] == 0){
+				$psk = "*devicerandom*";
+			}else{
+				$psk = "*userrandom*";
+			}
+		}
+		
+		if(!$failure){
+			$ipskISEDB->updateAuthorizationTemplate($sanitizedInput['id'], $sanitizedInput['authzPolicyName'], $sanitizedInput['authzPolicyDescription'], $psk, $sanitizedInput['termLengthSeconds'], $sanitizedInput['pskLength'], $_SESSION['logonSID']);
 		}
 	}
-}
 
-if(!$failure){
-	$ipskISEDB->updateAuthorizationTemplate($sanitizedInput['id'], $sanitizedInput['authzPolicyName'], $sanitizedInput['authzPolicyDescription'], $psk, $sanitizedInput['termLengthSeconds'], $sanitizedInput['pskLength'], $_SESSION['logonSID']);
 	print $htmlbody;
-}
 
 ?>
