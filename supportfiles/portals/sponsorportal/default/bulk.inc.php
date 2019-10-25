@@ -286,7 +286,7 @@
 		if(failure){
 			return false;
 		}
-		
+		$(this).prop("disabled", true);
 		$("#bulkAssociationform").submit();
 	});
 	
@@ -316,10 +316,6 @@
 			}
 		});
 		
-		event.preventDefault();
-	});
-	
-	$("#submitbtn").click(function(event) {
 		event.preventDefault();
 	});
 	
