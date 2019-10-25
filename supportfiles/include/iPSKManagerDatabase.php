@@ -966,7 +966,7 @@
 							$queryData[$listCount]['groupDn'] = $row['groupDn'];
 							$queryData[$listCount]['viewPermissions'] = $row['groupPermissions'] & 15;
 							$queryData[$listCount]['advancedPermissions'] = $row['groupPermissions'] & 2032;
-							$queryData[$listCount]['groupPermissions'] = $row['groupPermissions'] & 2047;				
+							$queryData[$listCount]['groupPermissions'] = $row['groupPermissions'] & 4095;				
 							$queryData[$listCount]['termLengthSeconds'] = $row['termLengthSeconds'];
 							$queryData[$listCount]['ciscoAVPairPSK'] = $row['ciscoAVPairPSK'];
 							
@@ -1003,6 +1003,36 @@
 			}
 		}
 
+		function getEndpointsByAuthZPolicy($id){
+			$query = "SELECT endpoints.id, endpoints.macAddress, endpointGroups.authzTemplateId FROM `endpoints` INNER JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id WHERE endpointGroups.authzTemplateId = '$id'";
+			
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				if($queryResult->num_rows > 0){
+					$endpointList['count'] = 0;
+					$itemCount = 0;
+					
+					while($row = $queryResult->fetch_assoc()){
+						$endpointList[$itemCount]['id'] = $row['id'];
+						$endpointList[$itemCount]['macAddress'] = $row['macAddress'];
+						$endpointList[$itemCount]['authzTemplateId '] = $row['authzTemplateId'];
+						
+						$itemCount++;
+					}
+					
+					$endpointList['count'] = $itemCount;
+					
+					return $endpointList;
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+				
+		}
+		
 		function getEndPointAssociations(){
 			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpointGroups.groupName as epGroupName, endpoints.accountEnabled, endpoints.expirationDate, endpointAssociations.createdDate FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId";
 			
@@ -1051,7 +1081,7 @@
 							if(isset($associationSeen[$row['macAddress']])){
 								$rawAssociationList[$row['macAddress']]['viewPermissions'] = $rawAssociationList[$row['macAddress']]['viewPermissions'] | ($row['groupPermissions'] & 15);
 								$rawAssociationList[$row['macAddress']]['advancedPermissions'] = $rawAssociationList[$row['macAddress']]['advancedPermissions'] | ($row['groupPermissions'] & 2032);
-								$rawAssociationList[$row['macAddress']]['groupPermissions'] = $rawAssociationList[$row['macAddress']]['groupPermissions'] | ($row['groupPermissions'] & 2047);
+								$rawAssociationList[$row['macAddress']]['groupPermissions'] = $rawAssociationList[$row['macAddress']]['groupPermissions'] | ($row['groupPermissions'] & 4095);
 							}else{
 								$rawAssociationList[$row['macAddress']]['id'] = $row['id'];
 								$rawAssociationList[$row['macAddress']]['endpointId'] = $row['endpointId'];
@@ -1068,7 +1098,7 @@
 								$rawAssociationList[$row['macAddress']]['createdDate'] = $row['createdDate'];
 								$rawAssociationList[$row['macAddress']]['viewPermissions'] = $row['groupPermissions'] & 15;
 								$rawAssociationList[$row['macAddress']]['advancedPermissions'] = $row['groupPermissions'] & 2032;
-								$rawAssociationList[$row['macAddress']]['groupPermissions'] = $row['groupPermissions'] & 2047;
+								$rawAssociationList[$row['macAddress']]['groupPermissions'] = $row['groupPermissions'] & 4095;
 								$rawAssociationList[$row['macAddress']]['groupName'] = $row['groupName'];
 								$associationSeen[$row['macAddress']] = true;
 							}
@@ -1092,7 +1122,7 @@
 							$mergedAssociationList[$listCount]['createdDate'] = $endPoint['createdDate'];
 							$mergedAssociationList[$listCount]['viewPermissions'] = $endPoint['groupPermissions'] & 15;
 							$mergedAssociationList[$listCount]['advancedPermissions'] = $endPoint['groupPermissions'] & 2032;
-							$mergedAssociationList[$listCount]['groupPermissions'] = $endPoint['groupPermissions'] & 2047;
+							$mergedAssociationList[$listCount]['groupPermissions'] = $endPoint['groupPermissions'] & 4095;
 							$mergedAssociationList[$listCount]['groupName'] = $endPoint['groupName'];
 							
 							$listCount++;
@@ -1134,14 +1164,14 @@
 							if(isset($associationSeen[$row['macAddress']])){
 								$rawEndpointList[$row['macAddress']]['viewPermissions'] =$rawEndpointList[$row['macAddress']]['viewPermissions'] | ($row['groupPermissions'] & 15);
 								$rawEndpointList[$row['macAddress']]['advancedPermissions'] = $rawEndpointList[$row['macAddress']]['advancedPermissions'] | ($row['groupPermissions'] & 2032);
-								$rawEndpointList[$row['macAddress']]['groupPermissions'] = $rawEndpointList[$row['macAddress']]['groupPermissions'] | ($row['groupPermissions'] & 2047);
+								$rawEndpointList[$row['macAddress']]['groupPermissions'] = $rawEndpointList[$row['macAddress']]['groupPermissions'] | ($row['groupPermissions'] & 4095);
 							}else{
 								$rawEndpointList[$row['macAddress']]['id'] = $row['id'];
 								$rawEndpointList[$row['macAddress']]['endpointId'] = $row['endpointId'];
 								$rawEndpointList[$row['macAddress']]['macAddress'] = $row['macAddress'];
 								$rawEndpointList[$row['macAddress']]['viewPermissions'] = $row['groupPermissions'] & 15;
 								$rawEndpointList[$row['macAddress']]['advancedPermissions'] = $row['groupPermissions'] & 2032;
-								$rawEndpointList[$row['macAddress']]['groupPermissions'] = $row['groupPermissions'] & 2047;
+								$rawEndpointList[$row['macAddress']]['groupPermissions'] = $row['groupPermissions'] & 4095;
 								$associationSeen[$row['macAddress']] = true;
 							}
 						}
@@ -1154,7 +1184,7 @@
 							$mergedEndpointList[$listCount]['macAddress'] = $endPoint['macAddress'];
 							$mergedEndpointList[$listCount]['viewPermissions'] = $endPoint['groupPermissions'] & 15;
 							$mergedEndpointList[$listCount]['advancedPermissions'] = $endPoint['groupPermissions'] & 2032;
-							$mergedEndpointList[$listCount]['groupPermissions'] = $endPoint['groupPermissions'] & 2047;
+							$mergedEndpointList[$listCount]['groupPermissions'] = $endPoint['groupPermissions'] & 4095;
 
 							$listCount++;
 						}
@@ -1174,7 +1204,7 @@
 		}
 		
 		function getEndPointAssociationById($endpointGroupId){
-			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpointGroups.id as epGroupId, endpointGroups.groupName as epGroupName, endpoints.macAddress, endpoints.expirationDate, endpoints.accountExpired, endpoints.accountEnabled, endpoints.fullName, endpoints.description, endpoints.pskValue, endpoints.lastAccessed, endpoints.emailAddress, endpointAssociations.createdDate FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId WHERE endpointAssociations.id = '$endpointGroupId' LIMIT 1";
+			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.createdDate as epCreatedDate, endpointGroups.id as epGroupId, endpointGroups.groupName as epGroupName, endpoints.macAddress, endpoints.expirationDate, endpoints.accountExpired, endpoints.accountEnabled, endpoints.fullName, endpoints.description, endpoints.pskValue, endpoints.lastAccessed, endpoints.emailAddress, endpointAssociations.createdDate FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId WHERE endpointAssociations.id = '$endpointGroupId' LIMIT 1";
 			
 			$queryResult = $this->dbConnection->query($query);
 			
@@ -1619,6 +1649,130 @@
 				}else{
 					return false;
 				}
+			}
+		}
+		
+		function addBulkEndpoints($macAddress, $fullName, $description, $email, $psk, $expirationDate, $createdBy){
+			
+			if(is_array($macAddress)){
+				$searchMacAddress = "";
+				
+				foreach($macAddress as $entry){
+					$searchMacAddress .= "'".$entry."',";
+				}
+					
+				$searchMacAddress = substr($searchMacAddress, 0, -1);
+				
+				$endpointQuery = sprintf("SELECT id, macAddress FROM `endpoints` WHERE `macAddress` IN (%s)", $searchMacAddress);
+				
+				$endpointQueryResult = $this->dbConnection->query($endpointQuery);
+								
+				if($endpointQueryResult->num_rows < 1){
+					$insertMacAddress = "";
+					
+					foreach($macAddress as $entry => $key){
+						$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+					}
+					
+					$insertMacAddress = substr($insertMacAddress, 0, -1);
+					
+					$bulkQuery = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `expirationDate`, `createdBy`) VALUES%s", $insertMacAddress);
+					
+					$bulkQueryResult = $this->dbConnection->query($bulkQuery);
+					
+					if($bulkQueryResult){
+						return $this->dbConnection->insert_id;
+					}else{
+						return false;
+					}
+				}else{
+					$insertMacAddress = "";
+					$macAddressAdd['count'] = 0;
+					$macAddressAdd['skipped'] = 0;
+					$macAddressAdd['processed'] = 0;
+					$count = 0;
+					
+					while($row = $endpointQueryResult->fetch_assoc()){						
+						foreach($macAddress as $entry => $key){
+							if(strtoupper($row['macAddress']) == strtoupper($key)){
+								$macAddressAdd[$count]['macAddress'] = $key;
+								$macAddressAdd[$count]['exists'] = true;
+								$count++;
+								
+								unset($macAddress[$entry]);
+							}
+						}
+					}
+					
+					$macAddressAdd['count'] = $count;
+					$macAddressAdd['skipped'] = $count;
+					
+					if(count($macAddress) > 0){
+						foreach($macAddress as $entry => $key){
+							$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+						}
+						
+						$insertMacAddress = substr($insertMacAddress, 0, -1);
+						
+						$bulkQuery = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `expirationDate`, `createdBy`) VALUES%s", $insertMacAddress);
+						
+						$bulkQueryResult = $this->dbConnection->query($bulkQuery);
+						
+						if($bulkQueryResult){
+							$startInsertId = $this->dbConnection->insert_id;
+							$affectRows = $this->dbConnection->affected_rows;
+							
+							foreach($macAddress as $entry => $key){
+								$macAddressAdd[$count]['macAddress'] = $key;
+								$macAddressAdd[$count]['exists'] = false;
+								$macAddressAdd[$count]['insertId'] = $startInsertId;
+								$count++;
+								
+								$startInsertId++;
+							}
+							
+							$macAddressAdd['count'] = $count;
+							$macAddressAdd['processed'] = count($macAddress);
+							
+							return $macAddressAdd;
+						}else{
+							return false;
+						}
+					}else{
+						return $macAddressAdd;
+					}
+				}
+			}else{
+				return false;
+			}
+		}
+		
+		function addBulkEndpointAssociation($macAddress, $epGroupID, $createdBy){
+			
+			if(is_array($macAddress)){
+				$insertAssociation = "";
+				
+				for($rowCount = 0; $rowCount < $macAddress['count']; $rowCount++){
+					if($macAddress[$rowCount]['exists'] != true){
+						$insertAssociation .= sprintf("('%d','%s','%d','%s'),", $this->dbConnection->real_escape_string($macAddress[$rowCount]['insertId']), $this->dbConnection->real_escape_string($macAddress[$rowCount]['macAddress']), $this->dbConnection->real_escape_string($epGroupID), $this->dbConnection->real_escape_string($createdBy));
+					}
+				}
+				
+				if($insertAssociation != ""){
+					$insertAssociation = substr($insertAssociation, 0, -1);
+					
+					$bulkQuery = sprintf("INSERT INTO endpointAssociations (`endpointId`, `macAddress`, `epGroupID`, `createdBy`) VALUES%s", $insertAssociation);
+					
+					$bulkQueryResult = $this->dbConnection->query($bulkQuery);
+					
+					if($bulkQueryResult){
+						return true;
+					}else{
+						return false;
+					}
+				}else{
+					return false;
+				}					
 			}
 		}
 		
@@ -2375,6 +2529,19 @@
 			}else{
 				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($expirationDate), $this->dbConnection->real_escape_string($endpointId));
 			}
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				return true;
+			}else{
+				return false;
+			}
+		}
+
+		function updateEndpointPsk($endpointId, $psk){
+			
+			$query = sprintf("UPDATE `endpoints` SET `pskValue` = '%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($endpointId));
+			
 			$queryResult = $this->dbConnection->query($query);
 			
 			if($queryResult){

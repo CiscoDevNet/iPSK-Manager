@@ -26,6 +26,7 @@
 	$iseERSSettings = $ipskISEDB->getGlobalClassSetting("ise-ers-credentials");
 	$iseMNTSettings = $ipskISEDB->getGlobalClassSetting("ise-mnt-credentials");
 	$smtpSettings = $ipskISEDB->getGlobalClassSetting("smtp-settings");
+	$advancedSettings = $ipskISEDB->getGlobalClassSetting("advanced-settings");
 	$hostnameListing = $ipskISEDB->getHostnameList();	
 	$portsAndProtocols = $ipskISEDB->getTcpPortList();
 	
@@ -128,6 +129,19 @@
 			}
 		}
 	}
+	
+	if(isset($advancedSettings['enable-portal-psk-edit'])){
+		if($advancedSettings['enable-portal-psk-edit'] == 1){
+			$advancedSettings['enable-portal-psk-edit'] = " checked";
+			$advancedSettings['enable-portal-psk-edit-value'] = "1";
+		}else{
+			$advancedSettings['enable-portal-psk-edit'] = "";
+			$advancedSettings['enable-portal-psk-edit-value'] = "0";
+		}
+	}else{
+		$advancedSettings['enable-portal-psk-edit'] = "";
+		$advancedSettings['enable-portal-psk-edit-value'] = "0";
+	}
 
 ?>
 <div class="row">
@@ -143,6 +157,7 @@
 		<a class="nav-item nav-link" id="nav-proto-tab" data-toggle="tab" href="#nav-proto" role="tab" aria-controls="nav-proto" aria-selected="false">Ports & Protocols</a>
 		<a class="nav-item nav-link" id="nav-ise-tab" data-toggle="tab" href="#nav-ise" role="tab" aria-controls="nav-ise" aria-selected="false">Cisco ISE Integration</a>
 		<a class="nav-item nav-link" id="nav-smtp-tab" data-toggle="tab" href="#nav-smtp" role="tab" aria-controls="nav-smtp" aria-selected="false">SMTP Configuration</a>
+		<a class="nav-item nav-link" id="nav-advanced-tab" data-toggle="tab" href="#nav-advanced" role="tab" aria-controls="nav-advanced" aria-selected="false">Advanced Settings</a>
 	</div>
 </nav>
 <div class="tab-content" id="nav-tabContent">
@@ -151,6 +166,7 @@
 	<div class="tab-pane fade" id="nav-proto" role="tabpanel" aria-labelledby="nav-proto-tab"><?php include("protocols.inc.php");?></div>
 	<div class="tab-pane fade" id="nav-ise" role="tabpanel" aria-labelledby="nav-ise-tab"><?php include("ise.inc.php");?></div>
 	<div class="tab-pane fade" id="nav-smtp" role="tabpanel" aria-labelledby="nav-smtp-tab"><?php include("smtp.inc.php");?></div>
+	<div class="tab-pane fade" id="nav-advanced" role="tabpanel" aria-labelledby="nav-advanced-tab"><?php include("advanced.inc.php");?></div>
 </div>
 
 <script>
@@ -189,6 +205,10 @@
 	
 	$("#smtpPassword").change(function(){
 		$("#setsmtppass").removeAttr('disabled');
+	});
+	
+	$(".advancedtab").change(function(){
+		$("#updateadvanced").removeAttr('disabled');
 	});
 
 	$("#updategeneral").click(function(){
@@ -451,6 +471,28 @@
 			success: function (data) {
 					if(data != 0){
 						$("#setsmtppass").attr("disabled", true);
+					}
+			}
+		});
+	});
+	
+	$("#updateadvanced").click(function(){
+		event.preventDefault();
+
+		$.ajax({
+			url: "ajax/getmodule.php",
+			
+			data: {
+				module: $(this).attr('module'),
+				'sub-module': $(this).attr('sub-module'),
+				'module-action': $(this).attr('module-action'),
+				'portalPskEditEnabled': $("#portalPskEditEnabled").val()		
+			},
+			type: "POST",
+			dataType: "text",
+			success: function (data) {
+					if(data != 0){
+						$("#updateadvanced").attr("disabled", true);
 					}
 			}
 		});

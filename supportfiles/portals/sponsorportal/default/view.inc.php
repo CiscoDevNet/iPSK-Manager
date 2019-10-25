@@ -60,6 +60,8 @@
 	
 	$endPointAssociation['createdBy'] = $ipskISEDB->getUserPrincipalNameFromCache($endPointAssociation['createdBy']);
 	
+	$endPointAssociation['epCreatedDate'] = date($globalDateOutputFormat, strtotime($endPointAssociation['epCreatedDate']));
+	
 	$endPointAssociation['createdDate'] = date($globalDateOutputFormat, strtotime($endPointAssociation['createdDate']));
 	
 	$endPointAssociation['lastAccessed'] = date($globalDateOutputFormat, strtotime($endPointAssociation['lastAccessed']));
@@ -104,17 +106,33 @@ $htmlbody = <<<HTML
 		<div class="form-group input-group-sm font-weight-bold">
 			<input type="text" class="form-control shadow" id="epGroupName" value="{$endPointAssociation['epGroupName']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="expirationDate">Expiration Date:</label>
-		<div class="form-group input-group-sm font-weight-bold">
-			<input type="text" class="form-control shadow" id="expirationDate" value="{$endPointAssociation['expirationDate']}" readonly>
+		<div class="row">
+			<div class="col">
+				<label class="font-weight-bold" for="expirationDate">Expiration Date:</label>
+				<div class="form-group input-group-sm font-weight-bold">
+					<input type="text" class="form-control shadow" id="expirationDate" value="{$endPointAssociation['expirationDate']}" readonly>
+				</div>
+			</div>
+			<div class="col">
+				<label class="font-weight-bold" for="lastAccessed">Last Accessed Date:</label>
+				<div class="form-group input-group-sm font-weight-bold">
+					<input type="text" class="form-control shadow" id="lastAccessed" value="{$endPointAssociation['lastAccessed']}" readonly>
+				</div>
+			</div>
 		</div>
-		<label class="font-weight-bold" for="lastAccessed">Last Accessed Date:</label>
-		<div class="form-group input-group-sm font-weight-bold">
-			<input type="text" class="form-control shadow" id="lastAccessed" value="{$endPointAssociation['lastAccessed']}" readonly>
-		</div>
-		<label class="font-weight-bold" for="createdDate">Date Created:</label>
-		<div class="form-group input-group-sm font-weight-bold">
-			<input type="text" class="form-control shadow" id="createdDate" value="{$endPointAssociation['createdDate']}" readonly>
+		<div class="row">
+			<div class="col">
+				<label class="font-weight-bold" for="epCreatedDate">Endpoint Creation Date:</label>
+				<div class="form-group input-group-sm font-weight-bold">
+					<input type="text" class="form-control shadow" id="epCreatedDate" value="{$endPointAssociation['epCreatedDate']}" readonly>
+				</div>
+			</div>
+			<div class="col">
+				<label class="font-weight-bold" for="createdDate">Association Creation Date:</label>
+				<div class="form-group input-group-sm font-weight-bold">
+					<input type="text" class="form-control shadow" id="createdDate" value="{$endPointAssociation['createdDate']}" readonly>
+				</div>
+			</div>
 		</div>
 		<label class="font-weight-bold" for="psk">Pre-Shared Key:</label>
 		<div class="input-group form-group input-group-sm font-weight-bold">

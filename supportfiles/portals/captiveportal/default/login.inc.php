@@ -25,10 +25,13 @@
 	$_SESSION['portalAuthorization']['viewgroup'] = false;
 	$_SESSION['portalAuthorization']['viewowned'] = false;
 	$_SESSION['portalAuthorization']['create'] = false;
+	$_SESSION['portalAuthorization']['bulkcreate'] = false;
 	$_SESSION['portalAuthorization']['viewallPSK'] = false;
 	$_SESSION['portalAuthorization']['viewgroupPSK'] = false;
 	$_SESSION['portalAuthorization']['viewownedPSK'] = false;
+	
 	$authCreate = false;
+	$bulkCreate = false;
 	$authViewAll = false;
 	$authViewAllDn = ""; 
 	$authViewGroup = false;
@@ -68,6 +71,7 @@
 						for($userCount = 0; $userCount < $_SESSION['memberOf']['count']; $userCount++){
 							if($authorizedGroups[$count]['groupDn'] == $_SESSION['memberOf'][$userCount]){
 								
+								if(($authorizedGroups[$count]['groupPermissions'] & 2048) == 2048) { $bulkCreate = true; }
 								if(($authorizedGroups[$count]['groupPermissions'] & 512) == 512) { $authCreate = true; }
 								if(($authorizedGroups[$count]['groupPermissions'] & 12) == 12) { $authViewAllPSK = true; }
 								if(($authorizedGroups[$count]['groupPermissions'] & 4) == 4) { $authViewAll = true; $authViewAllDn = $authorizedGroups[$count]['groupDn']; }
@@ -85,6 +89,7 @@
 					$_SESSION['authorizationGroups']['count'] = $matchedGroupCount;
 					
 					$_SESSION['portalAuthorization']['create'] = $authCreate;
+					$_SESSION['portalAuthorization']['bulkcreate'] = $bulkCreate;
 					$_SESSION['portalAuthorization']['viewall'] = $authViewAll;
 					$_SESSION['portalAuthorization']['viewallDn'] = $authViewAllDn;
 					$_SESSION['portalAuthorization']['viewallPSK'] = $authViewAllPSK;
@@ -174,6 +179,7 @@
 								for($userCount = 0; $userCount < $_SESSION['memberOf']['count']; $userCount++){
 									if(strtolower($authorizedGroups[$count]['groupDn']) == strtolower($_SESSION['memberOf'][$userCount])){
 										
+										if(($authorizedGroups[$count]['groupPermissions'] & 2048) == 2048) { $bulkCreate = true; }
 										if(($authorizedGroups[$count]['groupPermissions'] & 512) == 512) { $authCreate = true; }
 										if(($authorizedGroups[$count]['groupPermissions'] & 12) == 12) { $authViewAllPSK = true; }
 										if(($authorizedGroups[$count]['groupPermissions'] & 4) == 4) { $authViewAll = true; $authViewAllDn = $authorizedGroups[$count]['groupDn']; }
@@ -191,6 +197,7 @@
 							$_SESSION['authorizationGroups']['count'] = $matchedGroupCount;
 							
 							$_SESSION['portalAuthorization']['create'] = $authCreate;
+							$_SESSION['portalAuthorization']['bulkcreate'] = $bulkCreate;
 							$_SESSION['portalAuthorization']['viewall'] = $authViewAll;
 							$_SESSION['portalAuthorization']['viewallDn'] = $authViewAllDn;
 							$_SESSION['portalAuthorization']['viewallPSK'] = $authViewAllPSK;

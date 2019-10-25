@@ -52,6 +52,9 @@
 	}elseif($sanitizedInput['module-action'] == "smtppass"){	
 		$ipskISEDB->setSMTPPassword($sanitizedInput['smtpPassword']);
 		print true;
+	}elseif($sanitizedInput['module-action'] == "advancedupdate"){
+		$ipskISEDB->setGlobalSetting("advanced-settings","enable-portal-psk-edit", $sanitizedInput['portalPskEditEnabled']);
+		print true;
 	}else{
 		print false;
 	}

@@ -25,10 +25,13 @@
 	$_SESSION['portalAuthorization']['viewgroup'] = false;
 	$_SESSION['portalAuthorization']['viewowned'] = false;
 	$_SESSION['portalAuthorization']['create'] = false;
+	$_SESSION['portalAuthorization']['bulkcreate'] = false;
 	$_SESSION['portalAuthorization']['viewallPSK'] = false;
 	$_SESSION['portalAuthorization']['viewgroupPSK'] = false;
 	$_SESSION['portalAuthorization']['viewownedPSK'] = false;
+	
 	$authCreate = false;
+	$bulkCreate = false;
 	$authViewAll = false;
 	$authViewAllDn = ""; 
 	$authViewGroup = false;
@@ -63,6 +66,7 @@
 						for($userCount = 0; $userCount < $_SESSION['memberOf']['count']; $userCount++){
 							if($authorizedGroups[$count]['groupDn'] == $_SESSION['memberOf'][$userCount]){
 								
+								if(($authorizedGroups[$count]['groupPermissions'] & 2048) == 2048) { $bulkCreate = true; }
 								if(($authorizedGroups[$count]['groupPermissions'] & 512) == 512) { $authCreate = true; }
 								if(($authorizedGroups[$count]['groupPermissions'] & 12) == 12) { $authViewAllPSK = true; }
 								if(($authorizedGroups[$count]['groupPermissions'] & 4) == 4) { $authViewAll = true; $authViewAllDn = $authorizedGroups[$count]['groupDn']; }
@@ -80,6 +84,7 @@
 					$_SESSION['authorizationGroups']['count'] = $matchedGroupCount;
 					
 					$_SESSION['portalAuthorization']['create'] = $authCreate;
+					$_SESSION['portalAuthorization']['bulkcreate'] = $bulkCreate;
 					$_SESSION['portalAuthorization']['viewall'] = $authViewAll;
 					$_SESSION['portalAuthorization']['viewallDn'] = $authViewAllDn;
 					$_SESSION['portalAuthorization']['viewallPSK'] = $authViewAllPSK;
@@ -88,30 +93,25 @@
 					$_SESSION['portalAuthorization']['viewowned'] = $authViewOwned;
 					$_SESSION['portalAuthorization']['viewownedPSK'] = $authViewOwnedPSK;
 							
-					if($authZSuccess){
-						//LOG::Entry
-						$logData = $ipskISEDB->generateLogData(Array("authorizationGroups"=>$_SESSION['authorizationGroups']));
-						$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USER:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
-						$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
-						
+					if($authZSuccess){					
 						$_SESSION['authorizationGranted'] = true;
 						$_SESSION['authorizationTimestamp'] = time();
 						$ipskISEDB->addUserCacheEntry($_SESSION['logonSID'],$_SESSION['userPrincipalName'],$_SESSION['sAMAccountName'],$_SESSION['logonDN'], $systemSID);
 						
+						if(!isset($_SESSION['authorizedEPGroups'])){
+							$_SESSION['authorizedEPGroups'] = $ipskISEDB->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
+							$_SESSION['authorizedWirelessNetworks'] = $ipskISEDB->getPortalWirelessNetworkAuthorization($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
+						}
+						
+						//LOG::Entry
+						$logData = $ipskISEDB->generateLogData(Array("authorizedGroups"=>$authorizedGroups), Array("ldapCreds"=>$ldapCreds), Array("sanitizedInput"=>$sanitizedInput));
+						$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";SID:".$_SESSION['logonSID'].";";
+						$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+						
 						if($_SESSION['portalAuthorization']['create'] == false){
-							if(!isset($_SESSION['authorizedEPGroups'])){
-								$_SESSION['authorizedEPGroups'] = $ipskISEDB->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
-								$_SESSION['authorizedWirelessNetworks'] = $ipskISEDB->getPortalWirelessNetworkAuthorization($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
-							}
-							
 							header("Location: /manage.php?portalId=".$portalId);
 							die();
 						}else{
-							if(!isset($_SESSION['authorizedEPGroups'])){
-								$_SESSION['authorizedEPGroups'] = $ipskISEDB->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
-								$_SESSION['authorizedWirelessNetworks'] = $ipskISEDB->getPortalWirelessNetworkAuthorization($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
-							}
-							
 							header("Location: /sponsor.php?portalId=".$_SESSION['portalSettings']['portalId']);
 							die();
 						}
@@ -168,6 +168,7 @@
 								for($userCount = 0; $userCount < $_SESSION['memberOf']['count']; $userCount++){
 									if(strtolower($authorizedGroups[$count]['groupDn']) == strtolower($_SESSION['memberOf'][$userCount])){
 										
+										if(($authorizedGroups[$count]['groupPermissions'] & 2048) == 2048) { $bulkCreate = true; }
 										if(($authorizedGroups[$count]['groupPermissions'] & 512) == 512) { $authCreate = true; }
 										if(($authorizedGroups[$count]['groupPermissions'] & 12) == 12) { $authViewAllPSK = true; }
 										if(($authorizedGroups[$count]['groupPermissions'] & 4) == 4) { $authViewAll = true; $authViewAllDn = $authorizedGroups[$count]['groupDn']; }
@@ -185,6 +186,7 @@
 							$_SESSION['authorizationGroups']['count'] = $matchedGroupCount;
 							
 							$_SESSION['portalAuthorization']['create'] = $authCreate;
+							$_SESSION['portalAuthorization']['bulkcreate'] = $bulkCreate;
 							$_SESSION['portalAuthorization']['viewall'] = $authViewAll;
 							$_SESSION['portalAuthorization']['viewallDn'] = $authViewAllDn;
 							$_SESSION['portalAuthorization']['viewallPSK'] = $authViewAllPSK;
@@ -193,30 +195,25 @@
 							$_SESSION['portalAuthorization']['viewowned'] = $authViewOwned;
 							$_SESSION['portalAuthorization']['viewownedPSK'] = $authViewOwnedPSK;
 							
-							if($authZSuccess){
+							if($authZSuccess){		
+								$_SESSION['authorizationGranted'] = true;
+								$_SESSION['authorizationTimestamp'] = time();
+								$ipskISEDB->addUserCacheEntry($_SESSION['logonSID'],$_SESSION['userPrincipalName'],$_SESSION['sAMAccountName'],$_SESSION['logonDN'], $systemSID);
+								
+								if(!isset($_SESSION['authorizedEPGroups'])){
+									$_SESSION['authorizedEPGroups'] = $ipskISEDB->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
+									$_SESSION['authorizedWirelessNetworks'] = $ipskISEDB->getPortalWirelessNetworkAuthorization($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
+								}
+								
 								//LOG::Entry
 								$logData = $ipskISEDB->generateLogData(Array("authorizedGroups"=>$authorizedGroups), Array("ldapCreds"=>$ldapCreds), Array("sanitizedInput"=>$sanitizedInput));
 								$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";SID:".$_SESSION['logonSID'].";";
 								$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 								
-								$_SESSION['authorizationGranted'] = true;
-								$_SESSION['authorizationTimestamp'] = time();
-								$ipskISEDB->addUserCacheEntry($_SESSION['logonSID'],$_SESSION['userPrincipalName'],$_SESSION['sAMAccountName'],$_SESSION['logonDN'], $systemSID);
-								
 								if($_SESSION['portalAuthorization']['create'] == false){
-									if(!isset($_SESSION['authorizedEPGroups'])){
-										$_SESSION['authorizedEPGroups'] = $ipskISEDB->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
-										$_SESSION['authorizedWirelessNetworks'] = $ipskISEDB->getPortalWirelessNetworkAuthorization($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
-									}
-									
 									header("Location: /manage.php?portalId=".$portalId);
 									die();
 								}else{
-									if(!isset($_SESSION['authorizedEPGroups'])){
-										$_SESSION['authorizedEPGroups'] = $ipskISEDB->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
-										$_SESSION['authorizedWirelessNetworks'] = $ipskISEDB->getPortalWirelessNetworkAuthorization($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
-									}
-									
 									header("Location: /sponsor.php?portalId=".$_SESSION['portalSettings']['portalId']);
 									die();
 								}

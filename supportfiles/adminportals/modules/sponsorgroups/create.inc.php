@@ -42,10 +42,16 @@ $htmlbody = <<<HTML
 </script>
 HTML;
 	
-	//Add up the permissions for the group.
-	$permissions = $sanitizedInput['suspendCheck'] + $sanitizedInput['unsuspendCheck'] + $sanitizedInput['extendCheck'] + $sanitizedInput['deleteCheck'] + $sanitizedInput['editCheck'] + $sanitizedInput['createCheck'] + $sanitizedInput['viewPassCheck'] + $sanitizedInput['viewPermission'] + $sanitizedInput['resetPskCheck'];
+	$enablePskEdit = $ipskISEDB->getGlobalSetting("advanced-settings","enable-portal-psk-edit");
 	
-	if($permissions > 0 && $permissions < 1024){
+	//Add up the permissions for the group.
+	if($enablePskEdit){
+		$permissions = $sanitizedInput['portalPskEditCheck'] + $sanitizedInput['bulkCreateCheck'] + $sanitizedInput['suspendCheck'] + $sanitizedInput['unsuspendCheck'] + $sanitizedInput['extendCheck'] + $sanitizedInput['deleteCheck'] + $sanitizedInput['editCheck'] + $sanitizedInput['createCheck'] + $sanitizedInput['viewPassCheck'] + $sanitizedInput['viewPermission'] + $sanitizedInput['resetPskCheck'];
+	}else{
+		$permissions = $sanitizedInput['bulkCreateCheck'] + $sanitizedInput['suspendCheck'] + $sanitizedInput['unsuspendCheck'] + $sanitizedInput['extendCheck'] + $sanitizedInput['deleteCheck'] + $sanitizedInput['editCheck'] + $sanitizedInput['createCheck'] + $sanitizedInput['viewPassCheck'] + $sanitizedInput['viewPermission'] + $sanitizedInput['resetPskCheck'];
+	}
+	
+	if($permissions > 0 && $permissions < 4095){
 		
 		if($sanitizedInput['sponsorGroupName'] != "" && isset($_POST['endpointGroupMembers']) && isset($_POST['wirelessNetworkMembers']) && isset($_POST['authorizationGroups'])){
 			if(is_array($_POST['endpointGroupMembers']) && is_array($_POST['wirelessNetworkMembers'])){

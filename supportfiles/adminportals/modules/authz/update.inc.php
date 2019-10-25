@@ -68,6 +68,22 @@ HTML;
 		
 		if(!$failure){
 			$ipskISEDB->updateAuthorizationTemplate($sanitizedInput['id'], $sanitizedInput['authzPolicyName'], $sanitizedInput['authzPolicyDescription'], $psk, $sanitizedInput['termLengthSeconds'], $sanitizedInput['pskLength'], $_SESSION['logonSID']);
+		
+			if($sanitizedInput['fullAuthZUpdate'] == true){
+				$endpointsToUpdate = $ipskISEDB->getEndpointsByAuthZPolicy($sanitizedInput['id']);
+				
+				if($endpointsToUpdate){
+					if($sanitizedInput['pskMode'] == 0){
+						for($itemCount = 0; $itemCount < $endpointsToUpdate['count']; $itemCount++){
+							$ipskISEDB->updateEndpointPsk($endpointsToUpdate[$itemCount]['id'], "psk=".$psk);
+						}
+					}else{
+						for($itemCount = 0; $itemCount < $endpointsToUpdate['count']; $itemCount++){
+							$ipskISEDB->updateEndpointPsk($endpointsToUpdate[$itemCount]['id'], "psk=".generatePsk($sanitizedInput['pskLength']));
+						}
+					}			
+				}
+			}
 		}
 	}
 

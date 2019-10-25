@@ -27,6 +27,7 @@
 	$endPointGroupListing = $ipskISEDB->getEndpointGroupListing();
 	$wirelessNetworkListing = $ipskISEDB->getWirelessNetworks();
 	$internalGroups = $ipskISEDB->getInternalGroups('1');
+	$enablePskEdit = $ipskISEDB->getGlobalSetting("advanced-settings","enable-portal-psk-edit");
 	
 	if($endPointGroupListing){
 		while($row = $endPointGroupListing->fetch_assoc()){
@@ -44,6 +45,22 @@
 		while($row = $internalGroups->fetch_assoc()){
 			$authZGroups .= '<option value="'.$row['id'].'">'.$row['groupName'].'</option>';
 		}
+	}
+
+	if($enablePskEdit){
+		$pskEdit = <<< HTML
+							<div class="form-row text-center">
+								<div class="col">
+									<div class="custom-control custom-checkbox">
+										<input type="checkbox" class="custom-control-input checkbox-update" base-value="1024" value="" id="portalPskEditCheck">
+										<label class="custom-control-label text-danger" for="portalPskEditCheck"><strong>Allow Manual PSK Editing on Associations</strong></label>
+									</div>						
+								</div>
+							</div>
+							
+HTML;
+	}else{
+		$pskEdit = '<input type="hidden" value="" id="portalPskEditCheck">';
 	}
 
 $htmlbody = <<<HTML
@@ -154,12 +171,16 @@ $htmlbody = <<<HTML
 						<div class="col m-2 shadow p-2 bg-white border border-primary">
 							<h5 class="text-center">Permissions for Selected Endpoint Groups</h5>
 							<hr />
+							$pskEdit
 							<div class="form-row">
 								<div class="col">
-
 									<div class="custom-control custom-checkbox">
 										<input type="checkbox" class="custom-control-input checkbox-update" base-value="512" value="512" id="createCheck" checked>
 										<label class="custom-control-label" for="createCheck">Create Endpoint associations</label>
+									</div>
+									<div class="custom-control custom-checkbox">
+										<input type="checkbox" class="custom-control-input checkbox-update" base-value="2048" value="" id="bulkCreateCheck">
+										<label class="custom-control-label" for="bulkCreateCheck">Bulk Create Endpoint associations</label>
 									</div>
 									<div class="custom-control custom-checkbox">
 										<input type="checkbox" class="custom-control-input checkbox-update" base-value="256" value="256" id="editCheck" checked>
@@ -168,20 +189,21 @@ $htmlbody = <<<HTML
 									<div class="custom-control custom-checkbox">
 										<input type="checkbox" class="custom-control-input checkbox-update" base-value="64" value="64" id="deleteCheck" checked>
 										<label class="custom-control-label" for="deleteCheck">Delete an associated iPSK Endpoint</label>
-									</div>						
-							</div>
-							<div class="col">
-								<div class="custom-control custom-checkbox">
-									<input type="checkbox" class="custom-control-input checkbox-update" base-value="128" value="" id="extendCheck">
-									<label class="custom-control-label" for="extendCheck">Extend an associated Endpoints Expiration date</label>
+									</div>							
 								</div>
-								<div class="custom-control custom-checkbox">
-									<input type="checkbox" class="custom-control-input checkbox-update" base-value="32" value="" id="unsuspendCheck">
-									<label class="custom-control-label" for="unsuspendCheck">Reinstate an associated iPSK Suspended Endpoint</label>
-								</div>
-								<div class="custom-control custom-checkbox">
-									<input type="checkbox" class="custom-control-input checkbox-update" base-value="16" value="" id="suspendCheck">
-									<label class="custom-control-label" for="suspendCheck">Suspend an associated iPSK Endpoint's access</label>
+								<div class="col">
+									<div class="custom-control custom-checkbox">
+										<input type="checkbox" class="custom-control-input checkbox-update" base-value="128" value="" id="extendCheck">
+										<label class="custom-control-label" for="extendCheck">Extend an associated Endpoints Expiration date</label>
+									</div>
+									<div class="custom-control custom-checkbox">
+										<input type="checkbox" class="custom-control-input checkbox-update" base-value="32" value="" id="unsuspendCheck">
+										<label class="custom-control-label" for="unsuspendCheck">Reinstate an associated iPSK Suspended Endpoint</label>
+									</div>
+									<div class="custom-control custom-checkbox">
+										<input type="checkbox" class="custom-control-input checkbox-update" base-value="16" value="" id="suspendCheck">
+										<label class="custom-control-label" for="suspendCheck">Suspend an associated iPSK Endpoint's access</label>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -237,7 +259,10 @@ $htmlbody = <<<HTML
 				editCheck: $("#editCheck").val(),
 				createCheck: $("#createCheck").val(),
 				viewPassCheck: $("#viewPassCheck").val(),
-				viewPermission: $("#viewPermission").val()
+				viewPermission: $("#viewPermission").val(),
+				bulkCreateCheck: $("#bulkCreateCheck").val(),
+				portalPskEditCheck: $("#portalPskEditCheck").val()
+				
 			},
 			type: "POST",
 			dataType: "html",
@@ -256,7 +281,6 @@ $htmlbody = <<<HTML
 		}else{
 			$(this).attr('value', '0');
 		}
-		
 	});
 	
 	$("#sponsorGroupType").change(function(){

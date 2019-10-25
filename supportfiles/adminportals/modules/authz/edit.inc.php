@@ -70,68 +70,80 @@
 	
 $htmlbody = <<<HTML
 <!-- Modal -->
-<div class="modal fade" id="editauthztemplate" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLongTitle">Edit Authorization Template</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-		<label class="font-weight-bold" for="authzPolicyName">Authorization Template Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
-			<input type="text" class="form-control shadow form-validation" validation-state="required" id="authzPolicyName" value="{$authorizationTemplate['authzPolicyName']}">
-			<div class="invalid-feedback">Please enter a valid Template Name!</div>
-		</div>
-		<label class="font-weight-bold" for="authzPolicyDescription">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
-			<input type="text" class="form-control shadow" id="authzPolicyDescription" value="{$authorizationTemplate['authzPolicyDescription']}">
-		</div>
-		<div class="form-group input-group-sm font-weight-bold">
-			<label class="font-weight-bold" for="termLengthSeconds">Access Term Length:</label>
-			<select id="termLengthSeconds" class="form-control mt-2 mb-3 shadow">
-				$pageTermLengthList
-			</select>
-		</div>
-		<label class="font-weight-bold" for="pskLength">Pre-Shared Key Length:</label>
-		<div class="form-group input-group-sm font-weight-bold">
-			<input type="text" class="form-control shadow form-validation" validation-state="required" id="pskLength" value="{$authorizationTemplate['pskLength']}">
-			<div class="invalid-feedback">Please enter a PSK length greater than 8 and less than 64</div>
-		</div>
-		<div class="form-group input-group-sm font-weight-bold">
-			<label class="font-weight-bold" for="keyType">Pre-Shared Key Type:</label>
-			<select id="keyType" class="form-control mt-2 mb-3 shadow">
-				$keyType
-			</select>
-		</div>
-		<label class="font-weight-bold" for="ciscoAVPairPSK">Pre-Shared Key:</label>
-		<div class="input-group input-group-sm mb-3">
-			<div class="input-group-prepend shadow">
-				<span class="input-group-text font-weight-bold" id="basic-addon1">ASCII</span>
+<div class="modal fade" id="editauthztemplate" tabindex="-1" role="dialog" aria-labelledby="authzEditModal" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLongTitle">Edit Authorization Template</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
 			</div>
-			<input type="text" id="ciscoAVPairPSK" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="8" validation-maximum-length="64" value="$password" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true"$readonlyFlag>
-			<div class="input-group-append shadow">
-				<span class="input-group-text font-weight-bold" id="basic-addon1"><a id="generatepassword" data-command="generate" data-set="psk" href="#"><span id="passwordfeather" data-feather="$passwordFeather"></span></a></span>
+			<div class="modal-body">
+				<label class="font-weight-bold" for="authzPolicyName">Authorization Template Name:</label>
+				<div class="form-group input-group-sm font-weight-bold">
+					<input type="text" class="form-control shadow form-validation" validation-state="required" id="authzPolicyName" value="{$authorizationTemplate['authzPolicyName']}">
+					<div class="invalid-feedback">Please enter a valid Template Name!</div>
+				</div>
+				<label class="font-weight-bold" for="authzPolicyDescription">Description:</label>
+				<div class="form-group input-group-sm font-weight-bold">
+					<input type="text" class="form-control shadow" id="authzPolicyDescription" value="{$authorizationTemplate['authzPolicyDescription']}">
+				</div>
+				<div class="form-group input-group-sm font-weight-bold">
+					<label class="font-weight-bold" for="termLengthSeconds">Access Term Length:</label>
+					<select id="termLengthSeconds" class="form-control mt-2 mb-3 shadow">
+						$pageTermLengthList
+					</select>
+				</div>
+				<label class="font-weight-bold" for="pskLength">Pre-Shared Key Length:</label>
+				<div class="form-group input-group-sm font-weight-bold">
+					<input type="text" class="form-control shadow form-validation" validation-state="required" id="pskLength" value="{$authorizationTemplate['pskLength']}">
+					<div class="invalid-feedback">Please enter a PSK length greater than 8 and less than 64</div>
+				</div>
+				<div class="form-group input-group-sm font-weight-bold">
+					<label class="font-weight-bold" for="keyType">Pre-Shared Key Type:</label>
+					<select id="keyType" class="form-control mt-2 mb-3 shadow">
+						$keyType
+					</select>
+				</div>
+				<label class="font-weight-bold" for="ciscoAVPairPSK">Pre-Shared Key:</label>
+				<div class="input-group input-group-sm mb-3">
+					<div class="input-group-prepend shadow">
+						<span class="input-group-text font-weight-bold" id="basic-addon1">ASCII</span>
+					</div>
+					<input type="text" id="ciscoAVPairPSK" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="8" validation-maximum-length="64" value="$password" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true"$readonlyFlag>
+					<div class="input-group-append shadow">
+						<span class="input-group-text font-weight-bold" id="basic-addon1"><a id="generatepassword" data-command="generate" data-set="psk" href="#"><span id="passwordfeather" data-feather="$passwordFeather"></span></a></span>
+					</div>
+					<div class="invalid-feedback">Please enter a Valid Pre-Shared Key (Minimum length of 8 characters)</div>
+				</div>
+				<div class="form-group input-group-sm font-weight-bold">
+					<label class="font-weight-bold" for="pskType">Random iPSK Type:</label>
+					<select id="pskType" class="form-control mt-2 mb-3 shadow"$iPSKTypeFlag>
+						$pageiPSKType
+					</select>
+				</div>
+				<div class="row">
+					<div class="col m-2 shadow p-2 bg-white border border-primary">
+						<label class="font-weight-bold" for="viewPermission">Pre-Shared Key Change Options:</label>	
+						<div class="form-group">
+							<div class="custom-control custom-checkbox">
+								<input type="checkbox" class="custom-control-input checkbox-update" base-value="1" value="" id="fullAuthZUpdate">
+								<label class="custom-control-label" for="fullAuthZUpdate">Reset <strong>ALL</strong> Associated Endpoint's Pre-Shared Key</label>
+							</div>
+							<small id="viewPermissionBlock" class="form-text text-danger font-weight-bold">WARNING: This will reset <strong>ALL</strong> Endpoint's Pre-Shared Keys associated to this policy!!!</small>
+						</div>
+					</div>
+				</div>
 			</div>
-			<div class="invalid-feedback">Please enter a Valid Pre-Shared Key (Minimum length of 8 characters)</div>
+			<div class="modal-footer">
+				<input type="hidden" id="pskMode" value="$pskModeFlag">
+				<input type="hidden" id="id" value="{$authorizationTemplate['id']}">
+				<a id="update" href="#" module="authz" sub-module="update" role="button" class="btn btn-primary shadow" data-dismiss="modal">Update</a>
+				<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+			</div>
 		</div>
-		<div class="form-group input-group-sm font-weight-bold">
-			<label class="font-weight-bold" for="pskType">Random iPSK Type:</label>
-			<select id="pskType" class="form-control mt-2 mb-3 shadow"$iPSKTypeFlag>
-				$pageiPSKType
-			</select>
-		</div>
-	  </div>
-	  <input type="hidden" id="pskMode" value="$pskModeFlag">
-      <div class="modal-footer">
-		<input type="hidden" id="id" value="{$authorizationTemplate['id']}">
- 		<a id="update" href="#" module="authz" sub-module="update" role="button" class="btn btn-primary shadow" data-dismiss="modal">Update</a>
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
+	</div>
 </div>
 <script>
 	var failure;
@@ -147,6 +159,7 @@ $htmlbody = <<<HTML
 		if($("#ciscoAVPairPSK").val() == "Random"){
 			$("#ciscoAVPairPSK").val('');
 			$("#ciscoAVPairPSK").removeAttr('readonly');
+			$("#ciscoAVPairPSK").attr('validation-minimum-length','8');
 			$("#pskType").attr('disabled','true');
 			$("#pskMode").val('0');
 			$("#passwordfeather").attr('data-feather','shuffle');
@@ -154,6 +167,7 @@ $htmlbody = <<<HTML
 		}else if($("#ciscoAVPairPSK").val() != "Random"){
 			$("#ciscoAVPairPSK").val('Random');
 			$("#ciscoAVPairPSK").attr('readonly', 'readonly');
+			$("#ciscoAVPairPSK").attr('validation-minimum-length','6');
 			$("#pskType").removeAttr('disabled');
 			$("#pskMode").val('1');
 			$("#passwordfeather").attr('data-feather','slash');
@@ -178,6 +192,14 @@ $htmlbody = <<<HTML
 					$("#ciscoAVPairPSK").val( data );
 				}
 			});
+		}
+	});
+	
+	$(".checkbox-update").change(function(){
+		if($(this).prop('checked')){
+			$(this).attr('value', $(this).attr('base-value'));		
+		}else{
+			$(this).attr('value', '0');
 		}
 	});
 	
@@ -206,7 +228,8 @@ $htmlbody = <<<HTML
 				ciscoAVPairPSK: $("#ciscoAVPairPSK").val(),
 				pskLength: $("#pskLength").val(),
 				pskMode: $("#pskMode").val(),
-				pskType: $("#pskType").val()
+				pskType: $("#pskType").val(),
+				fullAuthZUpdate: $("#fullAuthZUpdate").val()
 			},
 			type: "POST",
 			dataType: "html",

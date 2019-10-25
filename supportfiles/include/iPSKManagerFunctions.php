@@ -120,7 +120,16 @@
 								),
 			'id'	=>	FILTER_VALIDATE_INT,
 			'logoff'	=>	FILTER_VALIDATE_BOOLEAN,
+			'action'	=>	array('filter'    => FILTER_VALIDATE_REGEXP,
+								  'flags'     => '' ,
+								  'options'   => array('regexp' => '/^(?:[A-Z]|[a-z]|[0-9]|_){1,25}$/')
+								),
+			'groupUuid'	=>	array('filter'    => FILTER_VALIDATE_REGEXP,
+								  'flags'     => '' ,
+								  'options'   => array('regexp' => '/^(?:[A-F]|[a-f]|[0-9]){8}-(?:[A-F]|[a-f]|[0-9]){4}-(?:[A-F]|[a-f]|[0-9]){4}-(?:[A-F]|[a-f]|[0-9]){4}-(?:[A-F]|[a-f]|[0-9]){12}$/')
+								),
 			'confirmaction'	=>	FILTER_VALIDATE_INT,
+			'wirelessSSID'	=>	FILTER_VALIDATE_INT,
 			'ssidName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
@@ -272,6 +281,7 @@
 								  ),
 			'mntEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
 			'mntVerifySsl'	=>	FILTER_VALIDATE_BOOLEAN,
+			'fullAuthZUpdate'	=>	FILTER_VALIDATE_BOOLEAN,
 			'adminPortalHostname'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
@@ -287,7 +297,11 @@
 			'smtpFromAddress'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'smtpEnabled'	=>	FILTER_VALIDATE_BOOLEAN
+			'smtpEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
+			'portalPskEditEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
+			'portalPskEditCheck'	=>	FILTER_VALIDATE_INT,
+			'bulkCreateCheck'	=>	FILTER_VALIDATE_INT,
+			'bulkImportType'	=>	FILTER_VALIDATE_INT
 		);
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);

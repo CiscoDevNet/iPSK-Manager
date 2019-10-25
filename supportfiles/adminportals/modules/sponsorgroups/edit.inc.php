@@ -104,7 +104,7 @@
 	
 	$baseValue = 4;
 
-	for($i = 1; $i < 8; $i++){
+	for($i = 1; $i < 10; $i++){
 		$baseValue = $baseValue << 1;
 		
 		if($baseValue & $groupPermissions){
@@ -133,6 +133,24 @@
 	}else{
 		$pageSponsorGroupAuthType = '<option value="0" selected>Internal Authentication</option>';
 		$pageSponsorGroupAuthType .= '<option value="1">External Authentication</option>';
+	}
+	
+	$enablePskEdit = $ipskISEDB->getGlobalSetting("advanced-settings","enable-portal-psk-edit");
+	
+	if($enablePskEdit){	
+		$pskEdit = <<< HTML
+							<div class="form-row text-center">
+								<div class="col">
+									<div class="custom-control custom-checkbox">
+										<input type="checkbox" class="custom-control-input checkbox-update" base-value="1024" value="{$checkBoxPermissions[1024]['value']}" id="portalPskEditCheck"{$checkBoxPermissions[1024]['check']}>
+										<label class="custom-control-label text-danger" for="portalPskEditCheck"><strong>Allow Manual PSK Editing on Associations</strong></label>
+									</div>						
+								</div>
+							</div>
+							
+HTML;
+	}else{
+		$pskEdit = '<input type="hidden" value="0" id="portalPskEditCheck">';
 	}
 $htmlbody = <<<HTML
 <!-- Modal -->
@@ -238,11 +256,16 @@ $htmlbody = <<<HTML
 						<div class="col m-2 shadow p-2 bg-white border border-primary">
 							<h5 class="text-center">Permissions for Selected Endpoint Groups</h5>
 							<hr />
+							$pskEdit
 							<div class="form-row">
 								<div class="col">
 									<div class="custom-control custom-checkbox">
 										<input type="checkbox" class="custom-control-input checkbox-update" base-value="512" value="{$checkBoxPermissions[512]['value']}" id="createCheck"{$checkBoxPermissions[512]['check']}>
 										<label class="custom-control-label" for="createCheck">Create Endpoint associations</label>
+									</div>
+									<div class="custom-control custom-checkbox">
+										<input type="checkbox" class="custom-control-input checkbox-update" base-value="2048" value="{$checkBoxPermissions[2048]['value']}" id="bulkCreateCheck"{$checkBoxPermissions[2048]['check']}>
+										<label class="custom-control-label" for="bulkCreateCheck">Bulk Create Endpoint associations</label>
 									</div>
 									<div class="custom-control custom-checkbox">
 										<input type="checkbox" class="custom-control-input checkbox-update" base-value="256" value="{$checkBoxPermissions[256]['value']}" id="editCheck"{$checkBoxPermissions[256]['check']}>
@@ -323,7 +346,9 @@ $htmlbody = <<<HTML
 				editCheck: $("#editCheck").val(),
 				createCheck: $("#createCheck").val(),
 				viewPassCheck: $("#viewPassCheck").val(),
-				viewPermission: $("#viewPermission").val()
+				viewPermission: $("#viewPermission").val(),
+				bulkCreateCheck: $("#bulkCreateCheck").val(),
+				portalPskEditCheck: $("#portalPskEditCheck").val()
 			},
 			type: "POST",
 			dataType: "html",

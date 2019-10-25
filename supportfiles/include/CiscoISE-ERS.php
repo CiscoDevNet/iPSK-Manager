@@ -81,7 +81,310 @@
 				return false;
 			}
 		}
-		
+	
+		function getEndPointIdentityGroups($pageSize = null, $page = null){
+			
+			if($pageSize != null || $page != null){
+			
+				$uriPath = "/ers/config/endpointgroup?size=$pageSize&page=$page";
+				
+				$headerArray = $this->ersRestContentTypeHeader;
+					
+				$apiSession = $this->restCall($uriPath, "GET", $headerArray, true);
+
+				$apiSessionResult = json_decode($apiSession["body"], true);
+				
+				if($apiSession["http_code"] == 200){
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("apiSessionResult"=>$apiSessionResult), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:SUCCESS[found_endpoint_groups];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					return $apiSession['body'];
+				}elseif($apiSession["http_code"] == 404){
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:FAILURE[failure_to_find_endpoint_groups_404];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					return false;
+				}else{
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:FAILURE[failure_to_find_endpoint_groups];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					return false;
+				}
+			}else{
+				$uriPath = "/ers/config/endpointgroup?size=50";
+				
+				$headerArray = $this->ersRestContentTypeHeader;
+					
+				$apiSession = $this->restCall($uriPath, "GET", $headerArray, true);
+
+				$apiSessionResult = json_decode($apiSession["body"], true);
+				
+				if(isset($apiSessionResult['SearchResult']['nextPage']['href'])){
+					$multiplePages = true;
+				}else{
+					$multiplePages = false;
+				}
+				
+				if($apiSession["http_code"] == 200){
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("apiSessionResult"=>$apiSessionResult), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:SUCCESS[found_endpoint_groups];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					if($multiplePages == true){
+
+						$currentResourceCount = 0;
+						$iseEndpointGroupOutput['SearchResult']['total'] = $apiSessionResult['SearchResult']['total'];
+						
+						while($multiplePages){
+							if(isset($apiSessionResult['SearchResult']['nextPage'])){
+								$nextHref = substr($apiSessionResult['SearchResult']['nextPage']['href'],strpos($apiSessionResult['SearchResult']['nextPage']['href'],'/',8), strlen($apiSessionResult['SearchResult']['nextPage']['href']) - strpos($apiSessionResult['SearchResult']['nextPage']['href'],'/',8));
+							}else{
+								$nextHref = '';
+							}
+							
+							foreach($apiSessionResult['SearchResult']['resources'] as $iseResource){
+								$iseEndpointGroupOutput['SearchResult']['resources'][$currentResourceCount]['id'] = $iseResource['id'];
+								$iseEndpointGroupOutput['SearchResult']['resources'][$currentResourceCount]['name'] = $iseResource['name'];
+								$iseEndpointGroupOutput['SearchResult']['resources'][$currentResourceCount]['description'] = $iseResource['description'];
+								$iseEndpointGroupOutput['SearchResult']['resources'][$currentResourceCount]['link'] = $iseResource['link'];
+							
+								$currentResourceCount++;
+							}
+								
+							if($nextHref == ''){
+								$multiplePages = false;
+							}else{
+								$headerArray = $this->ersRestContentTypeHeader;
+								$apiSession = $this->restCall($nextHref, "GET", $headerArray, true);
+								$apiSessionResult = json_decode($apiSession["body"], true);
+								
+								if($apiSession["http_code"] != 200){
+									if($this->iPSKManagerClass){
+										//LOG::Entry
+										$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("apiSessionResult"=>$apiSessionResult), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+										$logMessage = "API-REQUEST:FAILURE[incorrect_next_page_href];";
+										$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+									}
+									
+									$multiplePages = false;
+									
+									return false;
+								}
+							}
+						}
+						
+						if($this->iPSKManagerClass){
+							//LOG::Entry
+							$logjson = json_encode($iseEndpointGroupOutput);
+							$logData = $this->iPSKManagerClass->generateLogData(Array("iseEndpointGroupOutput"=>$iseEndpointGroupOutput), Array("iseEndpointGroupOutput"=>$logjson));
+							$logMessage = "API-REQUEST:SUCCESS[pageinated_summary];";
+							$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+						}
+						
+						return json_encode($iseEndpointGroupOutput);
+					}else{
+						return $apiSession['body'];
+					}
+					
+				}elseif($apiSession["http_code"] == 404){
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:FAILURE[failure_to_find_endpoint_groups_404];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					return false;
+				}else{
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:FAILURE[failure_to_find_endpoint_groups];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					return false;
+				}
+			}
+		}	
+
+		function getEndPointGroupCountbyId($groupUuid){
+						
+			if($groupUuid != ''){
+				$uriPath = "/ers/config/endpoint?filter=groupId.EQ.".$groupUuid;
+				
+				$headerArray = $this->ersRestContentTypeHeader;
+					
+				$apiSession = $this->restCall($uriPath, "GET", $headerArray, true);
+				
+				if($apiSession["http_code"] == 200){
+					$tempApiSessionArray = json_decode($apiSession["body"],true);
+					
+					return $tempApiSessionArray['SearchResult']['total'];
+				}else{
+					return 0;
+				}
+			}else{
+				return 0;
+			}
+		}
+
+		function getEndPointsByEPGroup($groupUuid, $pageSize = null, $page = null){
+			
+			if($pageSize != null || $page != null){
+				
+				$uriPath = "/ers/config/endpoint?filter=groupId.EQ.".$groupUuid."&size=$pageSize&page=$page";
+				
+				$headerArray = $this->ersRestContentTypeHeader;
+					
+				$apiSession = $this->restCall($uriPath, "GET", $headerArray, true);
+
+				$apiSessionResult = json_decode($apiSession["body"], true);
+				
+				if($apiSession["http_code"] == 200){
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("apiSessionResult"=>$apiSessionResult), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:SUCCESS[found_endpoint_groups];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					return $apiSession['body'];
+				}elseif($apiSession["http_code"] == 404){
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:FAILURE[failure_to_find_endpoint_groups_404];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					return false;
+				}else{
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:FAILURE[failure_to_find_endpoint_groups];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					return false;
+				}
+			}else{
+				$uriPath = "/ers/config/endpoint?size=50&filter=groupId.EQ.".$groupUuid."";
+				
+				$headerArray = $this->ersRestContentTypeHeader;
+					
+				$apiSession = $this->restCall($uriPath, "GET", $headerArray, true);
+
+				$apiSessionResult = json_decode($apiSession["body"], true);
+				
+				if(isset($apiSessionResult['SearchResult']['nextPage']['href'])){
+					$multiplePages = true;
+				}else{
+					$multiplePages = false;
+				}
+				
+				if($apiSession["http_code"] == 200){
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("apiSessionResult"=>$apiSessionResult), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:SUCCESS[found_endpoints];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					if($multiplePages == true){
+
+						$currentResourceCount = 0;
+						$iseEndpointOutput['SearchResult']['total'] = $apiSessionResult['SearchResult']['total'];
+						
+						while($multiplePages){
+							if(isset($apiSessionResult['SearchResult']['nextPage'])){
+								$nextHref = substr($apiSessionResult['SearchResult']['nextPage']['href'],strpos($apiSessionResult['SearchResult']['nextPage']['href'],'/',8), strlen($apiSessionResult['SearchResult']['nextPage']['href']) - strpos($apiSessionResult['SearchResult']['nextPage']['href'],'/',8));
+							}else{
+								$nextHref = '';
+							}
+							
+							foreach($apiSessionResult['SearchResult']['resources'] as $iseResource){
+								$iseEndpointOutput['SearchResult']['resources'][$currentResourceCount]['id'] = $iseResource['id'];
+								$iseEndpointOutput['SearchResult']['resources'][$currentResourceCount]['name'] = $iseResource['name'];
+								$iseEndpointOutput['SearchResult']['resources'][$currentResourceCount]['description'] = (isset($iseResource['description'])) ? $iseResource['description'] : '';
+								$iseEndpointOutput['SearchResult']['resources'][$currentResourceCount]['link'] = $iseResource['link'];
+							
+								$currentResourceCount++;
+							}
+								
+							if($nextHref == ''){
+								$multiplePages = false;
+							}else{
+								$headerArray = $this->ersRestContentTypeHeader;
+								$apiSession = $this->restCall($nextHref, "GET", $headerArray, true);
+								$apiSessionResult = json_decode($apiSession["body"], true);
+								
+								if($apiSession["http_code"] != 200){
+									if($this->iPSKManagerClass){
+										//LOG::Entry
+										$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("apiSessionResult"=>$apiSessionResult), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+										$logMessage = "API-REQUEST:FAILURE[incorrect_next_page_href];";
+										$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+									}
+									
+									$multiplePages = false;
+									
+									return false;
+								}
+							}
+						}
+						
+						if($this->iPSKManagerClass){
+							//LOG::Entry
+							$logjson = json_encode($iseEndpointOutput);
+							$logData = $this->iPSKManagerClass->generateLogData(Array("iseEndpointOutput"=>$iseEndpointOutput), Array("iseEndpointOutputArray"=>$logjson));
+							$logMessage = "API-REQUEST:SUCCESS[pageinated_summary];";
+							$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+						}
+						
+						return json_encode($iseEndpointOutput);
+					}else{
+						return $apiSession['body'];
+					}
+					
+				}elseif($apiSession["http_code"] == 404){
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:FAILURE[failure_to_find_endpoint_groups_404];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					return false;
+				}else{
+					if($this->iPSKManagerClass){
+						//LOG::Entry
+						$logData = $this->iPSKManagerClass->generateLogData(Array("apiSession"=>$apiSession), Array("headerArray"=>$headerArray), Array("uriPath"=>$uriPath));
+						$logMessage = "API-REQUEST:FAILURE[failure_to_find_endpoint_groups];";
+						$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					}
+					
+					return false;
+				}
+			}
+		}
+
 		function check_ifAuthZProfileExists($name){
 			
 			$uriPath = "/ers/config/authorizationprofile/name/".$name;

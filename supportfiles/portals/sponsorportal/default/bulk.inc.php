@@ -23,6 +23,7 @@
 	$pageData['endpointGroupList'] = "";
 	$pageData['wirelessSSIDList'] = "";
 	$pageData['endpointAssociationList'] = "";
+	$pageData['iseEndpointGroups'] = "";
 	
 	
 	if(!ipskLoginSessionCheck()){
@@ -33,7 +34,7 @@
 		die();
 	}
 	
-	if($_SESSION['portalAuthorization']['create'] == false){
+	if($_SESSION['portalAuthorization']['bulkcreate'] == false){
 		header("Location: /manage.php?portalId=".$portalId);
 		die();
 	}
@@ -43,8 +44,8 @@
 				
 		for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++) {
 			if(!isset($trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']])){
-				//Check if User is authorized for Create on EndPoint Group
-				if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 512){
+				//Check if User is authorized for Bulk Create on EndPoint Group
+				if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 2048){
 					if($ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']) < $_SESSION['authorizedEPGroups'][$count]['maxDevices']){
 				
 						if($_SESSION['authorizedEPGroups'][$count]['termLengthSeconds'] == 0){
@@ -95,8 +96,13 @@
 	}else{
 		$pageData['bulkButton'] = '';
 	}
-	
-	
+
+	if($iseERSIntegrationAvailable){
+		$pageData['bulkOption'] = '<option value="3">Cisco ISE "Endpoint Group" Import</option>';
+	}else{
+		$pageData['bulkOption'] = '';
+	}
+
 	print <<< HTML
 <!doctype html>
 <html lang="en">
@@ -120,7 +126,7 @@
   <body>
 	<div class="container">
 		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
-			<form id="associationform" action="create.php?portalId=$portalId" method="post">
+			<form id="bulkAssociationform" action="bulkimport.php?portalId=$portalId" method="post">
 				<div class="mt-2 mb-4">
 					<img src="images/iPSK-Logo.svg" width="108" height="57" />
 				</div>
@@ -166,20 +172,70 @@
 				</div>
 				<div class="row text-left">
 					<div class="col-2"></div>
-					<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-						<h6>Association Details:</h6>
+						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+							<h6>Bulk Import Type:</h6>
+							<div class="row">
+								<div class="col">
+									<select name="bulkImportType" id="bulkImportType" class="form-control mt-2 mb-3 shadow"><option value="0">(Select an Import Option)</option>{$pageData['bulkOption']}</select>
+								</div>
+							</div>
+						</div>
+					<div class="col-2"></div>
+				</div>
+				<div id="textBulkImport" class="d-none row text-left">
+					<div class="col-2"></div>
+						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+							<h6>Select the file you would like to import:</h6>
 							<div class="row">
 								<div class="col">
 									<div class="form-group">
-										<label for="macAddress">Endpoint MAC Address</label>
-										<input type="text" class="form-control mt-2 mb-3 shadow user-input form-validation" validation-state="required" validation-minimum-length="17" validation-maximum-length="17" value="" id="macAddress" name="macAddress" maxlength="17" placeholder="XX:XX:XX:XX:XX:XX">
-										<div class="invalid-feedback">Please enter a valid MAC Address</div>
+										
 									</div>
 								</div>
+							</div>
+						</div>
+					<div class="col-2"></div>
+				</div>
+				<div id="iseBulkImport" class="d-none row text-left">
+					<div class="col-2"></div>
+						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+							<h6>Select the Endpoint Identity Group you would like to import:</h6>
+							<div class="row">
+								<div class="col">
+									<div class="form-group">
+										<select name="groupUuid" id="iseEPGroups" class="form-control mt-2 mb-3 shadow"></select>
+									</div>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col pr-0">
+									<p><small>
+										Description:&nbsp;<span id="iseepgDescription" class="text-danger count">-</span>
+									</small></p>
+								</div>
+								<div class="col-4 pl-0">
+									<p><small>
+										Endpoint Count:&nbsp;<span id="iseepgCount" class="text-danger count">-</span>
+									</small></p>
+								</div>
+								<div class="col-2 pl-0">
+									<p><small>
+										<button class="btn btn-secondary shadow" id="getCount" type="button">Get Count</button>
+									</small></p>
+								</div>
+							</div>
+						</div>
+					<div class="col-2"></div>
+				</div>
+				<div id="associationDetails" class="d-none row text-left">
+					<div class="col-2"></div>
+						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+							<h6>Association Details:</h6>	
+							<div class="row">
 								<div class="col">
 									<div class="form-group">
 										<label for="endpointDescription">Endpoint Description</label>
-										<input type="text" class="form-control mt-2 mb-3 user-input shadow" value="" name="endpointDescription" placeholder="Device Description">
+										<input type="text" class="form-control mt-2 mb-3 user-input shadow" value="" name="endpointDescription" id="endpointDescription" placeholder="Device Description">
 									</div>
 								</div>
 							</div>
@@ -187,10 +243,12 @@
 								<div class="col">
 									<div class="form-group">
 										<label for="fullName">Full Name</label>
-										<input type="text" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="{$sessionData['fullName']}" name="fullName" placeholder="John Smith">
+										<input type="text" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="" name="fullName" id="fullName" placeholder="John Smith">
 										<div class="invalid-feedback">Please enter your Full Name</div>
 									</div>
 								</div>
+							</div>
+							<div class="row"> 
 								<div class="col">
 									<div class="form-group">
 										<label for="emailAddress">Email address</label>
@@ -200,7 +258,7 @@
 								</div>
 							</div>
 							<div class="form-group text-center">
-								<button class="btn btn-primary shadow" id="submitbtn" type="button">Submit</button>
+								<button class="btn btn-primary shadow" id="submitbtn" type="button">Import</button>
 							</div>
 						</div>
 					<div class="col-2"></div>
@@ -220,27 +278,6 @@
 	
 	var failure;
 	
-	$("#macAddress").keydown( function( event ) {
-		//Load Event data into Variables
-		var keyPressed = event.key;
-		var charPressed = event.which;
-		
-		//Check if Valid keys were pressed
-		if (!keyPressed.match(/[a-f]|[A-F]|[0-9]/g)) {
-			event.preventDefault();
-		}else{
-			//Bypass BackSpace (ASCII[8])
-			if(charPressed != 8){
-				charPressed = keyPressed.match(/[a-f]|[A-F]|[0-9]/g);
-				macAddressFormat($(this));
-			}
-		}			
-	});
-
-	$("#macAddress").focusout( function( event ) {
-		macAddressFormat($(this));
-	});
-	
 	$("#submitbtn").click(function() {
 		event.preventDefault();
 		
@@ -250,10 +287,10 @@
 			return false;
 		}
 		
-		$("#associationform").submit();
+		$("#bulkAssociationform").submit();
 	});
 	
-		$("#createAssoc").click(function() {
+	$("#createAssoc").click(function() {
 		window.location.href = "/sponsor.php?portalId=$portalId";
 	});
 	
@@ -286,10 +323,78 @@
 		event.preventDefault();
 	});
 	
+	$("#bulkImportType").change(function(){
+		event.preventDefault();
+		
+		$("#iseBulkImport").addClass('d-none');
+		$("#textBulkImport").addClass('d-none');
+		$("#associationDetails").addClass('d-none');
+		$( "#iseepgDescription" ).html( "-" );
+		$( "#iseepgCount" ).html( "-" );
+		
+		if($(this).find('option:selected').val() == 33){
+			
+			$("#textBulkImport").removeClass('d-none');
+			$("#associationDetails").removeClass('d-none');
+			
+		}else if($(this).find('option:selected').val() == 3){
+		
+			$.ajax({
+				url: "query.php?portalId=$portalId",
+				data: {
+					'id': $(this).find('option:selected').val(),
+					'action': 'get_endpoint_groups'
+				},
+				type: "POST",
+				dataType: "json",
+				success: function (epglist) {
+					$("#iseEPGroups").find("option").remove(),
+					$.each(epglist.SearchResult.resources, function(index, element) {
+						temp = $('<option>', {value: element.id, description: element.description}),
+						$("#iseEPGroups").append(temp.html(element.name));
+					}),
+					$("#iseBulkImport").removeClass('d-none');
+					$("#associationDetails").removeClass('d-none');
+					$("#iseEPGroups").trigger("change");
+				}
+			});
+			
+		}
+	});
+		
+	$("#getCount").click(function(){
+		event.preventDefault();
+
+		$.ajax({
+			url: "query.php?portalId=$portalId",
+			data: {
+				'groupUuid': $("#iseEPGroups").find('option:selected').val(),
+				'action': 'get_endpoint_count'
+			},
+			type: "POST",
+			dataType: "text",
+			success: function (epCount) {
+				$( "#iseepgCount" ).html( epCount );
+			}
+		});
+	});	
+	
+	$("#iseEPGroups").change(function() {
+		var description = "";
+		$( "#iseEPGroups option:selected" ).each(function() {
+			name = $(this).html();
+			description = $(this).attr("description");
+			$( "#iseepgDescription" ).html( description );
+			$( "#endpointDescription" ).val( "[IMPORTED] ISE Endpoint Group: " + name );
+			$( "#fullName" ).val( "[ISE-IMPORTED] Endpoint" );
+			$( "#iseepgCount" ).html( "-" );
+		});
+	});
+		
 	$("#associationGroup").change(function() {
 		var duration = "";
 		var keyType = "";
-		$( "select option:selected" ).each(function() {
+		$( "#associationGroup option:selected" ).each(function() {
 			duration = $(this).attr("data-term");
 			keyType = $(this).attr("data-keytype");
 			$( "#duration" ).html( duration );

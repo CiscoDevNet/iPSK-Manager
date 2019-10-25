@@ -35,7 +35,10 @@
 		die();
 	}
 	
-	$templateFilename = "../supportfiles/portals/".$_SESSION['portalSettings']['portalModule']."/".substr($getPortal,0,strlen($getPortal) - 4).".inc.php";
+	if($_SESSION['portalAuthorization']['create'] == false){
+		header("Location: /manage.php?portalId=".$portalId);
+		die();
+	}
 	
 	$smtpSettings = $ipskISEDB->getSmtpSettings();
 	
@@ -106,6 +109,18 @@
 		}
 	}
 
+	if($_SESSION['portalAuthorization']['create'] == true){
+		$pageData['createButton'] = '<button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button>';
+	}else{
+		$pageData['createButton'] = '';
+	}
+	
+	if($_SESSION['portalAuthorization']['bulkcreate'] == true){
+		$pageData['bulkButton'] = '<button id="bulkAssoc" class="btn btn-primary shadow" type="button">Bulk Associations</button>';
+	}else{
+		$pageData['bulkButton'] = '';
+	}
+
 	print <<< HTML
 <html lang="en">
   <head>
@@ -135,13 +150,13 @@
 				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
 					<div class="row">
 						<div class="col-3">				
-							<button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button>
+						{$pageData['createButton']}
+						</div>
+						<div class="col-3">				
+						{$pageData['bulkButton']}
 						</div>
 						<div class="col-3">				
 							<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
-						</div>
-						<div class="col-3">				
-							
 						</div>
 						<div class="col-3">				
 							<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
@@ -222,6 +237,10 @@
 	
 	$("#createAssoc").click(function() {
 		window.location.href = "/sponsor.php?portalId=$portalId";
+	});
+	
+	$("#bulkAssoc").click(function() {
+		window.location.href = "/bulk.php?portalId=$portalId";
 	});
 	
 	$("#newAssoc").click(function() {
