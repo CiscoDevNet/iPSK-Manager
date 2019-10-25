@@ -142,6 +142,22 @@
 		$advancedSettings['enable-portal-psk-edit'] = "";
 		$advancedSettings['enable-portal-psk-edit-value'] = "0";
 	}
+	
+	if(isset($advancedSettings['enable-advanced-logging'])){
+		if($advancedSettings['enable-advanced-logging'] == 1){
+			$advancedSettings['enable-advanced-logging'] = " checked";
+			$advancedSettings['enable-advanced-logging-value'] = "1";
+			$logSettingsTab = '<a class="nav-item nav-link" id="nav-logging-tab" data-toggle="tab" href="#nav-logging" role="tab" aria-controls="nav-logging" aria-selected="false">Logging Settings</a>';
+		}else{
+			$advancedSettings['enable-advanced-logging'] = "";
+			$advancedSettings['enable-advanced-logging-value'] = "0";
+			$logSettingsTab = '';
+		}
+	}else{
+		$advancedSettings['enable-advanced-logging'] = "";
+		$advancedSettings['enable-advanced-logging-value'] = "0";
+		$logSettingsTab = '';
+	}
 
 ?>
 <div class="row">
@@ -158,6 +174,7 @@
 		<a class="nav-item nav-link" id="nav-ise-tab" data-toggle="tab" href="#nav-ise" role="tab" aria-controls="nav-ise" aria-selected="false">Cisco ISE Integration</a>
 		<a class="nav-item nav-link" id="nav-smtp-tab" data-toggle="tab" href="#nav-smtp" role="tab" aria-controls="nav-smtp" aria-selected="false">SMTP Configuration</a>
 		<a class="nav-item nav-link" id="nav-advanced-tab" data-toggle="tab" href="#nav-advanced" role="tab" aria-controls="nav-advanced" aria-selected="false">Advanced Settings</a>
+		<?php print $logSettingsTab;?>
 	</div>
 </nav>
 <div class="tab-content" id="nav-tabContent">
@@ -167,6 +184,7 @@
 	<div class="tab-pane fade" id="nav-ise" role="tabpanel" aria-labelledby="nav-ise-tab"><?php include("ise.inc.php");?></div>
 	<div class="tab-pane fade" id="nav-smtp" role="tabpanel" aria-labelledby="nav-smtp-tab"><?php include("smtp.inc.php");?></div>
 	<div class="tab-pane fade" id="nav-advanced" role="tabpanel" aria-labelledby="nav-advanced-tab"><?php include("advanced.inc.php");?></div>
+	<div class="tab-pane fade" id="nav-logging" role="tabpanel" aria-labelledby="nav-logging-tab"><?php if($advancedSettings['enable-advanced-logging-value']){include('logging.inc.php');}?></div>
 </div>
 
 <script>
@@ -209,6 +227,10 @@
 	
 	$(".advancedtab").change(function(){
 		$("#updateadvanced").removeAttr('disabled');
+	});
+	
+	$(".loggingtab").change(function(){
+		$("#updatelogging").removeAttr('disabled');
 	});
 
 	$("#updategeneral").click(function(){
@@ -486,13 +508,42 @@
 				module: $(this).attr('module'),
 				'sub-module': $(this).attr('sub-module'),
 				'module-action': $(this).attr('module-action'),
-				'portalPskEditEnabled': $("#portalPskEditEnabled").val()		
+				'portalPskEditEnabled': $("#portalPskEditEnabled").val()		,
+				'advancedLoggingSettings': $("#advancedLoggingSettings").val()
 			},
 			type: "POST",
 			dataType: "text",
 			success: function (data) {
 					if(data != 0){
 						$("#updateadvanced").attr("disabled", true);
+					}
+			}
+		});
+	});
+	
+	$("#updatelogging").click(function(){
+		event.preventDefault();
+
+		$.ajax({
+			url: "ajax/getmodule.php",
+			
+			data: {
+				module: $(this).attr('module'),
+				'sub-module': $(this).attr('sub-module'),
+				'module-action': $(this).attr('module-action'),
+				'sqlLogging': $("#sqlLogging").val(),
+				'payloadLogging': $("#payloadLogging").val(),
+				'debugLogging': $("#debugLogging").val(),
+				'getLogging': $("#getLogging").val(),
+				'postLogging': $("#postLogging").val(),
+				'sessionLogging': $("#sessionLogging").val(),
+				'serverLogging': $("#serverLogging").val()		
+			},
+			type: "POST",
+			dataType: "text",
+			success: function (data) {
+					if(data != 0){
+						$("#updatelogging").attr("disabled", true);
 					}
 			}
 		});

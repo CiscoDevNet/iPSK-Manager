@@ -18,7 +18,6 @@
  *or implied.
  */
 
-//print_r($sanitizedInput);
 	if($sanitizedInput['module-action'] == "general"){
 		$ipskISEDB->setGlobalSetting("admin-portal","admin-portal-hostname", $sanitizedInput['adminPortalHostname']);
 		$ipskISEDB->setGlobalSetting("admin-portal","admin-portal-strict-hostname", $sanitizedInput['strict-hostname']);
@@ -54,6 +53,11 @@
 		print true;
 	}elseif($sanitizedInput['module-action'] == "advancedupdate"){
 		$ipskISEDB->setGlobalSetting("advanced-settings","enable-portal-psk-edit", $sanitizedInput['portalPskEditEnabled']);
+		$ipskISEDB->setGlobalSetting("advanced-settings","enable-advanced-logging", $sanitizedInput['advancedLoggingSettings']);
+		print true;
+	}elseif($sanitizedInput['module-action'] == "loggingupdate"){
+		$loggingLevel = $sanitizedInput['sqlLogging'] + $sanitizedInput['payloadLogging'] +	$sanitizedInput['debugLogging'] + $sanitizedInput['getLogging'] + $sanitizedInput['postLogging'] + $sanitizedInput['sessionLogging'] + $sanitizedInput['serverLogging'];
+		$ipskISEDB->setGlobalSetting("platform-config", "logging-level", $loggingLevel);		
 		print true;
 	}else{
 		print false;

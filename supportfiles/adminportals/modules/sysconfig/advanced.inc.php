@@ -30,6 +30,10 @@
 			<input type="checkbox" class="custom-control-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-portal-psk-edit-value']}" id="portalPskEditEnabled"{$advancedSettings['enable-portal-psk-edit']}>
 			<label class="custom-control-label text-danger" for="portalPskEditEnabled"><strong>Enable per portal proup PSK editing functionality</strong></label>
 		</div>
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-advanced-logging-value']}" id="advancedLoggingSettings"{$advancedSettings['enable-advanced-logging']}>
+			<label class="custom-control-label text-danger" for="advancedLoggingSettings"><strong>Enable Platform Logging Settings</strong></label>
+		</div>
 		<button id="updateadvanced" module="sysconfig" sub-module="update" module-action="advancedupdate" type="submit" class="btn btn-primary shadow" disabled>Update Settings</button>
 	</div>
 </div>

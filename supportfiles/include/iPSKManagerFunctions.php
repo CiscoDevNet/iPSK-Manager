@@ -299,9 +299,17 @@
 								  ),
 			'smtpEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
 			'portalPskEditEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
+			'advancedLoggingSettings'	=>	FILTER_VALIDATE_BOOLEAN,
 			'portalPskEditCheck'	=>	FILTER_VALIDATE_INT,
 			'bulkCreateCheck'	=>	FILTER_VALIDATE_INT,
-			'bulkImportType'	=>	FILTER_VALIDATE_INT
+			'bulkImportType'	=>	FILTER_VALIDATE_INT,
+			'sqlLogging'	=>	FILTER_VALIDATE_INT,
+			'payloadLogging'	=>	FILTER_VALIDATE_INT,
+			'debugLogging'	=>	FILTER_VALIDATE_INT,
+			'getLogging'	=>	FILTER_VALIDATE_INT,
+			'postLogging'	=>	FILTER_VALIDATE_INT,
+			'sessionLogging'	=>	FILTER_VALIDATE_INT,
+			'serverLogging'	=>	FILTER_VALIDATE_INT
 		);
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);
