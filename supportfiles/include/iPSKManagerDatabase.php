@@ -1669,16 +1669,45 @@
 								
 				if($endpointQueryResult->num_rows < 1){
 					$insertMacAddress = "";
-					
-					foreach($macAddress as $entry => $key){
+					$macAddressAdd['count'] = 0;
+					$macAddressAdd['skipped'] = 0;
+					$macAddressAdd['processed'] = 0;
+					$count = 0;
+
+					if(count($macAddress) > 0){
+						foreach($macAddress as $entry => $key){
 						$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+						}
+						
+						$insertMacAddress = substr($insertMacAddress, 0, -1);
+						
+						$bulkQuery = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `expirationDate`, `createdBy`) VALUES%s", $insertMacAddress);
+						
+						$bulkQueryResult = $this->dbConnection->query($bulkQuery);
+						
+						if($bulkQueryResult){
+							$startInsertId = $this->dbConnection->insert_id;
+							$affectRows = $this->dbConnection->affected_rows;
+							
+							foreach($macAddress as $entry => $key){
+								$macAddressAdd[$count]['macAddress'] = $key;
+								$macAddressAdd[$count]['exists'] = false;
+								$macAddressAdd[$count]['insertId'] = $startInsertId;
+								$count++;
+								
+								$startInsertId++;
+							}
+							
+							$macAddressAdd['count'] = $count;
+							$macAddressAdd['processed'] = count($macAddress);
+							
+							return $macAddressAdd;
+						}else{
+							return false;
+						}
+					}else{
+						return $macAddressAdd;
 					}
-					
-					$insertMacAddress = substr($insertMacAddress, 0, -1);
-					
-					$bulkQuery = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `expirationDate`, `createdBy`) VALUES%s", $insertMacAddress);
-					
-					$bulkQueryResult = $this->dbConnection->query($bulkQuery);
 					
 					if($bulkQueryResult){
 						return $this->dbConnection->insert_id;
