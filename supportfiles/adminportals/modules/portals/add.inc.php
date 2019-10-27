@@ -53,6 +53,8 @@
 		while($row = $portalHostnameList->fetch_assoc()){
 			$hostnameList .= '<option value="'.$row['hostname'].'">'.$row['hostname'].'</option>';
 		}
+	}else{
+		$hostnameList .= '<option value="'.$_SERVER['SERVER_ADDR'].'">'.$_SERVER['SERVER_ADDR'].'</option>';
 	}
 	
 	if($portalTypeList){

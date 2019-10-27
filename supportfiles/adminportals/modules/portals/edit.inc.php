@@ -70,6 +70,8 @@
 				$hostnameList .= '<option value="'.$row['hostname'].'">'.$row['hostname'].'</option>';
 			}
 		}
+	}else{
+		$hostnameList .= '<option value="'.$_SERVER['SERVER_ADDR'].'">'.$_SERVER['SERVER_ADDR'].'</option>';
 	}
 	
 	if($tcpPortListing){
