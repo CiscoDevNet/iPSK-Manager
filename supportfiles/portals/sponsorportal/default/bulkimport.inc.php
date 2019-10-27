@@ -18,10 +18,6 @@
  *or implied.
  */
 	
-	//Clear Variables and set to blank
-	if($iseERSIntegrationAvailable){
-		$temp = $ipskISEERS->getEndPointIdentityGroups();
-	}
 	
 	//Clear Variables and set to blank
 	$pageData['errorMessage'] = "";

@@ -280,13 +280,15 @@
 	
 	$("#submitbtn").click(function() {
 		event.preventDefault();
+		$(this).prop("disabled", true);
 		
 		failure = formFieldValidation();
 		
 		if(failure){
+			$(this).prop("disabled", false);
 			return false;
 		}
-		$(this).prop("disabled", true);
+		
 		$("#bulkAssociationform").submit();
 	});
 	
