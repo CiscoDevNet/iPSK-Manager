@@ -25,6 +25,10 @@
 	$pageData['endpointGroupList'] = "";
 	$pageData['wirelessSSIDList'] = "";
 	$pageData['endpointAssociationList'] = "";
+	$pageData['pageinationOutput'] = '';
+	$totalPages = 0;
+	$currentPage = 0;
+	$currentPageSizeSelection = "";
 	
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];
@@ -34,8 +38,11 @@
 		die();
 	}
 
+	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
+	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
+	
 	$listCount = 0;
-			
+
 	$endpointAssociationList = $ipskISEDB->getEndPointAssociationList($_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id'], $_SESSION['portalAuthorization']['viewall'], $_SESSION['portalAuthorization']['viewallDn']);
 
 	if($endpointAssociationList){
@@ -123,9 +130,59 @@
 		}
 	}
 	
+	$pageSizes = Array(25, 50, 75, 100);
+	
+	foreach($pageSizes as $entry){
+		if($entry == $pageSize){
+			$currentPageSizeSelection .= '<option value="'.$entry.'" selected>'.$entry.'</option>';
+		}else{
+			$currentPageSizeSelection .= '<option value="'.$entry.'">'.$entry.'</option>';
+		}
+	}
+	
 	$associationList['count'] = $listCount;
-
-	for($assocId = 0;$assocId < $associationList['count']; $assocId++){
+	
+	$totalPages = floor($associationList['count'] / $pageSize);
+	$totalPagesT = $associationList['count'] / $pageSize;
+	
+	if($currentPage > $totalPages){
+		$currentPage = $totalPages;
+	}
+		
+	$nextPage = $currentPage + 1;
+	
+	if($currentPage == 0 || $currentPage == 1){
+		$currentPage = 1;
+		
+		$pageStart = 0;
+		$pageEnd = $pageStart + $pageSize;
+		
+		if($pageEnd > $associationList['count']){
+			$pageEnd = $associationList['count'];
+		}
+		
+	}else{
+		$pageStart = $currentPage * $pageSize - 1;
+		$pageEnd = $pageStart + $pageSize;
+		
+		$previousPage = $currentPage - 1;
+		
+		$pageData['pageinationOutput'] .= '<a class="action-pageicons mx-1" page="1" href="#"><span data-feather="chevrons-left"></span></a>';
+		$pageData['pageinationOutput'] .= '<a class="action-pageicons mx-1" page="'.$previousPage.'" href="#"><span data-feather="chevron-left"></span></a>';		
+		
+		if($pageEnd > $associationList['count']){
+			$pageEnd = $associationList['count'];
+		}
+	}
+	
+	$pageData['pageinationOutput'] .= "<strong>".$currentPage."</strong>";
+	
+	if($currentPage != $totalPages){
+		$pageData['pageinationOutput'] .= '<a class="action-pageicons mx-1" page="'.$nextPage.'" href="#"><span data-feather="chevron-right"></span></a>';
+		$pageData['pageinationOutput'] .= '<a class="action-pageicons mx-1" page="'.$totalPages.'" href="#"><span data-feather="chevrons-right"></span></a>';
+	}
+	
+	for($assocId = $pageStart;$assocId < $pageEnd; $assocId++){
 		$pageData['endpointAssociationList'] .= '<tr>';
 		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['macAddress'].'</td>';
 		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['epGroupName'].'</td>';
@@ -177,6 +234,7 @@
 				</div>
 				<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
 				<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
+				Total Pages: $totalPages:$totalPagesT / $currentPage / $pageSize / $pageStart / {$associationList['count']}
 				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
 					<div class="row">
 						<div class="col-3">				
@@ -203,10 +261,24 @@
 				<div class="row text-left">
 					<div class="col"></div>
 					<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-						{$pageData['endpointAssociationList']}		
+						{$pageData['endpointAssociationList']}
+						<div class="row">
+							<div class="col"><hr></div>
+						</div>
+						<div class="row">
+							<div class="col-4">
+								<label class="font-weight-bold" for="pageSize">Items per Page:</label>
+								<select id="pageSize">$currentPageSizeSelection</select>
+							</div>
+							<div class="col"></div>
+							<div class="col-4 text-right">
+								{$pageData['pageinationOutput']}
+							</div>
+						</div>						
 					</div>
 					<div class="col"></div>
 				</div>
+				
 		</div>
 		<div class="m-0 mx-auto p-2 bg-white text-center">
 			<p>Copyright &copy; 2019 Cisco and/or its affiliates.</p>
@@ -244,6 +316,10 @@
 		event.preventDefault();
 	});
 	
+	$(".action-pageicons").click(function(event) {
+		window.location.href = "/manage.php?portalId=$portalId&pageSize=" + $("#pageSize").val() + "&currentPage=" + $(this).attr("page");
+	});
+	
 	$("#createAssoc").click(function() {
 		window.location.href = "/sponsor.php?portalId=$portalId";
 	});
@@ -256,6 +332,10 @@
 		window.location.href = "/manage.php?portalId=$portalId";
 	});
 	
+	$("#pageSize").change(function() {
+		window.location.href = "/manage.php?portalId=$portalId&pageSize=" + $(this).val();
+	});
+		
 	$("#signOut").click(function(event) {
 		$.ajax({
 			url: "/logoff.php?portalId=$portalId",
