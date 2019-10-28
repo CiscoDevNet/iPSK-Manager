@@ -232,7 +232,6 @@
 					<img src="images/iPSK-Logo.svg" width="108" height="57" />
 				</div>
 				<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
-				Total Pages: $totalPages / $pageStart / $pageEnd
 				<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
 				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
 					<div class="row">
