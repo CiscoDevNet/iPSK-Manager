@@ -65,7 +65,7 @@ HTML;
 
 $htmlbody = <<<HTML
 <!-- Modal -->
-<div class="modal fade" id="viewSponsorGroup" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+<div class="modal fade" id="viewSponsorGroup" tabindex="-1" role="dialog" aria-labelledby="viewSponsorGroupModal" aria-hidden="true">
 	<form class="needs-validation" novalidate>
 		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 			<div class="modal-content">
