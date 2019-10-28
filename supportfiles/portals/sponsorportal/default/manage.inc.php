@@ -177,7 +177,7 @@
 	
 	$pageData['pageinationOutput'] .= "<strong>".$currentPage."</strong>";
 	
-	if($currentPage != $totalPages){
+	if($currentPage != $totalPages && $totalPages != 0){
 		$pageData['pageinationOutput'] .= '<a class="action-pageicons mx-1" page="'.$nextPage.'" href="#"><span data-feather="chevron-right"></span></a>';
 		$pageData['pageinationOutput'] .= '<a class="action-pageicons mx-1" page="'.$totalPages.'" href="#"><span data-feather="chevrons-right"></span></a>';
 	}
@@ -234,7 +234,6 @@
 				</div>
 				<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
 				<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
-				Total Pages: $totalPages:$totalPagesT / $currentPage / $pageSize / $pageStart / {$associationList['count']}
 				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
 					<div class="row">
 						<div class="col-3">				
@@ -270,7 +269,7 @@
 								<label class="font-weight-bold" for="pageSize">Items per Page:</label>
 								<select id="pageSize">$currentPageSizeSelection</select>
 							</div>
-							<div class="col"></div>
+							<div class="col text-center"><strong>Total Pages: $totalPages</strong></div>
 							<div class="col-4 text-right">
 								{$pageData['pageinationOutput']}
 							</div>
