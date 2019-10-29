@@ -128,6 +128,7 @@ $htmlbody = <<<HTML
 	$(function() {	
 		feather.replace()
 	});
+	
 	$("#showpassword").on('click', function(event) {
 		event.preventDefault();
 		if($("#presharedKey").attr('type') == "text"){

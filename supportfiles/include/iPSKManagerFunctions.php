@@ -82,21 +82,6 @@
 		return $secuirtyId;
 	}
 
-	function generatePsk( $length = 8 ){
-		//Define the Alphabet for Generating Random Passwords or PSK
-		$alphabet = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ123456789!?#$%@*()";
-		//Limit the maximum length to 64 Characters
-		if($length > 64){ $length = 64;}
-		
-		$generatedPsk = "";
-		//Loop through and select random characters from the alphabet
-		for($char = 0; $char < $length; $char++){
-			$generatedPsk .= substr($alphabet, random_int(0,strlen($alphabet)) - 1, 1);
-		}
-
-		return $generatedPsk;
-	}
-
 	function generateGuid(){
 		//Generate new Guid with cryptographically secure pseudo-random integers
 		return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x', random_int(0, 65535), random_int(0, 65535), random_int(0, 65535), random_int(16384, 20479), random_int(32768, 49151), random_int(0, 65535), random_int(0, 65535), random_int(0, 65535));
@@ -309,7 +294,12 @@
 			'getLogging'	=>	FILTER_VALIDATE_INT,
 			'postLogging'	=>	FILTER_VALIDATE_INT,
 			'sessionLogging'	=>	FILTER_VALIDATE_INT,
-			'serverLogging'	=>	FILTER_VALIDATE_INT
+			'serverLogging'	=>	FILTER_VALIDATE_INT,
+			'complexLowercase'	=>	FILTER_VALIDATE_INT,
+			'complexUppercase'	=>	FILTER_VALIDATE_INT,
+			'complexNumbers'	=>	FILTER_VALIDATE_INT,
+			'complexSpecial'	=>	FILTER_VALIDATE_INT,
+			'complexSimilar'	=>	FILTER_VALIDATE_INT
 		);
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);

@@ -18,7 +18,7 @@
  *or implied.
  */
 
-
+$alphabetArray = Array(1=>"abcdefghijkmnopqrstuvwxyz", 2=>"ABCDEFGHJKLMNPQRSTUVWXYZ", 4=>"123456789", 8=>'!?#$%@*()',16=>'lIO0');
 	print <<< HTML
 <div class="row">
 	<div class="col m-3 shadow border border-secondary p-2">
@@ -45,7 +45,33 @@
 			<input type="checkbox" class="custom-control-input checkbox-update generaltab" base-value="1" value="{$adminPortalSettings['redirect-on-hostname-match-value']}" id="redirectOnHostname"{$adminPortalSettings['redirect-on-hostname-match']}>
 			<label class="custom-control-label" for="redirectOnHostname">Redirect to Portal on Hostname Match</label>
 		</div>
-		<button id="updategeneral" module="sysconfig" sub-module="update" module-action="general" type="submit" class="btn btn-primary shadow" disabled>Update Settings</button>
+		<button id="updateGeneral" module="sysconfig" sub-module="update" module-action="general" type="submit" class="btn btn-primary shadow" disabled>Update Settings</button>
+	</div>
+	<div class="col m-3 shadow border border-secondary p-2">
+		<div class="row">
+			<div class="col text-center text-primary"><h5>Global Password/Pre-Shared Key Complexity Settings</h5><h6 class="text-danger">Note: Having no options selected will default to the first four options.</div>
+		</div>
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input checkbox-update complexitytab" base-value="1" value="{$adminPortalSettings['complexity-lower-value']}" id="complexLowercase"{$adminPortalSettings['complexity-lower']}>
+			<label class="custom-control-label" for="complexLowercase">Enable Lower Case [ <span class="text-danger font-weight-bold">abcdefghijkmnopqrstuvwxyz</span> ]</label>
+		</div>
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input checkbox-update complexitytab" base-value="2" value="{$adminPortalSettings['complexity-upper-value']}" id="complexUppercase"{$adminPortalSettings['complexity-upper']}>
+			<label class="custom-control-label" for="complexUppercase">Enable Upper Case [ <span class="text-danger font-weight-bold">ABCDEFGHJKLMNPQRSTUVWXYZ</span> ]</label>
+		</div>
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input checkbox-update complexitytab" base-value="4" value="{$adminPortalSettings['complexity-number-value']}" id="complexNumbers"{$adminPortalSettings['complexity-number']}>
+			<label class="custom-control-label" for="complexNumbers">Enable Numbers [ <span class="text-danger font-weight-bold">123456789</span> ]</label>
+		</div>
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input checkbox-update complexitytab" base-value="8" value="{$adminPortalSettings['complexity-special-value']}" id="complexSpecial"{$adminPortalSettings['complexity-special']}>
+			<label class="custom-control-label" for="complexSpecial">Enable Special Characters [ <span class="text-danger font-weight-bold">!?#$%@*()</span> ]</label>
+		</div>
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input checkbox-update complexitytab" base-value="16" value="{$adminPortalSettings['complexity-similar-value']}}" id="complexSimilar"{$adminPortalSettings['complexity-similar']}>
+			<label class="custom-control-label" for="complexSimilar">Enable Similar Characters [ <span class="text-danger font-weight-bold">lIO0</span> ]</label>
+		</div>
+		<button id="updateComplexity" module="sysconfig" sub-module="update" module-action="complexity" type="submit" class="btn btn-primary shadow" disabled>Update Settings</button>
 	</div>
 </div>
 HTML;

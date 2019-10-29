@@ -45,12 +45,12 @@
 		$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 		
 		if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
-			$randomPassword = generatePsk($endpointGroupAuthorization['pskLength']);
+			$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
 			$randomPSK = "psk=".$randomPassword;
 		}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
 			$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'],$_SESSION['logonSID']);
 			if(!$userPsk){
-				$randomPassword = generatePsk($endpointGroupAuthorization['pskLength']);
+				$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
 				$randomPSK = "psk=".$randomPassword;
 			}else{
 				$randomPassword = $userPsk;
@@ -93,7 +93,7 @@
 						$logMessage = "BULKREQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT-ASSOCIATION;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 						$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						
-						$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>The Endpoint Association has successfully completed.</h3><h6></h6></div></div>";
+						$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>The Endpoint Import has completed successfully.</h3><h6></h6></div></div>";
 						
 						if(is_array($macAddressInsertID)){
 							$insertAssociation = "";
@@ -101,7 +101,7 @@
 							for($rowCount = 0; $rowCount < $macAddressInsertID['count']; $rowCount++){
 								
 								if($macAddressInsertID[$rowCount]['exists'] == true){
-									$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><strong>Endpoint Exists</strong></td></tr>';
+									$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><span class="text-danger">Endpoint Exists</span></td></tr>';
 								}else{
 									$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $randomPSK).'</td></tr>';
 								}
@@ -125,7 +125,7 @@
 							for($rowCount = 0; $rowCount < $macAddressInsertID['count']; $rowCount++){
 								
 								if($macAddressInsertID[$rowCount]['exists'] == true){
-									$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><strong>Endpoint Exists</strong></td></tr>';
+									$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><span class="text-danger">Endpoint Exists</span></td></tr>';
 								}else{
 									$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $randomPSK).'</td></tr>';
 								}
@@ -150,7 +150,7 @@
 						for($rowCount = 0; $rowCount < $macAddressInsertID['count']; $rowCount++){
 							
 							if($macAddressInsertID[$rowCount]['exists'] == true){
-								$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><strong>Endpoint Exists</strong></td></tr>';
+								$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><span class="text-danger">Endpoint Exists</span></td></tr>';
 							}else{
 								$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $randomPSK).'</td></tr>';
 							}

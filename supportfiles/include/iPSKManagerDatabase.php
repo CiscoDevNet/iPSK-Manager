@@ -36,6 +36,7 @@
 		public $systemConfigured;
 		public $dbSchemaVersion;
 		public $loggingLevel;
+		public $passwordComplexity;
 		
 		private $dbHostname;
 		private $dbUsername;
@@ -90,6 +91,23 @@
 					$this->loggingLevel = 0;
 				}
 				
+				$query = "SELECT `value` FROM `settings` WHERE `page` = 'global' AND `settingClass` = 'advanced-settings' AND `keyName` = 'password-complexity' LIMIT 1";
+				
+				$queryResult = $this->dbConnection->query($query);
+			
+				if($queryResult){
+					if($queryResult->num_rows > 0){
+						$row = $queryResult->fetch_assoc();
+						
+						$this->passwordComplexity = $row["value"];
+						
+					}else{
+						$this->passwordComplexity = 15;
+					}
+				}else{
+					$this->passwordComplexity = 15;
+				}
+				
 				//OPTIONAL: Set Server Environment Variables to relocate the Encryption Key.
 				if(!isset($this->encryptionKey)){
 					if(isset($_SERVER['ENC_KEY'])){
@@ -137,6 +155,39 @@
 			}
 		}
 
+		function generateRandomPassword($length = 8, $complexity = null){
+			//Define the Alphabet Array for Selectable Complexity
+			$alphabet = '';
+			$alphabetArray = Array(1=>"abcdefghijkmnopqrstuvwxyz", 2=>"ABCDEFGHJKLMNPQRSTUVWXYZ", 4=>"123456789", 8=>'!?#$%@*()',16=>'lIO0');
+			
+			//Check if user defined Complexity to overwrite global setting & if complexity has been defined (not 0)
+			if($complexity == null){
+				if($this->passwordComplexity == 0){
+					$complexity = 15;
+				}else{
+					$complexity = $this->passwordComplexity;
+				}
+			}
+			
+			//Generate Alphabet String based on user defined Complexity
+			foreach($alphabetArray as $index => $entry){
+				if($complexity & $index){
+					$alphabet .= $entry;
+				}
+			}
+			
+			//Limit the maximum length to 64 Characters
+			if($length > 64){ $length = 64;}
+			
+			$generatedPsk = "";
+			//Loop through and select random characters from the alphabet
+			for($char = 0; $char < $length; $char++){
+				$generatedPsk .= substr($alphabet, random_int(0,strlen($alphabet)) - 1, 1);
+			}
+
+			return $generatedPsk;
+		}
+		
 		function checkGlobalSettingCount($settingClass, $settingName, $settingIndex = 0){
 			
 			$query = "SELECT `value` FROM `settings` WHERE `page` = 'global' AND `settingClass` = '".$settingClass."' AND `keyName` = '".$settingName."' AND `optionIndex` = '".$settingIndex."'";
@@ -1034,13 +1085,31 @@
 		}
 		
 		function getEndPointAssociations(){
-			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpointGroups.groupName as epGroupName, endpoints.accountEnabled, endpoints.expirationDate, endpointAssociations.createdDate FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId";
+			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, endpoints.macAddress, endpoints.createdBy, endpointGroups.groupName as epGroupName, endpoints.accountEnabled, endpoints.expirationDate, endpointAssociations.createdDate FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId ORDER BY endpoints.macAddress ASC";
 			
 			$queryResult = $this->dbConnection->query($query);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
-					return $queryResult;
+					$listCount = 0;
+					
+					while($row = $queryResult->fetch_assoc()){
+						$rawAssociationList[$listCount]['id'] = $row['id'];
+						$rawAssociationList[$listCount]['endpointId'] = $row['endpointId'];
+						$rawAssociationList[$listCount]['epGroupId'] = $row['epGroupId'];
+						$rawAssociationList[$listCount]['macAddress'] = $row['macAddress'];
+						$rawAssociationList[$listCount]['createdBy'] = $row['createdBy'];
+						$rawAssociationList[$listCount]['expirationDate'] = $row['expirationDate'];
+						$rawAssociationList[$listCount]['accountEnabled'] = $row['accountEnabled'];
+						$rawAssociationList[$listCount]['createdDate'] = $row['createdDate'];
+						$rawAssociationList[$listCount]['groupName'] = $row['epGroupName'];
+						
+						$listCount++;
+					}
+					
+					$rawAssociationList['count'] = $listCount;					
+					
+					return $rawAssociationList;
 				}else{
 					return false;
 				}

@@ -23,23 +23,33 @@
 		$ipskISEDB->setGlobalSetting("admin-portal","admin-portal-strict-hostname", $sanitizedInput['strict-hostname']);
 		$ipskISEDB->setGlobalSetting("admin-portal","redirect-on-hostname-match", $sanitizedInput['redirect-hostname']);
 		print true;
+	}elseif($sanitizedInput['module-action'] == "complexity"){
+		$passwordComplexity = $sanitizedInput['complexLowercase'] + $sanitizedInput['complexUppercase'] + $sanitizedInput['complexNumbers'] + $sanitizedInput['complexSpecial'] + $sanitizedInput['complexSimilar'];
+		
+		$ipskISEDB->setGlobalSetting("advanced-settings","password-complexity", $passwordComplexity);
+		
+		print true;
 	}elseif($sanitizedInput['module-action'] == "ersupdate"){
 		$ipskISEDB->setGlobalSetting("ise-ers-credentials","enabled", $sanitizedInput['ersEnabled']);
 		$ipskISEDB->setGlobalSetting("ise-ers-credentials","verify-ssl-peer", $sanitizedInput['ersVerifySsl']);
 		$ipskISEDB->setGlobalSetting("ise-ers-credentials","ersHost", $sanitizedInput['ersHost']);
 		$ipskISEDB->setGlobalSetting("ise-ers-credentials","ersUsername", $sanitizedInput['ersUsername']);
+		
 		print true;
 	}elseif($sanitizedInput['module-action'] == "erspass"){	
 		$ipskISEDB->setISEERSPassword($sanitizedInput['ersPassword']);
+		
 		print true;		
 	}elseif($sanitizedInput['module-action'] == "mntupdate"){
 		$ipskISEDB->setGlobalSetting("ise-mnt-credentials","enabled", $sanitizedInput['mntEnabled']);
 		$ipskISEDB->setGlobalSetting("ise-mnt-credentials","verify-ssl-peer", $sanitizedInput['mntVerifySsl']);
 		$ipskISEDB->setGlobalSetting("ise-mnt-credentials","mntHost", $sanitizedInput['mntHost']);
 		$ipskISEDB->setGlobalSetting("ise-mnt-credentials","mntUsername", $sanitizedInput['mntUsername']);
+		
 		print true;
 	}elseif($sanitizedInput['module-action'] == "mntpass"){	
 		$ipskISEDB->setISEMnTPassword($sanitizedInput['mntPassword']);
+		
 		print true;
 	}elseif($sanitizedInput['module-action'] == "smtpupdate"){
 		$ipskISEDB->setGlobalSetting("smtp-settings","enabled", $sanitizedInput['smtpEnabled']);
@@ -47,17 +57,21 @@
 		$ipskISEDB->setGlobalSetting("smtp-settings","smtp-port", $sanitizedInput['smtpPort']);
 		$ipskISEDB->setGlobalSetting("smtp-settings","smtp-username", $sanitizedInput['smtpUsername']);
 		$ipskISEDB->setGlobalSetting("smtp-settings","smtp-fromaddress", $sanitizedInput['smtpFromAddress']);
+		
 		print true;
 	}elseif($sanitizedInput['module-action'] == "smtppass"){	
 		$ipskISEDB->setSMTPPassword($sanitizedInput['smtpPassword']);
+		
 		print true;
 	}elseif($sanitizedInput['module-action'] == "advancedupdate"){
 		$ipskISEDB->setGlobalSetting("advanced-settings","enable-portal-psk-edit", $sanitizedInput['portalPskEditEnabled']);
 		$ipskISEDB->setGlobalSetting("advanced-settings","enable-advanced-logging", $sanitizedInput['advancedLoggingSettings']);
+		
 		print true;
 	}elseif($sanitizedInput['module-action'] == "loggingupdate"){
 		$loggingLevel = $sanitizedInput['sqlLogging'] + $sanitizedInput['payloadLogging'] +	$sanitizedInput['debugLogging'] + $sanitizedInput['getLogging'] + $sanitizedInput['postLogging'] + $sanitizedInput['sessionLogging'] + $sanitizedInput['serverLogging'];
 		$ipskISEDB->setGlobalSetting("platform-config", "logging-level", $loggingLevel);		
+		
 		print true;
 	}else{
 		print false;

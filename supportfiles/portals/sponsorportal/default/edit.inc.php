@@ -26,12 +26,12 @@
 				$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 				
 				if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
-					$randomPassword = generatePsk($endpointGroupAuthorization['pskLength']);
+					$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
 					$randomPSK = "psk=".$randomPassword;
 				}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
 					$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'], $endpoint['createdBy']);
 					if(!$userPsk){
-						$randomPassword = generatePsk($endpointGroupAuthorization['pskLength']);
+						$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
 						$randomPSK = "psk=".$randomPassword;
 					}else{
 						$randomPassword = $userPsk;

@@ -75,6 +75,7 @@ HTML;
 		event.preventDefault();
 		
 		$('.modal-backdrop').remove();
+		$("body").removeClass('modal-open');
 		
 		$.ajax({
 			url: "/ajax/getmodule.php",

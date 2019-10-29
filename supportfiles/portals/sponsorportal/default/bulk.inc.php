@@ -280,12 +280,12 @@
 	
 	$("#submitbtn").click(function() {
 		event.preventDefault();
-		$(this).prop("disabled", true);
+		$(this).attr("disabled", true);
 		
 		failure = formFieldValidation();
 		
 		if(failure){
-			$(this).prop("disabled", false);
+			$(this).removeAttr('disabled');
 			return false;
 		}
 		

@@ -124,6 +124,7 @@ HTML;
 		}
 		
 		$('.modal-backdrop').remove();
+		$("body").removeClass('modal-open');
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

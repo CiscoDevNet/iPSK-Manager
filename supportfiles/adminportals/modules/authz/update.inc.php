@@ -79,7 +79,7 @@ HTML;
 						}
 					}else{
 						for($itemCount = 0; $itemCount < $endpointsToUpdate['count']; $itemCount++){
-							$ipskISEDB->updateEndpointPsk($endpointsToUpdate[$itemCount]['id'], "psk=".generatePsk($sanitizedInput['pskLength']));
+							$ipskISEDB->updateEndpointPsk($endpointsToUpdate[$itemCount]['id'], "psk=".$ipskISEDB->generateRandomPassword($sanitizedInput['pskLength']));
 						}
 					}			
 				}

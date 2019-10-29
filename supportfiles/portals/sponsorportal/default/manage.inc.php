@@ -161,7 +161,7 @@
 		}
 		
 	}else{
-		$pageStart = ($currentPage - 1) * $pageSize - 1;
+		$pageStart = ($currentPage - 1) * $pageSize;
 		$pageEnd = $pageStart + $pageSize;
 		
 		$previousPage = $currentPage - 1;

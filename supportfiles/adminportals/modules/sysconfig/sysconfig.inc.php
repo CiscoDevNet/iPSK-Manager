@@ -30,6 +30,46 @@
 	$hostnameListing = $ipskISEDB->getHostnameList();	
 	$portsAndProtocols = $ipskISEDB->getTcpPortList();
 	
+	if($ipskISEDB->passwordComplexity & 1){
+		$adminPortalSettings['complexity-lower'] = " checked";
+		$adminPortalSettings['complexity-lower-value'] = "1";
+	}else{
+		$adminPortalSettings['complexity-lower'] = "";
+		$adminPortalSettings['complexity-lower-value'] = "0";
+	}
+	
+	if($ipskISEDB->passwordComplexity & 2){
+		$adminPortalSettings['complexity-upper'] = " checked";
+		$adminPortalSettings['complexity-upper-value'] = "2";
+	}else{
+		$adminPortalSettings['complexity-upper'] = "";
+		$adminPortalSettings['complexity-upper-value'] = "0";
+	}
+	
+	if($ipskISEDB->passwordComplexity & 4){
+		$adminPortalSettings['complexity-number'] = " checked";
+		$adminPortalSettings['complexity-number-value'] = "4";
+	}else{
+		$adminPortalSettings['complexity-number'] = "";
+		$adminPortalSettings['complexity-number-value'] = "0";
+	}
+	
+	if($ipskISEDB->passwordComplexity & 8){
+		$adminPortalSettings['complexity-special'] = " checked";
+		$adminPortalSettings['complexity-special-value'] = "8";
+	}else{
+		$adminPortalSettings['complexity-special'] = "";
+		$adminPortalSettings['complexity-special-value'] = "0";
+	}
+	
+	if($ipskISEDB->passwordComplexity & 16){
+		$adminPortalSettings['complexity-similar'] = " checked";
+		$adminPortalSettings['complexity-similar-value'] = "16";
+	}else{
+		$adminPortalSettings['complexity-similar'] = "";
+		$adminPortalSettings['complexity-similar-value'] = "0";
+	}
+	
 	if(isset($adminPortalSettings['admin-portal-strict-hostname'])){
 		if($adminPortalSettings['admin-portal-strict-hostname'] == 1){
 			$adminPortalSettings['admin-portal-strict-hostname'] = " checked";
@@ -198,7 +238,11 @@
 	});
 	
 	$(".generaltab").change(function(){
-		$("#updategeneral").removeAttr('disabled');
+		$("#updateGeneral").removeAttr('disabled');
+	});
+
+	$(".complexitytab").change(function(){
+		$("#updateComplexity").removeAttr('disabled');
 	});
 	
 	$(".iseers").change(function(){
@@ -232,8 +276,8 @@
 	$(".loggingtab").change(function(){
 		$("#updatelogging").removeAttr('disabled');
 	});
-
-	$("#updategeneral").click(function(){
+	
+	$("#updateGeneral").click(function(){
 		event.preventDefault();
 
 		$.ajax({
@@ -251,7 +295,33 @@
 			dataType: "text",
 			success: function (data) {
 					if(data != 0){
-						$("#updategeneral").attr("disabled", true);
+						$("#updateGeneral").attr("disabled", true);
+					}
+			}
+		});
+	});
+	
+	$("#updateComplexity").click(function(){
+		event.preventDefault();
+
+		$.ajax({
+			url: "ajax/getmodule.php",
+			
+			data: {
+				module: $(this).attr('module'),
+				'sub-module': $(this).attr('sub-module'),
+				'module-action': $(this).attr('module-action'),
+				complexLowercase: $("#complexLowercase").val(),
+				complexUppercase: $("#complexUppercase").val(),
+				complexNumbers: $("#complexNumbers").val(),
+				complexSpecial: $("#complexSpecial").val(),
+				complexSimilar:	$("#complexSimilar").val()
+			},
+			type: "POST",
+			dataType: "text",
+			success: function (data) {
+					if(data != 0){
+						$("#updateComplexity").attr("disabled", true);
 					}
 			}
 		});

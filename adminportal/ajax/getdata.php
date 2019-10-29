@@ -129,7 +129,7 @@
 			$logMessage = "REQUEST:SUCCESS;GET-DATA-COMMAND:".$sanitizedInput['data-command'].";DATA-SET:".$sanitizedInput['data-set'].";";
 			$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 			
-			$psk = generatePsk($pskLength);
+			$psk = $ipskISEDB->generateRandomPassword($pskLength);
 			
 			print $psk;
 		}else if($sanitizedInput['data-command'] == "validate" && $sanitizedInput['data-set'] == "authzprofile"){
