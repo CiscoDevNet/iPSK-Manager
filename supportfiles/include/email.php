@@ -18,14 +18,14 @@
  *or implied.
  */
 
-	function sendEmail($to, $subject, $body, $smtpsettings){			
+	function sendEmail($to, $subject, $body, $smtpSettings){			
 		
 		$sendTo = filter_var($to, FILTER_SANITIZE_EMAIL);		
 		
 		if($sendTo != ""){
 			
-			if($smtpsettings['smtp-fromaddress'] != ''){
-				$mailFrom = filter_var($smtpsettings['smtp-fromaddress'], FILTER_SANITIZE_EMAIL);
+			if($smtpSettings['smtp-fromaddress'] != ''){
+				$mailFrom = filter_var($smtpSettings['smtp-fromaddress'], FILTER_SANITIZE_EMAIL);
 			}else{
 				$mailFrom = "ipskmanager@system.local";
 			}
@@ -46,6 +46,62 @@
 		}else{
 			return false;
 		}
+	}
+	
+	function sendHTMLEmail($to, $portalName, $wirelessPassword, $wirelessSsid, $smtpSettings){
+		$sendTo = filter_var($to, FILTER_SANITIZE_EMAIL);		
+		
+		if($sendTo != ""){
+			
+			if($smtpSettings['smtp-fromaddress'] != ''){
+				$mailFrom = filter_var($smtpSettings['smtp-fromaddress'], FILTER_SANITIZE_EMAIL);
+			}else{
+				$mailFrom = "ipskmanager@system.local";
+			}
+			
+			$headers = 'To: ' . $to . "\r\n";
+			
+			$headers .= 'From: ' . $mailFrom . "\r\n";
+			$headers .=	'Reply-To: ' . $mailFrom . "\r\n";
+			$headers .=	'X-Mailer: PHP/' . phpversion();
+			$headers .= "MIME-Version: 1.0\r\n";
+			$headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
+			
+			$subject = $portalName." Enrollment";
+			$body = <<< HTML
+<html>
+<head>
+</head>
+<body>
+<h1>Successfully Enrolled</h1>
+<table>
+<thead>
+<tr>
+<th>Pre-Shared Key</th>
+<th>SSID Name</th>
+</tr>
+</thead>
+</tbody>
+<tr>
+<td>$wirelessPassword</td>
+<td>$wirelessSsid</td>
+</tr>
+</tbody>
+</table>
+</body>			
+</html>			
+HTML;
+			
+			
+			if(mail($to, $subject, $body, $headers, "-f ".$mailFrom)){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+		
 	}
 
 ?>

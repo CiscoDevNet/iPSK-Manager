@@ -23,6 +23,7 @@
 	$pageData['endpointGroupList'] = "";
 	$pageData['wirelessSSIDList'] = "";
 	$pageData['endpointAssociationList'] = "";
+	$pageValid = false;
 	
 	
 	if(!ipskLoginSessionCheck()){
@@ -45,7 +46,8 @@
 			if(!isset($trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']])){
 				//Check if User is authorized for Create on EndPoint Group
 				if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 512){
-					if($ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']) < $_SESSION['authorizedEPGroups'][$count]['maxDevices']){
+					$userEPCount = $ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']);
+					if($userEPCount < $_SESSION['authorizedEPGroups'][$count]['maxDevices'] || $_SESSION['authorizedEPGroups'][$count]['maxDevices'] == 0){
 				
 						if($_SESSION['authorizedEPGroups'][$count]['termLengthSeconds'] == 0){
 							$termLength = "No Expiry";
@@ -63,6 +65,7 @@
 						
 						$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']."\">".$_SESSION['authorizedEPGroups'][$count]['groupName']."</option>";
 						$trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']] = true;
+						$pageValid = true;
 					}
 				}
 			}
@@ -96,6 +99,10 @@
 		$pageData['bulkButton'] = '';
 	}
 	
+	if(!$pageValid){
+		header("Location: /manage.php?portalId=".$portalId."&notice=1");
+		die();
+	}
 	
 	print <<< HTML
 <!doctype html>

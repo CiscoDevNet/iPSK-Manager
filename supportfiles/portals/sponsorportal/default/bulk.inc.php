@@ -24,7 +24,7 @@
 	$pageData['wirelessSSIDList'] = "";
 	$pageData['endpointAssociationList'] = "";
 	$pageData['iseEndpointGroups'] = "";
-	
+	$pageValid = false;
 	
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];		
@@ -46,7 +46,8 @@
 			if(!isset($trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']])){
 				//Check if User is authorized for Bulk Create on EndPoint Group
 				if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 2048){
-					if($ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']) < $_SESSION['authorizedEPGroups'][$count]['maxDevices']){
+					$userEPCount = $ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']);
+					if($userEPCount < $_SESSION['authorizedEPGroups'][$count]['maxDevices'] || $_SESSION['authorizedEPGroups'][$count]['maxDevices'] == 0){
 				
 						if($_SESSION['authorizedEPGroups'][$count]['termLengthSeconds'] == 0){
 							$termLength = "No Expiry";
@@ -64,6 +65,7 @@
 						
 						$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']."\">".$_SESSION['authorizedEPGroups'][$count]['groupName']."</option>";
 						$trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']] = true;
+						$pageValid = true;
 					}
 				}
 			}
@@ -98,9 +100,14 @@
 	}
 
 	if($iseERSIntegrationAvailable){
-		$pageData['bulkOption'] = '<option value="3">Cisco ISE "Endpoint Group" Import</option>';
+		$pageData['bulkOption'] = '<option value="1">CSV File Import</option><option value="3">Cisco ISE "Endpoint Group" Import</option>';
 	}else{
-		$pageData['bulkOption'] = '';
+		$pageData['bulkOption'] = '<option value="1">CSV File Import</option>';
+	}
+	
+	if(!$pageValid){
+		header("Location: /manage.php?portalId=".$portalId."&notice=1");
+		die();
 	}
 
 	print <<< HTML
@@ -126,28 +133,28 @@
   <body>
 	<div class="container">
 		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
-			<form id="bulkAssociationform" action="bulkimport.php?portalId=$portalId" method="post">
-				<div class="mt-2 mb-4">
-					<img src="images/iPSK-Logo.svg" width="108" height="57" />
-				</div>
-				<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
-				<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
-				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
-					<div class="row">
-						<div class="col-3">				
-						{$pageData['createButton']}
-						</div>
-						<div class="col-3">				
-						{$pageData['bulkButton']}
-						</div>
-						<div class="col-3">				
-							<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
-						</div>
-						<div class="col-3">				
-							<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
-						</div>
+			<div class="mt-2 mb-4">
+				<img src="images/iPSK-Logo.svg" width="108" height="57" />
+			</div>
+			<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
+			<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
+			<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
+				<div class="row">
+					<div class="col-3">				
+					{$pageData['createButton']}
+					</div>
+					<div class="col-3">				
+					{$pageData['bulkButton']}
+					</div>
+					<div class="col-3">				
+						<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
+					</div>
+					<div class="col-3">				
+						<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
 					</div>
 				</div>
+			</div>
+			<form id="bulkAssociationform" action="bulkimport.php?portalId=$portalId" method="post">
 				<div class="row text-left">
 					<div class="col-2"></div>
 					<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
@@ -179,6 +186,11 @@
 									<select name="bulkImportType" id="bulkImportType" class="form-control mt-2 mb-3 shadow"><option value="0">(Select an Import Option)</option>{$pageData['bulkOption']}</select>
 								</div>
 							</div>
+							<div id="sampleFileDownload" class="row d-none">
+								<div class="col">
+									CSV Format Sample File Download: <a href="/query.php?portalId=$portalId&samplefile=1">import_sample.csv</a>
+								</div>
+							</div>
 						</div>
 					<div class="col-2"></div>
 				</div>
@@ -196,6 +208,63 @@
 						</div>
 					<div class="col-2"></div>
 				</div>
+				<div id="csvBulkImport" class="d-none row text-left">
+					<div class="col-2"></div>
+						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+							<h6>Upload CSV File to Import:</h6>
+							<div class="row">
+								<div class="col">
+									<div class="form-group">
+									  <label for="csvFile">Choose CSV File:</label>
+									  <input type="file" accept=".csv" class="form-control-file" name="csvFile" id="csvFile">
+									</div>
+									<input type="hidden" name="uploadkey" id="uploadkey" value="">
+								</div>
+							</div>
+							<div class="row mx-auto">
+								<div class="col-3"><button class="btn btn-primary shadow" id="uploadCsv" type="button" disabled>Upload</button></div>
+								<div class="col"><span id="uploadMessage" class="font-weight-bold text-success d-none"></span></div>
+							</div>
+							<div class="row mx-auto">
+								<div class="col text-primary font-weight-bold text-center">CSV File Upload Details</div>
+							</div>
+							<div class="row mx-auto">
+								<div class="col border border-secondary">
+									<p><small>
+										<span id="" class="h6 text-secondary">Total Entries in Upload:</span><span id="importCount" class="pl-2 h5 text-success count">-</span>
+									</small></p>
+								</div>
+								<div class="col border border-secondary">
+									<p><small>
+										<span id="" class="h6 text-secondary">Total Entries to be Imported:</span><span id="validCount" class="pl-2 h5 text-success count">-</span>
+									</small></p>
+								</div>
+							</div>
+							<div class="row mx-auto">
+								<div class="col border border-secondary">
+									<h6 class="font-weight-bold text-center">Total Invalid Entries</h6>
+									<div class="row">
+										<div class="col border border-secondary">
+											<p><small>
+												<span class="h6 text-secondary">Illegal Characters:</span><span id="invalidCharacters" class="pl-2 h5 text-danger count">-</span>
+											</small></p>
+										</div>
+										<div class="col border border-secondary">
+											<p><small>
+												<span class="h6 text-secondary">Entry Format:</span><span id="invalidItems" class="pl-2 h5 text-danger count">-</span>
+											</small></p>
+										</div>
+									</div>
+								</div>
+								<div class="col border border-secondary">
+									<p><small>
+										<span class="h6 text-secondary">Total Filtered Entries:</span><span id="filteredItems" class="pl-2 h5 text-danger count">-</span>
+									</small></p>
+								</div>
+							</div>
+						</div>
+					<div class="col-2"></div>
+				</div>				
 				<div id="iseBulkImport" class="d-none row text-left">
 					<div class="col-2"></div>
 						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
@@ -231,7 +300,7 @@
 					<div class="col-2"></div>
 						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Association Details:</h6>	
-							<div class="row">
+							<div class="row associationrow">
 								<div class="col">
 									<div class="form-group">
 										<label for="endpointDescription">Endpoint Description</label>
@@ -239,7 +308,7 @@
 									</div>
 								</div>
 							</div>
-							<div class="row">
+							<div class="row associationrow">
 								<div class="col">
 									<div class="form-group">
 										<label for="fullName">Full Name</label>
@@ -248,7 +317,7 @@
 									</div>
 								</div>
 							</div>
-							<div class="row"> 
+							<div class="row associationrow"> 
 								<div class="col">
 									<div class="form-group">
 										<label for="emailAddress">Email address</label>
@@ -282,14 +351,20 @@
 		event.preventDefault();
 		$(this).attr("disabled", true);
 		
-		failure = formFieldValidation();
+		if($("#uploadkey").val() == ""){
+			failure = formFieldValidation();
 		
-		if(failure){
-			$(this).removeAttr('disabled');
-			return false;
+			if(failure){
+				$(this).removeAttr('disabled');
+				return false;
+			}
 		}
 		
 		$("#bulkAssociationform").submit();
+	});
+	
+	$("#csvFile").change(function () {
+		$("#uploadCsv").removeAttr('disabled');
 	});
 	
 	$("#createAssoc").click(function() {
@@ -321,19 +396,78 @@
 		event.preventDefault();
 	});
 	
+	$("#uploadCsv").click(function(event) {		
+		event.preventDefault();
+		
+		$("#associationDetails").addClass('d-none');
+		$("#importCount").html( "-" );
+		$("#validCount").html( "-" );
+		$("#invalidItems").html( "-" );
+		$("#filteredItems").html( "-" );
+		$("#invalidCharacters").html( "-" );
+		$("#uploadkey").val( '' );
+		
+		var form = $('#bulkAssociationform')[0];
+		var data = new FormData(form);
+		
+		$.ajax({
+			url: "/fileupload.php?portalId=$portalId",
+			
+			data: data,
+			type: "POST",
+			enctype: 'multipart/form-data',
+			processData: false,
+			contentType: false,
+			cache: false,
+			dataType: "json",
+			success: function (data) {
+				if(data.result){
+					$("#importCount").html( data.recordsprocessed );
+					$("#validCount").html( data.validitems );
+					$("#invalidItems").html( data.invaliditems );
+					$("#filteredItems").html( data.filtereditems );
+					$("#invalidCharacters").html( data.invalidchar );
+					$("#uploadkey").val( data.uploadkey );
+					$("#uploadCsv").attr("disabled", true);
+					$("#associationDetails").removeClass('d-none');
+					$(".associationrow").addClass('d-none');
+					$("#uploadMessage").html( data.message );
+					$("#uploadMessage").addClass('text-success');
+					$("#uploadMessage").removeClass('text-danger');
+					$("#uploadMessage").removeClass('d-none');
+				}else{
+					$("#importCount").html( data.recordsprocessed );
+					$("#validCount").html( data.validitems );
+					$("#invalidItems").html( data.invaliditems );
+					$("#filteredItems").html( data.filtereditems );
+					$("#invalidCharacters").html( data.invalidchar );
+					$("#uploadkey").val( '' );
+					$("#uploadMessage").html( data.message );
+					$("#uploadMessage").removeClass('d-none');
+					$("#uploadMessage").removeClass('text-success');
+					$("#uploadMessage").addClass('text-danger');
+					
+				}
+			}
+		});
+	});
+	
 	$("#bulkImportType").change(function(){
 		event.preventDefault();
 		
 		$("#iseBulkImport").addClass('d-none');
-		$("#textBulkImport").addClass('d-none');
+		$("#csvBulkImport").addClass('d-none');
 		$("#associationDetails").addClass('d-none');
+		$("#sampleFileDownload").addClass('d-none');
+		$(".associationrow").removeClass('d-none');
+		$("#uploadkey").val( '' );
 		$( "#iseepgDescription" ).html( "-" );
 		$( "#iseepgCount" ).html( "-" );
 		
-		if($(this).find('option:selected').val() == 33){
+		if($(this).find('option:selected').val() == 1){
 			
-			$("#textBulkImport").removeClass('d-none');
-			$("#associationDetails").removeClass('d-none');
+			$("#csvBulkImport").removeClass('d-none');
+			$("#sampleFileDownload").removeClass('d-none');
 			
 		}else if($(this).find('option:selected').val() == 3){
 		

@@ -142,14 +142,9 @@ HTML;
 					}
 					
 					if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 1024){
-						if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 8){
-							$endpoint['pskValue'] = str_replace("psk=","",$endpoint['pskValue']);
-						}else{
-							$endpoint['pskValue'] = '';
-						}
+						$endpoint['pskValue'] = '';				
 						
 						$pageData['editPskValue'] = "";
-						
 					}else{
 						$pageData['editPskValue'] = " d-none";
 					}

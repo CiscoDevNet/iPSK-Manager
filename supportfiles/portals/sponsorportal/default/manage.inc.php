@@ -40,6 +40,7 @@
 
 	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
 	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
+	$pageNotice = (isset($_GET['notice'])) ? $_GET['notice'] : 0;
 	
 	$listCount = 0;
 
@@ -205,6 +206,12 @@
 		$pageData['bulkButton'] = '';
 	}
 	
+	if($pageNotice){
+		$pageData['pageNotice'] = '<div class="row"><div class="col-1"></div><div class="col"><span class="h5 text-danger"><strong>Notice:</strong> You have exceeded your allotment of devices you are allowed to Provision</span></div><div class="col-1"></div></div>';
+	}else{
+		$pageData['pageNotice'] = "";
+	}
+	
 	print <<< HTML
 <!doctype html>
 <html lang="en">
@@ -228,6 +235,7 @@
   <body>
 	<div class="container">
 		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
+		{$pageData['pageNotice']}
 				<div class="mt-2 mb-4">
 					<img src="images/iPSK-Logo.svg" width="108" height="57" />
 				</div>

@@ -27,6 +27,7 @@
 	$pageData['endpointAssociationList'] = "";
 	$pageData['hidePskFlag'] = "";
 	$randomPassword = "";
+	$validInput = false;
 	
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];
@@ -40,8 +41,28 @@
 		header("Location: /manage.php?portalId=".$portalId);
 		die();
 	}
-		
+	
 	if($sanitizedInput['associationGroup'] != 0 && $sanitizedInput['wirelessSSID'] != 0 && $sanitizedInput['bulkImportType'] != 0 && $sanitizedInput['emailAddress'] != "" && $sanitizedInput['fullName'] != "" && $sanitizedInput['groupUuid'] != "") {	
+		$validInput = true;
+	}elseif($sanitizedInput['associationGroup'] != 0 && $sanitizedInput['wirelessSSID'] != 0 && $sanitizedInput['bulkImportType'] != 0 && $sanitizedInput['uploadkey'] != ""){
+		$validInput = true;
+	}
+	
+	$userEPCount = $ipskISEDB->getUserEndpointCount($sanitizedInput['associationGroup'], $_SESSION['logonSID']);
+	
+	for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++) {
+		if($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'] == $sanitizedInput['associationGroup']){
+			$epGroupMax = $_SESSION['authorizedEPGroups'][$count]['maxDevices'];
+		}
+	}
+	
+	if($epGroupMax != 0){
+		if($userEPCount > $epGroupMax){
+			$validInput = false;
+		}
+	}
+	
+	if($validInput){
 		$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 		
 		if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
@@ -67,83 +88,80 @@
 			$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
 		}
 		
-		$macaddressArray = json_decode($ipskISEERS->getEndPointsByEPGroup($sanitizedInput['groupUuid']), true);
-		
-		$count = 0;
-		
-		if($macaddressArray['SearchResult']['total'] > 0){
-			foreach($macaddressArray['SearchResult']['resources'] as $entry){
-				$macAddressList[$count] = $entry['name'];
-				$count++;
-			}
-		
-			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList,$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $duration, $_SESSION['logonSID']);
+		if($sanitizedInput['bulkImportType'] == 1){
+			$macaddressArray = $_SESSION['bulk-import'][$sanitizedInput['uploadkey']];
 			
-			if($macAddressInsertID){
-				if($macAddressInsertID['processed'] > 0){
+			unset($_SESSION['bulk-import'][$sanitizedInput['uploadkey']]);
+			
+			if($macaddressArray){
+				if($macaddressArray['count'] > 0){
+					for($entryIdx = 0; $entryIdx < $macaddressArray['count']; $entryIdx++){
+						$macAddressList[$entryIdx] = $macaddressArray[$entryIdx]['macAddress'];
+						$fullnameList[$entryIdx] = $macaddressArray[$entryIdx]['fullname'];
+						$emailaddressList[$entryIdx] = $macaddressArray[$entryIdx]['emailaddress'];
+						$descriptionList[$entryIdx] = $macaddressArray[$entryIdx]['description'];
+					}
+				}
+			}
+		}elseif($sanitizedInput['bulkImportType'] == 3){
+			$macaddressArray = json_decode($ipskISEERS->getEndPointsByEPGroup($sanitizedInput['groupUuid']), true);
+			
+			$count = 0;
+			
+			if($macaddressArray['SearchResult']['total'] > 0){
+				foreach($macaddressArray['SearchResult']['resources'] as $entry){
+					$macAddressList[$count] = $entry['name'];
+					$count++;
+				}
+			}
+		}
+		
+		if($sanitizedInput['bulkImportType'] == 1 && $macAddressList){
+			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList, $fullnameList, $descriptionList, $emailaddressList, $randomPSK, $duration, $_SESSION['logonSID']);
+		}elseif($sanitizedInput['bulkImportType'] == 3 && $macAddressList){
+			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList,$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $duration, $_SESSION['logonSID']);
+		}
+		
+		if($macAddressInsertID){
+			if($macAddressInsertID['processed'] > 0){
+				//LOG::Entry
+				$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput), Array("macAddressList"=>$macAddressList));
+				$logMessage = "BULKREQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
+				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					
+					
+				if($ipskISEDB->addBulkEndpointAssociation($macAddressInsertID, $sanitizedInput['associationGroup'], $_SESSION['logonSID'])){
 					//LOG::Entry
 					$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput), Array("macAddressList"=>$macAddressList));
-					$logMessage = "BULKREQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
+					$logMessage = "BULKREQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT-ASSOCIATION;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					
+					$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>The Endpoint Import has completed successfully.</h3><h6></h6></div></div>";
+					
+					if(is_array($macAddressInsertID)){
+						$insertAssociation = "";
 						
-						
-					if($ipskISEDB->addBulkEndpointAssociation($macAddressInsertID, $sanitizedInput['associationGroup'], $_SESSION['logonSID'])){
-						//LOG::Entry
-						$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput), Array("macAddressList"=>$macAddressList));
-						$logMessage = "BULKREQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT-ASSOCIATION;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
-						$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
-						
-						$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>The Endpoint Import has completed successfully.</h3><h6></h6></div></div>";
-						
-						if(is_array($macAddressInsertID)){
-							$insertAssociation = "";
+						for($rowCount = 0; $rowCount < $macAddressInsertID['count']; $rowCount++){
 							
-							for($rowCount = 0; $rowCount < $macAddressInsertID['count']; $rowCount++){
-								
-								if($macAddressInsertID[$rowCount]['exists'] == true){
-									$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><span class="text-danger">Endpoint Exists</span></td></tr>';
-								}else{
-									$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $randomPSK).'</td></tr>';
-								}
+							if($macAddressInsertID[$rowCount]['exists'] == true){
+								$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><span class="text-danger">Endpoint Exists</span></td></tr>';
+							}else{
+								$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $randomPSK).'</td></tr>';
 							}
 						}
-		  
-						$pageData['createComplete'] .= "<table class=\"table table-hover\"><thead><tr><th scope=\"col\">MAC Address</th><th scope=\"col\">Pre-Shared Key</th></tr></thead><tbody>$insertAssociation</tbody></table>";
-						$randomPassword = "";
-						$pageData['hidePskFlag'] = " d-none";
-					}else{
-						//LOG::Entry
-						$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput), Array("macAddressList"=>$macAddressList));
-						$logMessage = "BULKREQUEST:FAILURE[unable_to_create_endpoint_association];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
-						$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
-						
-						$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>The Endpoint Import has failed.</h3><br><h5 class=\"text-danger\">(Error message: Unable to create associations for endpoints)</h5></div></div>";
-						
-						if(is_array($macAddressInsertID)){
-							$insertAssociation = "";
-							
-							for($rowCount = 0; $rowCount < $macAddressInsertID['count']; $rowCount++){
-								
-								if($macAddressInsertID[$rowCount]['exists'] == true){
-									$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><span class="text-danger">Endpoint Exists</span></td></tr>';
-								}else{
-									$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $randomPSK).'</td></tr>';
-								}
-							}
-						}
-		  
-						$pageData['createComplete'] .= "<table class=\"table table-hover\"><thead><tr><th scope=\"col\">MAC Address</th><th scope=\"col\">Pre-Shared Key</th></tr></thead><tbody>$insertAssociation</tbody></table>";
-						$randomPassword = "";
-						$pageData['hidePskFlag'] = " d-none";
 					}
+	  
+					$pageData['createComplete'] .= "<table class=\"table table-hover\"><thead><tr><th scope=\"col\">MAC Address</th><th scope=\"col\">Pre-Shared Key</th></tr></thead><tbody>$insertAssociation</tbody></table>";
+					$randomPassword = "";
+					$pageData['hidePskFlag'] = " d-none";
 				}else{
 					//LOG::Entry
 					$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput), Array("macAddressList"=>$macAddressList));
-					$logMessage = "BULKREQUEST:FAILURE[endpoints_exists];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
+					$logMessage = "BULKREQUEST:FAILURE[unable_to_create_endpoint_association];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					
-					$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>The Endpoint Import has failed.</h3><h6 class=\"text-danger\">(Error message: Endpoints already exist)</h6></div></div>";
-						
+					$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>The Endpoint Import has failed.</h3><br><h5 class=\"text-danger\">(Error message: Unable to create associations for endpoints)</h5></div></div>";
+					
 					if(is_array($macAddressInsertID)){
 						$insertAssociation = "";
 						
@@ -164,21 +182,36 @@
 			}else{
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput), Array("macAddressList"=>$macAddressList));
-				$logMessage = "BULKREQUEST:FAILURE[unable_to_create_endpoint];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
+				$logMessage = "BULKREQUEST:FAILURE[endpoints_exists];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>The Endpoint Association has failed, please contact a support technician for assistance.</h3><h5 class=\"text-danger\">(Error message: Unable to create endpoint)</h5><hr>";
-
+				$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>The Endpoint Import has failed.</h3><h6 class=\"text-danger\">(Error message: Endpoints already exist)</h6></div></div>";
+					
+				if(is_array($macAddressInsertID)){
+					$insertAssociation = "";
+					
+					for($rowCount = 0; $rowCount < $macAddressInsertID['count']; $rowCount++){
+						
+						if($macAddressInsertID[$rowCount]['exists'] == true){
+							$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><span class="text-danger">Endpoint Exists</span></td></tr>';
+						}else{
+							$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $randomPSK).'</td></tr>';
+						}
+					}
+				}
+  
+				$pageData['createComplete'] .= "<table class=\"table table-hover\"><thead><tr><th scope=\"col\">MAC Address</th><th scope=\"col\">Pre-Shared Key</th></tr></thead><tbody>$insertAssociation</tbody></table>";
 				$randomPassword = "";
 				$pageData['hidePskFlag'] = " d-none";
 			}
 		}else{
 			//LOG::Entry
-			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput), Array("macaddressArray"=>$macaddressArray));
-			$logMessage = "BULKREQUEST:SUCCESS[no_ise_endpoints_found];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
+			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput), Array("macAddressList"=>$macAddressList));
+			$logMessage = "BULKREQUEST:FAILURE[unable_to_create_endpoint];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 			$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 			
-			$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>There were no Endpoints found from the import.</h3><h6 class=\"text-danger\">Please check the source data and confirm it conforms to the format.</h6><h6 class=\"text-danger\">(Error message: No endpoints found during import)</h6></div></div>";
+			$pageData['createComplete'] .= "<div class=\"row\"><div class=\"col\"><h3>The Endpoint Association has failed, please contact a support technician for assistance.</h3><h5 class=\"text-danger\">(Error message: Unable to create endpoint)</h5><hr>";
+
 			$randomPassword = "";
 			$pageData['hidePskFlag'] = " d-none";
 		}

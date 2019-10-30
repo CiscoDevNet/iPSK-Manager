@@ -1722,6 +1722,11 @@
 		}
 		
 		function addBulkEndpoints($macAddress, $fullName, $description, $email, $psk, $expirationDate, $createdBy){
+			$multiInput = false;
+			
+			if(is_array($fullName) && is_array($description) && is_array($email)){
+				$multiInput = true;
+			}
 			
 			if(is_array($macAddress)){
 				$searchMacAddress = "";
@@ -1744,8 +1749,14 @@
 					$count = 0;
 
 					if(count($macAddress) > 0){
-						foreach($macAddress as $entry => $key){
-						$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+						if($multiInput == true){
+							foreach($macAddress as $entry => $key){
+								$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+							}
+						}else{
+							foreach($macAddress as $entry => $key){
+								$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+							}
 						}
 						
 						$insertMacAddress = substr($insertMacAddress, 0, -1);
@@ -1806,8 +1817,14 @@
 					$macAddressAdd['skipped'] = $count;
 					
 					if(count($macAddress) > 0){
-						foreach($macAddress as $entry => $key){
-							$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+						if($multiInput == true){
+							foreach($macAddress as $entry => $key){
+								$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+							}
+						}else{
+							foreach($macAddress as $entry => $key){
+								$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+							}
 						}
 						
 						$insertMacAddress = substr($insertMacAddress, 0, -1);

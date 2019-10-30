@@ -26,6 +26,7 @@
 	$pageData['endpointAssociationList'] = "";
 	$pageData['hidePskFlag'] = "";
 	$randomPassword = "";
+	$wifiSsid = '';
 	
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];
@@ -40,75 +41,87 @@
 		die();
 	}
 	
-	$smtpSettings = $ipskISEDB->getSmtpSettings();
+	$userEPCount = $ipskISEDB->getUserEndpointCount($sanitizedInput['associationGroup'], $_SESSION['logonSID']);
 	
-	if(isset($sanitizedInput['associationGroup']) && isset($sanitizedInput['macAddress']) && isset($sanitizedInput['endpointDescription']) && isset($sanitizedInput['emailAddress']) && isset($sanitizedInput['fullName'])) {	
-		$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
+	for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++) {
+		if($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'] == $sanitizedInput['associationGroup']){
+			$epGroupMax = $_SESSION['authorizedEPGroups'][$count]['maxDevices'];
+		}
+	}
+	
+	if($userEPCount < $epGroupMax || $epGroupMax == 0){
 		
-		if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
-			$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-			$randomPSK = "psk=".$randomPassword;
-		}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
-			$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'],$_SESSION['logonSID']);
-			if(!$userPsk){
+		$smtpSettings = $ipskISEDB->getSmtpSettings();
+		
+		if(isset($sanitizedInput['associationGroup']) && isset($sanitizedInput['macAddress']) && isset($sanitizedInput['endpointDescription']) && isset($sanitizedInput['emailAddress']) && isset($sanitizedInput['fullName'])) {	
+			$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
+			
+			if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
 				$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
 				$randomPSK = "psk=".$randomPassword;
+			}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
+				$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'],$_SESSION['logonSID']);
+				if(!$userPsk){
+					$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
+					$randomPSK = "psk=".$randomPassword;
+				}else{
+					$randomPassword = $userPsk;
+					$randomPSK = "psk=".$randomPassword;
+				}
 			}else{
-				$randomPassword = $userPsk;
+				$randomPassword = $endpointGroupAuthorization['ciscoAVPairPSK'];
 				$randomPSK = "psk=".$randomPassword;
 			}
-		}else{
-			$randomPassword = $endpointGroupAuthorization['ciscoAVPairPSK'];
-			$randomPSK = "psk=".$randomPassword;
-		}
-		
-		if($endpointGroupAuthorization['termLengthSeconds'] == 0){
-			$duration = $endpointGroupAuthorization['termLengthSeconds'];
-		}else{
-			$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
-		}
-		
-		$endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $duration, $_SESSION['logonSID']);
-		
-		if($endpointId){
-			//LOG::Entry
-			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
-			$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
-			$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
-				
-				
-			if($ipskISEDB->addEndpointAssociation($endpointId, $sanitizedInput['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID'])){
+			
+			if($endpointGroupAuthorization['termLengthSeconds'] == 0){
+				$duration = $endpointGroupAuthorization['termLengthSeconds'];
+			}else{
+				$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
+			}
+			
+			$endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $duration, $_SESSION['logonSID']);
+			
+			if($endpointId){
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
-				$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT-ASSOCIATION;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
+				$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
-				
-				if($ipskISEDB->emailEndpointGroup($sanitizedInput['associationGroup'])){
-					sendEmail($sanitizedInput['emailAddress'],"iPSK Wi-Fi Credentials","You have been successfully setup to connect to the Wi-Fi Network, please use the following Passcode:".$randomPassword."\n\nThank you!",$smtpSettings);
+					
+					
+				if($ipskISEDB->addEndpointAssociation($endpointId, $sanitizedInput['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID'])){
+					//LOG::Entry
+					$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
+					$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT-ASSOCIATION;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
+					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					
+					if($ipskISEDB->emailEndpointGroup($sanitizedInput['associationGroup'])){
+						//sendHTMLEmail($sanitizedInput['emailAddress'], $portalSettings['portalName'], $randomPassword, $wifiSsid, $smtpSettings);
+						sendEmail($sanitizedInput['emailAddress'],"iPSK Wi-Fi Credentials","You have been successfully setup to connect to the Wi-Fi Network, please use the following Passcode:".$randomPassword."\n\nThank you!",$smtpSettings);
+					}
+					$pageData['createComplete'] .= "<h3>The Endpoint Association has successfully completed.</h3><h6>The uniquely generated Pre-Shared Key for the end point is:</h6>";
+				}else{
+					//LOG::Entry
+					$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
+					$logMessage = "REQUEST:FAILURE[unable_to_create_endpoint_association];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
+					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+					
+					$pageData['createComplete'] .= "<h3>The Endpoint Association has failed, please contact a support technician for assistance.</h3><h5 class=\"text-danger\">(Error message: Unable to create endpoint association)</h5>";
+					$randomPassword = "";
+					$pageData['hidePskFlag'] = " d-none";
 				}
-				$pageData['createComplete'] .= "<h3>The Endpoint Association has successfully completed.</h3><h6>The uniquely generated Pre-Shared Key for the end point is:</h6>";
 			}else{
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
-				$logMessage = "REQUEST:FAILURE[unable_to_create_endpoint_association];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
+				$logMessage = "REQUEST:FAILURE[unable_to_create_endpoint];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				$pageData['createComplete'] .= "<h3>The Endpoint Association has failed, please contact a support technician for assistance.</h3><h5 class=\"text-danger\">(Error message: Unable to create endpoint association)</h5>";
+				$pageData['createComplete'] .= "<h3>The Endpoint Association has failed, please contact a support technician for assistance.</h3><h5 class=\"text-danger\">(Error message: Unable to create endpoint)</h5>";
 				$randomPassword = "";
 				$pageData['hidePskFlag'] = " d-none";
 			}
-		}else{
-			//LOG::Entry
-			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
-			$logMessage = "REQUEST:FAILURE[unable_to_create_endpoint];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
-			$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
-			
-			$pageData['createComplete'] .= "<h3>The Endpoint Association has failed, please contact a support technician for assistance.</h3><h5 class=\"text-danger\">(Error message: Unable to create endpoint)</h5>";
-			$randomPassword = "";
-			$pageData['hidePskFlag'] = " d-none";
 		}
 	}
-
+	
 	if($_SESSION['portalAuthorization']['create'] == true){
 		$pageData['createButton'] = '<button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button>';
 	}else{

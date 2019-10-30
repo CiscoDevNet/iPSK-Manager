@@ -113,6 +113,10 @@
 								  'flags'     => '' ,
 								  'options'   => array('regexp' => '/^(?:[A-F]|[a-f]|[0-9]){8}-(?:[A-F]|[a-f]|[0-9]){4}-(?:[A-F]|[a-f]|[0-9]){4}-(?:[A-F]|[a-f]|[0-9]){4}-(?:[A-F]|[a-f]|[0-9]){12}$/')
 								),
+			'uploadkey'	=>	array('filter'    => FILTER_VALIDATE_REGEXP,
+								  'flags'     => '' ,
+								  'options'   => array('regexp' => '/^(?:[A-F]|[a-f]|[0-9]){8}$/')
+								),
 			'confirmaction'	=>	FILTER_VALIDATE_INT,
 			'wirelessSSID'	=>	FILTER_VALIDATE_INT,
 			'ssidName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,

@@ -28,6 +28,10 @@
 		die();
 	}
 	
+	$sampleFile = (isset($_GET['samplefile'])) ? (filter_var($_GET['samplefile'],FILTER_VALIDATE_BOOLEAN)) : false;
+	
+	$sampleCSV = "macaddress,fullname,emailaddress,description\r\n00:00:00:FF:FF:FF,Sample Name,Sample@Demo.Local,My Device - Mobile Phone";
+	
 	if(isset($sanitizedInput['action'])) {	
 		if($sanitizedInput['action'] == "get_endpoint_groups"){
 			if($iseERSIntegrationAvailable){
@@ -38,6 +42,14 @@
 				print $ipskISEERS->getEndPointGroupCountbyId($sanitizedInput['groupUuid']);
 			}
 		}
+	}else{
+		if($sampleFile == true){
+			header('Content-Description: File Transfer');
+			header('Content-Type: plain/text');
+			header('Content-Disposition: attachment; filename=import_sample.csv'); 
+			header('Content-Transfer-Encoding: text');
+			header('Content-Length: '.strlen($sampleCSV));
+			echo $sampleCSV;
+		}
 	}
-
 ?>
