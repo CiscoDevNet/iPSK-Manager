@@ -47,7 +47,7 @@
 	$endpointAssociationList = $ipskISEDB->getEndPointAssociationList($_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id'], $_SESSION['portalAuthorization']['viewall'], $_SESSION['portalAuthorization']['viewallDn']);
 
 	if($endpointAssociationList){
-		$pageData['endpointAssociationList'] .= '<table class="table table-hover"><thead><tr><th scope="col">MAC Address</th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
+		$pageData['endpointAssociationList'] .= '<table class="table table-hover"><thead><tr><th scope="col"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" base-value="1" value="0" id="allCheck"><label class="custom-control-label" for="allCheck">MAC Address</label></div></th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
 		
 		for($idxId = 0; $idxId < $endpointAssociationList['count']; $idxId++) {
 			$viewEnabled = false;
@@ -120,7 +120,7 @@
 				
 				$associationList[$listCount]['view'] = '<a class="action-tableicons" module="view" row-id="'.$endpointAssociationList[$idxId]['id'].'" href="#"><span data-feather="zoom-in"></span></a>';
 				$associationList[$listCount]['action'] = $actionRow;
-				$associationList[$listCount]['macAddress'] = $endpointAssociationList[$idxId]['macAddress'];
+				$associationList[$listCount]['macAddress'] = '<div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input checkbox-update endpointCheckBox" name="multiEndpoint" base-value="'.$endpointAssociationList[$idxId]['id'].'" value="0" id="multiEndpoint-'.$endpointAssociationList[$idxId]['id'].'"><label class="custom-control-label" for="multiEndpoint-'.$endpointAssociationList[$idxId]['id'].'">'.$endpointAssociationList[$idxId]['macAddress'].'</label></div>';
 				$associationList[$listCount]['epGroupName'] = $endpointAssociationList[$idxId]['groupName'];
 				$associationList[$listCount]['expiration'] = $expiration;
 				$associationList[$listCount]['id'] = $endpointAssociationList[$idxId]['id'];
@@ -264,6 +264,19 @@
 					</div>
 					<div class="col"></div>
 				</div>
+				<div id="bulkOptions" class="row text-left d-none">
+					<div class="col"></div>
+					<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary text-center">
+						<h5 class="h5 text-danger">Bulk Selected Options</h5>
+						<div class="row">
+							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="suspend" type="button">Suspend</button></div>
+							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="activate" type="button">Activate</button></div>
+							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="extend" type="button">Extend</button></div>
+							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="delete" type="delete">Delete</button></div>
+						</div>
+					</div>
+					<div class="col"></div>
+				</div>
 				<div class="row text-left">
 					<div class="col"></div>
 					<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
@@ -298,7 +311,9 @@
   <script type="text/javascript" src="scripts/popper.min.js"></script>
   <script type="text/javascript" src="scripts/bootstrap.min.js"></script>
   <script type="text/javascript" src="scripts/ipsk-portal-v1.js"></script>
-    <script type="text/javascript">
+  <script type="text/javascript">
+	var formData;
+	var stillChecked;
 	
 	$(function() {	
 		feather.replace()
@@ -359,6 +374,77 @@
 		event.preventDefault();
 	});
 	
+	$("#allCheck").change(function(){
+		if($(this).prop('checked')){
+			$(this).attr('value', $(this).attr('base-value'));
+			$(".endpointCheckBox").each(function () {
+				$(this).attr('value', $(this).attr('base-value'));
+				$(this).prop( "checked", true );
+			});
+			$("#bulkOptions").removeClass('d-none');
+		}else{
+			$(this).attr('value', '0');
+			$(".endpointCheckBox").each(function () {
+				$(this).attr('value', '0');
+				$(this).prop( "checked", false );
+			});
+			$("#bulkOptions").addClass('d-none');
+		}
+	});
+
+	$(".checkbox-update").change(function(){
+		stillChecked = false;
+
+		if($(this).prop('checked')){
+			$(this).attr('value', $(this).attr('base-value'));
+			$("#bulkOptions").removeClass('d-none');
+		}else{
+			$(this).attr('value', '0');
+
+			$("#allCheck").prop( "checked", false );
+
+			$(".checkbox-update").each(function () {
+				if($(this).val() != 0){
+					stillChecked = true;
+				}
+			});
+
+			if(stillChecked){
+				$("#bulkOptions").removeClass('d-none');
+			}else{
+				$("#bulkOptions").addClass('d-none');
+			}
+		}
+	});
+
+	$(".bulkaction-button").click(function(event) {
+		formData = new FormData();
+		var multiSelect;
+
+		formData.append('sub-module', $(this).attr('sub-module'));
+
+		$(".endpointCheckBox").each(function() {
+			if($(this).val() != 0){
+				formData.append('id[]', $(this).val());
+				multiSelect = true;
+			}
+		});
+
+		if(multiSelect){
+			$.ajax({
+				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+
+				data: formData,
+				processData: false,
+				contentType: false,
+				type: "POST",
+				dataType: "html"
+			});
+		}
+
+		event.preventDefault();
+	});
+
 	</script>
 </html>
 HTML;
