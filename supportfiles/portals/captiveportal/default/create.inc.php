@@ -55,11 +55,20 @@
 			$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
 		}
 		
+		$wirelessNetwork = $ipskISEDB->getWirelessNetworkById($sanitizedInput['wirelessSSID']);
+			
+		if($wirelessNetwork){
+			$wifiSsid = $wirelessNetwork['ssidName'];
+		}
+		
 		if($endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $duration, $_SESSION['logonSID'])){
+			
 			//LOG::Entry
 			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
 			$logMessage = "REQUEST:SUCCESS;ACTION:CAPTIVECREATE;METHOD:ADD-ENDPOINT;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";SID:".$_SESSION['logonSID'].";";
 			$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);	
+			
+			$smtpSettings = $ipskISEDB->getSmtpSettings();
 			
 			if($ipskISEDB->addEndpointAssociation($endpointId, $sanitizedInput['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID'])){
 				//LOG::Entry
@@ -68,8 +77,12 @@
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
 				if($ipskISEDB->emailEndpointGroup($sanitizedInput['associationGroup'])){
-					//sendHTMLEmail($sanitizedInput['emailAddress'], $portalSettings['portalName'], $randomPassword, $wifiSsid, $smtpSettings);
-					sendEmail($sanitizedInput['emailAddress'],"iPSK Wi-Fi Credentials","You have been successfully setup to connect to the Wi-Fi Network, please use the following Passcode:".$randomPassword."\n\nThank you!",$smtpSettings);
+					sendHTMLEmail($sanitizedInput['emailAddress'], $portalSettings['portalName'], $randomPassword, $wifiSsid, $smtpSettings);
+					/*
+					 *Second Method to Send Email.  (Plain Text)
+					 *
+					 *sendEmail($sanitizedInput['emailAddress'],"iPSK Wi-Fi Credentials","You have been successfully setup to connect to the Wi-Fi Network, please use the following Passcode:".$randomPassword."\n\nThank you!",$smtpSettings);
+					 */
 				}
 				$pageData['createComplete'] .= "<h3>The Endpoint Association has successfully completed.</h3><h6>The uniquely generated passcode for the end point is below.</h6>";
 			}else{
