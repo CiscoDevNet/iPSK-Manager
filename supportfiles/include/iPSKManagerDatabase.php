@@ -1118,6 +1118,23 @@
 			}
 		}
 		
+		function getEndPointAuthorizationPolicy($associationId){
+			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, authorizationTemplates.pskLength FROM endpointAssociations INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id INNER JOIN authorizationTemplates ON authorizationTemplates.id = endpointGroups.authzTemplateId INNER JOIN endpoints  ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.id = '$associationId' LIMIT 1";
+			
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				if($queryResult->num_rows > 0){
+					$row = $queryResult->fetch_assoc();
+					return $row;
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}
+		
 		function getEndPointAssociationList($authorizationGroups, $sponsorPortalId = 0, $viewAll = false, $viewallDn = ""){
 			$searchDns = "";
 			
@@ -1281,6 +1298,23 @@
 				if($queryResult->num_rows > 0){
 					$row = $queryResult->fetch_assoc();
 					return $row;
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}
+		
+		function getEndPointAssociationByEndpoint($endpointId){
+			$query = "SELECT id FROM `endpointAssociations` WHERE endpointId = '$endpointId' LIMIT 1";
+			
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				if($queryResult->num_rows > 0){
+					$row = $queryResult->fetch_assoc();
+					return $row['id'];
 				}else{
 					return false;
 				}
