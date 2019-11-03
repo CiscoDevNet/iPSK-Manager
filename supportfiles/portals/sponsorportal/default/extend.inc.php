@@ -31,6 +31,8 @@
 	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
 	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
 	
+	$queryDetails = "pageSize=$pageSize&currentPage=$currentPage";
+	
 	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction'] && is_numeric($sanitizedInput['termLengthSeconds'])){
 		$endpointAssociationId = $ipskISEDB->getEndPointAssociationByEndpoint($sanitizedInput['id']);
 		$endpointPermissions = $ipskISEDB->getEndPointAssociationPermissions($endpointAssociationId, $_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id']);
@@ -55,7 +57,7 @@
 				
 				print <<<HTML
 <script>
-	window.location = "/manage.php?portalId=$portalId";
+	window.location = "/manage.php?portalId=$portalId&$queryDetails";
 </script>
 HTML;
 			}else{
@@ -138,7 +140,7 @@ HTML;
 		$('.modal-backdrop').remove();
 		
 		$.ajax({
-			url: "/extend.php?portalId=$portalId",
+			url: "/extend.php?portalId=$portalId&$queryDetails",
 			
 			data: {
 				module: $(this).attr('module'),

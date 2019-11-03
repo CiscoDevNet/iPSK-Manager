@@ -30,6 +30,7 @@
 	$currentPage = 0;
 	$currentPageSizeSelection = "";
 	
+	
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
@@ -41,6 +42,8 @@
 	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
 	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
 	$pageNotice = (isset($_GET['notice'])) ? $_GET['notice'] : 0;
+	
+	$queryDetails = "pageSize=$pageSize&currentPage=$currentPage";
 	
 	$listCount = 0;
 
@@ -320,7 +323,7 @@
 	
 	$(".action-tableicons").click(function(event) {
 		$.ajax({
-			url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+			url: "/" + $(this).attr('module') + ".php?portalId=$portalId&$queryDetails",
 			
 			data: {
 				id: $(this).attr('row-id')
@@ -431,7 +434,7 @@
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+				url: "/" + $(this).attr('module') + ".php?portalId=$portalId&$queryDetails",
 
 				data: formData,
 				processData: false,

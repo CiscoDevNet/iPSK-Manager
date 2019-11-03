@@ -30,6 +30,8 @@
 	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
 	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
 	
+	$queryDetails = "pageSize=$pageSize&currentPage=$currentPage";
+	
 	$page['endpoints'] = "";
 	
 	$temp = $_POST['id'];
@@ -95,40 +97,17 @@
 					$logMessage = "REQUEST:SUCCESS;ACTION:BULKSPONSORDELETE;METHOD:DELETE-ENDPOINT;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				}else{
-					
-				
-				/* $endPointAssociation = $ipskISEDB->getEndPointAssociationById($sanitizedInput['id']);
-				$ipskISEDB->activateEndpointAssociationbyId($endPointAssociation['endpointId']); */
-				
+							
 					//LOG::Entry
 					$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput), Array("sanitizedMembers"=>$sanitizedMembers));
 					$logMessage = "REQUEST:FAILURE;ACTION:BULKSPONSOR;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
-					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
-				
-				
-				
-				
-				
-				
-				
+					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);			
 				}
-			
-		
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
-				
+
 				print <<<HTML
 			
 <script>
-	window.location = "/manage.php?portalId=$portalId";
+	window.location = "/manage.php?portalId=$portalId&$queryDetails";
 </script>
 HTML;
 			}elseif($sanitizedInput['sub-module'] == "activate"){
@@ -179,7 +158,7 @@ HTML;
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+				url: "/" + $(this).attr('module') + ".php?portalId=$portalId&$queryDetails",
 
 				data: formData,
 				processData: false,
@@ -243,7 +222,7 @@ HTML;
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+				url: "/" + $(this).attr('module') + ".php?portalId=$portalId&$queryDetails",
 
 				data: formData,
 				processData: false,
@@ -307,7 +286,7 @@ HTML;
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+				url: "/" + $(this).attr('module') + ".php?portalId=$portalId&$queryDetails",
 
 				data: formData,
 				processData: false,

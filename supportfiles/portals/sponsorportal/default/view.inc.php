@@ -25,9 +25,6 @@
 		print "<script>window.location = \"/index.php?portalId=$portalId\";</script>";
 		die();
 	}
-
-	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
-	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
 	
 	$viewPSKPermission = false;
 
