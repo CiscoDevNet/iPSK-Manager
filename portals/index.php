@@ -19,7 +19,6 @@
  */
  
 
-
 	//Check if Configuration file exists, if not redirect to 404 Not Found
 	if(!file_exists("../supportfiles/include/config.php")){
 		header("Location: /404.php");
