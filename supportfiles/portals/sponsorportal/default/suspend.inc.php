@@ -18,24 +18,39 @@
  *or implied.
  */
 	
+	if(!ipskLoginSessionCheck()){
+		$portalId = $_GET['portalId'];
+		$_SESSION = null;
+		session_destroy();
+		print "<script>window.location = \"/index.php?portalId=$portalId\";</script>";
+		die();
+	}
 
+	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
+	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
 
-if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction']){
-	$endPointAssociation = $ipskISEDB->getEndPointAssociationById($sanitizedInput['id']);
-	$ipskISEDB->suspendEndpointAssociationbyId($endPointAssociation['endpointId']);
+	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction']){
+		$endpointPermissions = $ipskISEDB->getEndPointAssociationPermissions($sanitizedInput['id'],$_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id']);
+		
+		if($endpointPermissions){
+			if($endpointPermissions[0]['advancedPermissions'] & 16){
+				$endPointAssociation = $ipskISEDB->getEndPointAssociationById($sanitizedInput['id']);
+				$ipskISEDB->suspendEndpointAssociationbyId($endPointAssociation['endpointId']);
 
-	//LOG::Entry
-	$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
-	$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORSUSPEND;METHOD:SUSPEND-ENDPOINT;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
-	$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+				//LOG::Entry
+				$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
+				$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORSUSPEND;METHOD:SUSPEND-ENDPOINT;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
+				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 
-	print <<<HTML
+				print <<<HTML
 <script>
 	window.location = "/manage.php?portalId=$portalId";
 </script>
 HTML;
-}else{
-	print <<<HTML
+			}
+		}
+	}else{
+		print <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="endpointsuspend" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered" role="document">
@@ -75,12 +90,6 @@ HTML;
 			dataType: "html",
 			success: function (data) {
 				$('#popupcontent').html(data);
-			},
-			error: function (xhr, status) {
-				$('#mainContent').html("<h6 class=\"text-center\"><span class=\"text-danger\">Error Loading Selection:</span>  Verify the installation/configuration and/or contact your system administrator!</h6>");
-			},
-			complete: function (xhr, status) {
-				//$('#showresults').slideDown('slow')
 			}
 		});
 		
@@ -90,5 +99,5 @@ HTML;
 </script>
 HTML;
 
-}
+	}
 ?>

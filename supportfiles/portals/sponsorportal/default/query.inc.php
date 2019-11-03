@@ -41,6 +41,19 @@
 			if($iseERSIntegrationAvailable){
 				print $ipskISEERS->getEndPointGroupCountbyId($sanitizedInput['groupUuid']);
 			}
+		}elseif($sanitizedInput['action'] == "get_random_psk"){
+			$authZ = $ipskISEDB->getEndPointAuthorizationPolicy($sanitizedInput['id']);
+			
+			//LOG::Entry
+			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
+			$logMessage = "REQUEST:SUCCESS;GET-DATA-COMMAND:".$sanitizedInput['action'].";";
+			$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+			
+			$psk = $ipskISEDB->generateRandomPassword($authZ['pskLength']);
+			
+			$_SESSION['temp']['sponsoreditpsk'] = password_hash($psk, PASSWORD_DEFAULT);
+			
+			print $psk;
 		}
 	}else{
 		if($sampleFile == true){

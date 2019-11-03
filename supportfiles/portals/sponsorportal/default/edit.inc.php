@@ -18,6 +18,17 @@
  *or implied.
  */
 	
+	if(!ipskLoginSessionCheck()){
+		$portalId = $_GET['portalId'];
+		$_SESSION = null;
+		session_destroy();
+		print "<script>window.location = \"/index.php?portalId=$portalId\";</script>";
+		die();
+	}
+
+	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
+	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
+	
 	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction'] && isset($sanitizedInput['fullName']) && isset($sanitizedInput['emailAddress']) && isset($sanitizedInput['endpointDescription']) && isset($sanitizedInput['editAssociation']) && isset($sanitizedInput['associationGroup'])){
 		if($_SESSION['editAssociationEndpointId'] == $sanitizedInput['id']){
 			$endpoint = $ipskISEDB->getEndpointByAssociationId($sanitizedInput['id']);
@@ -56,11 +67,15 @@
 				$endPointPermissions = $ipskISEDB->getEndPointAssociationPermissions($sanitizedInput['id'],$_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id']);
 				
 				if(isset($endPointPermissions['count'])){
-					for($idxId = 0; $idxId < $endPointPermissions['count']; $idxId++){
-						if($endPointPermissions[$idxId]['advancedPermissions'] & 1024){
-							$randomPSK = "psk=".$sanitizedInput['presharedKey'];
-				
-							$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK);
+					
+					//Validate the randomly generated PSK matches the one submitted to the user - Prevent Tampering
+					if(password_verify($sanitizedInput['ciscoAVPairPSK'], $_SESSION['temp']['sponsoreditpsk'])){
+						for($idxId = 0; $idxId < $endPointPermissions['count']; $idxId++){
+							if($endPointPermissions[$idxId]['advancedPermissions'] & 1024){
+								$randomPSK = "psk=".$sanitizedInput['ciscoAVPairPSK'];
+					
+								$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK);
+							}
 						}
 					}
 				}
@@ -83,6 +98,7 @@ HTML;
 		$pageData['endpointAssociationList'] = "";
 		$editableForUser = false;
 		$viewPSKPermission = false;
+		$pageValid = false;
 		
 		if(!ipskLoginSessionCheck()){
 			$portalId = $_GET['portalId'];
@@ -138,11 +154,16 @@ HTML;
 							}					
 							
 							$trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']] = true;
+							$pageValid = true;
 						}
 					}
 					
 					if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 1024){
-						$endpoint['pskValue'] = '';				
+						if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 8){
+							$endpoint['pskValue'] = substr($endpoint['pskValue'],4,strlen($endpoint['pskValue']) - 4);
+						}else{
+							$endpoint['pskValue'] = '';
+						}
 						
 						$pageData['editPskValue'] = "";
 					}else{
@@ -161,6 +182,12 @@ HTML;
 			
 			unset($trackSeenObjects);
 		}
+		
+		if(!$pageValid){
+			$editGroup = " d-none";
+		}else{
+			$editGroup = '';
+		}
 	
 		print <<<HTML
 <!-- Modal -->
@@ -174,7 +201,7 @@ HTML;
         </button>
       </div>
       <div class="modal-body">
-			<div class="row">
+			<div class="row$editGroup">
 				<div class="col m-2 shadow p-2 bg-white border border-primary">
 					<div class="custom-control custom-checkbox">
 						<input type="checkbox" class="custom-control-input checkbox-update" base-value="1" value="0" id="editAssociation"$endpointGroupCheck>
@@ -202,13 +229,13 @@ HTML;
 				<div class="col m-2 shadow p-2 bg-white border border-primary">
 					<div class="custom-control custom-checkbox">
 						<input type="checkbox" class="custom-control-input checkbox-update" base-value="1" value="0" id="editPSK">
-						<label class="custom-control-label" for="editPSK">Edit Pre-Shared Key (Manual)</label>
+						<label class="custom-control-label" for="editPSK">Edit Pre-Shared Key (Random)</label>
 					</div>
-					<label class="font-weight-bold" for="presharedKey">Pre-Shared Key:</label>
+					<label class="font-weight-bold" for="ciscoAVPairPSK">Pre-Shared Key:</label>
 					<div class="input-group form-group input-group-sm font-weight-bold">
-						<input type="password" id="presharedKey" class="form-control shadow" value="{$endpoint['pskValue']}" disabled>
+						<input type="password" id="ciscoAVPairPSK" class="form-control shadow" value="{$endpoint['pskValue']}" readonly disabled>
 						<div class="input-group-append shadow">
-							<span class="input-group-text font-weight-bold" id="basic-addon1"><a id="showpassword" href="#"><span id="passwordfeather" data-feather="eye"></span></a></span>
+							<span class="input-group-text font-weight-bold" id="basic-addon1"><a id="generatePSK" action="get_random_psk" href="#"><span id="passwordfeather" data-feather="refresh-cw"></span></a></span>
 						</div>
 					</div>
 				</div>
@@ -266,7 +293,7 @@ HTML;
 				editAssociation: $("#editAssociation").val(),
 				associationGroup: $("#associationGroup").val(),
 				editPSK: $("#editPSK").val(),
-				presharedKey: $("#presharedKey").val(),
+				ciscoAVPairPSK: $("#ciscoAVPairPSK").val(),
 				endpointDescription: $("#endpointDescription").val(),
 				fullName: $("#fullName").val(),
 				emailAddress: $("#emailAddress").val()
@@ -313,25 +340,33 @@ HTML;
 	$("#editPSK").change(function(){
 		if($(this).prop('checked')){
 			$(this).attr('value', $(this).attr('base-value'));
-			$("#presharedKey").removeAttr('disabled');
+			$("#ciscoAVPairPSK").removeAttr('disabled');
+			$("#ciscoAVPairPSK").attr('type','text');
 			$("#editAssociation").attr('disabled','true');
 		}else{
 			$(this).attr('value', '0');
-			$("#presharedKey").attr('disabled','true');
+			$("#ciscoAVPairPSK").attr('disabled','true');
+			$("#ciscoAVPairPSK").attr('type','password');
 			$("#editAssociation").removeAttr('disabled');
 		}
 	});
 	
-	$("#showpassword").on('click', function(event) {
+	$("#generatePSK").on('click', function(event) {
 		event.preventDefault();
-		if($("#presharedKey").attr('type') == "text"){
-			$("#presharedKey").attr('type', 'password');
-			$("#passwordfeather").attr('data-feather','eye');
-			feather.replace();
-		}else if($("#presharedKey").attr('type') == "password"){
-			$("#presharedKey").attr('type', 'text');
-			$("#passwordfeather").attr('data-feather','eye-off');
-			feather.replace();
+		
+		if($("#editPSK").val() == "1"){
+			$.ajax({
+				url: "/query.php?portalId=$portalId",
+				data: {
+					id: $("#id").val(),
+					action: $(this).attr('action')
+				},
+				type: "POST",
+				dataType: "text",
+				success: function (data) {
+					$("#ciscoAVPairPSK").val( data );
+				}
+			});
 		}
 	});
 </script>

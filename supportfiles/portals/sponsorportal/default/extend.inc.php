@@ -18,28 +18,52 @@
  *or implied.
  */
 	
-	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction'] && is_numeric($sanitizedInput['termLengthSeconds'])){
-		
-		if($_SESSION['extendEndpointMaxTerm'] == 0  && $sanitizedInput['termLengthSeconds'] == 0){
-			$endPointAssociation = $ipskISEDB->extendEndpoint($sanitizedInput['id'], $sanitizedInput['termLengthSeconds'] + time(), $_SESSION['logonSID']);
-		}elseif($_SESSION['extendEndpointMaxTerm'] != 0  && $sanitizedInput['termLengthSeconds'] == 0){
-			$endPointAssociation = $ipskISEDB->extendEndpoint($sanitizedInput['id'], $_SESSION['extendEndpointMaxTerm'] + time(), $_SESSION['logonSID']);
-		}elseif($_SESSION['extendEndpointMaxTerm'] >= $sanitizedInput['termLengthSeconds']){
-			$endPointAssociation = $ipskISEDB->extendEndpoint($sanitizedInput['id'], $sanitizedInput['termLengthSeconds'] + time(), $_SESSION['logonSID']);
-		}
-		
-		//LOG::Entry
-		$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
-		$logMessage = "REQUEST:SUCCESS;ACTION:SPONSOREXTEND;METHOD:EXTEND-ENDPOINT;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION["logonUsername"].";SID:".$_SESSION['logonSID'].";";
-		$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 	
-		unset($_SESSION['extendEndpointMaxTerm']);
+	
+	if(!ipskLoginSessionCheck()){
+		$portalId = $_GET['portalId'];
+		$_SESSION = null;
+		session_destroy();
+		print "<script>window.location = \"/index.php?portalId=$portalId\";</script>";
+		die();
+	}
+
+	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
+	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
+	
+	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction'] && is_numeric($sanitizedInput['termLengthSeconds'])){
+		$endpointAssociationId = $ipskISEDB->getEndPointAssociationByEndpoint($sanitizedInput['id']);
+		$endpointPermissions = $ipskISEDB->getEndPointAssociationPermissions($endpointAssociationId, $_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id']);
 		
-		print <<<HTML
+		if($endpointPermissions){
+			if($endpointPermissions[0]['groupPermissions'] & 128){
+			
+				if($_SESSION['extendEndpointMaxTerm'] == 0  && $sanitizedInput['termLengthSeconds'] == 0){
+					$endPointAssociation = $ipskISEDB->extendEndpoint($sanitizedInput['id'], $sanitizedInput['termLengthSeconds'] + time(), $_SESSION['logonSID']);
+				}elseif($_SESSION['extendEndpointMaxTerm'] != 0  && $sanitizedInput['termLengthSeconds'] == 0){
+					$endPointAssociation = $ipskISEDB->extendEndpoint($sanitizedInput['id'], $_SESSION['extendEndpointMaxTerm'] + time(), $_SESSION['logonSID']);
+				}elseif($_SESSION['extendEndpointMaxTerm'] >= $sanitizedInput['termLengthSeconds']){
+					$endPointAssociation = $ipskISEDB->extendEndpoint($sanitizedInput['id'], $sanitizedInput['termLengthSeconds'] + time(), $_SESSION['logonSID']);
+				}
+				
+				//LOG::Entry
+				$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
+				$logMessage = "REQUEST:SUCCESS;ACTION:SPONSOREXTEND;METHOD:EXTEND-ENDPOINT;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION["logonUsername"].";SID:".$_SESSION['logonSID'].";";
+				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
+			
+				unset($_SESSION['extendEndpointMaxTerm']);
+				
+				print <<<HTML
 <script>
 	window.location = "/manage.php?portalId=$portalId";
 </script>
 HTML;
+			}else{
+				print "test 1";
+			}
+		}else{
+			print "test 2";
+		}
 	}else{
 	
 		$termLenOptions = '{"0":{"value":"86400","text":"1 Day"},"1":{"value":"172800","text":"2 Days"},"2":{"value":"259200","text":"3 Days"},"3":{"value":"345600","text":"4 Days"},"4":{"value":"432000","text":"5 Days"},"5":{"value":"518400","text":"6 Days"},"6":{"value":"604800","text":"1 Week"},"7":{"value":"1209600","text":"2 Weeks"},"8":{"value":"1814400","text":"3 Weeks"},"9":{"value":"2419200","text":"4 Weeks"},"10":{"value":"2592000","text":"1 Month"},"11":{"value":"5184000","text":"2 Months"},"12":{"value":"7776000","text":"3 Months"},"13":{"value":"10368000","text":"4 Months"},"14":{"value":"12960000","text":"5 Months"},"15":{"value":"15552000","text":"6 Months"},"16":{"value":"18144000","text":"7 Months"},"17":{"value":"20736000","text":"8 Months"},"18":{"value":"23328000","text":"9 Months"},"19":{"value":"25920000","text":"10 Months"},"20":{"value":"28512000","text":"11 Months"},"21":{"value":"31536000","text":"1 Year"},"22":{"value":"63072000","text":"2 Years"},"23":{"value":"94608000","text":"3 Years"},"24":{"value":"126144000","text":"4 Years"},"25":{"value":"157680000","text":"5 Years"},"26":{"value":"0","text":"No Expiration"},"count":27}';
@@ -127,12 +151,6 @@ HTML;
 			dataType: "html",
 			success: function (data) {
 				$('#popupcontent').html(data);
-			},
-			error: function (xhr, status) {
-				$('#mainContent').html("<h6 class=\"text-center\"><span class=\"text-danger\">Error Loading Selection:</span>  Verify the installation/configuration and/or contact your system administrator!</h6>");
-			},
-			complete: function (xhr, status) {
-				//$('#showresults').slideDown('slow')
 			}
 		});
 	});
