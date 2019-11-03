@@ -271,7 +271,6 @@
 						<div class="row">
 							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="suspend" type="button">Suspend</button></div>
 							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="activate" type="button">Activate</button></div>
-							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="extend" type="button">Extend</button></div>
 							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="delete" type="delete">Delete</button></div>
 						</div>
 					</div>
@@ -438,7 +437,10 @@
 				processData: false,
 				contentType: false,
 				type: "POST",
-				dataType: "html"
+				dataType: "html",
+				success: function (data) {
+					$('#popupcontent').html(data);
+				}
 			});
 		}
 
