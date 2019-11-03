@@ -18,6 +18,17 @@
  *or implied.
  */
 	
+	if(!ipskLoginSessionCheck()){
+		$portalId = $_GET['portalId'];
+		$_SESSION = null;
+		session_destroy();
+		print "<script>window.location = \"/index.php?portalId=$portalId\";</script>";
+		die();
+	}
+
+	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
+	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
+	
 	$viewPSKPermission = false;
 
 	$endPointAssociation = $ipskISEDB->getEndPointAssociationById($sanitizedInput['id']);
