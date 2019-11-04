@@ -34,6 +34,8 @@
 		die();
 	}
 	
+	$endpointGroupSelect = (isset($_GET['eg'])) ? $_GET['eg'] : false;
+	
 	if($_SESSION['portalAuthorization']['create'] == false){
 		header("Location: /manage.php?portalId=".$portalId);
 		die();
@@ -63,7 +65,16 @@
 							$keyType = "Common PSK";
 						}
 						
-						$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']."\">".$_SESSION['authorizedEPGroups'][$count]['groupName']."</option>";
+						if(!$endpointGroupSelect){
+							$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']."\">".$_SESSION['authorizedEPGroups'][$count]['groupName']."</option>";
+						}else{
+							if($endpointGroupSelect == $_SESSION['authorizedEPGroups'][$count]['endpointGroupId']){
+								$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']."\" selected>".$_SESSION['authorizedEPGroups'][$count]['groupName']."</option>";
+							}else{
+								$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']."\">".$_SESSION['authorizedEPGroups'][$count]['groupName']."</option>";
+							}
+						}
+						
 						$trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']] = true;
 						$pageValid = true;
 					}

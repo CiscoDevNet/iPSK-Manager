@@ -258,7 +258,7 @@
 	});
 	
 	$("#createAssoc").click(function() {
-		window.location.href = "/sponsor.php?portalId=$portalId";
+		window.location.href = "/sponsor.php?portalId=$portalId&eg={$sanitizedInput['associationGroup']}";
 	});
 	
 	$("#bulkAssoc").click(function() {
@@ -266,7 +266,7 @@
 	});
 	
 	$("#newAssoc").click(function() {
-		window.location.href = "/sponsor.php?portalId=$portalId";
+		window.location.href = "/sponsor.php?portalId=$portalId&eg={$sanitizedInput['associationGroup']}";
 	});
 	
 	$("#manageAssoc").click(function() {
