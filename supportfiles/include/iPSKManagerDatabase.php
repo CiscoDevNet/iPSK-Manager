@@ -1377,7 +1377,7 @@
 		}
 
 		function getAuthorizationTemplatesbyEPGroupId($id){
-			$query = "SELECT authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, authorizationTemplates.pskLength FROM `authorizationTemplates` INNER JOIN endpointGroups ON authorizationTemplates.id = endpointGroups.authzTemplateId WHERE endpointGroups.id = '$id'";
+			$query = "SELECT authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, authorizationTemplates.pskLength, endpointGroups.groupName FROM `authorizationTemplates` INNER JOIN endpointGroups ON authorizationTemplates.id = endpointGroups.authzTemplateId WHERE endpointGroups.id = '$id'";
 			
 			$queryResult = $this->dbConnection->query($query);
 		

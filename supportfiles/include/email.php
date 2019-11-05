@@ -46,7 +46,7 @@
 		}
 	}
 	
-	function sendHTMLEmail($to, $portalName, $wirelessPassword, $wirelessSsid, $smtpSettings){
+	function sendHTMLEmail($to, $portalName, $wirelessPassword, $wirelessSsid, $macAddress, $endpointGroupName, $smtpSettings){
 		$sendTo = filter_var($to, FILTER_SANITIZE_EMAIL);		
 		
 		if($sendTo != ""){
@@ -79,7 +79,12 @@
 		<div style="width: 20%; float: left;">&nbsp;</div>
 		<div style="width: 60%; float: left;">
 			<div style="background-color: #1ba0d7;"><h1 style="text-align:center; color: #ffffff;">Successfully Enrolled</h1></div>
-			<p>You have successfully been enrolled in $portalName Access.  Below you will find the applicable settings to connect to the WiFi network:</p>
+			<p>You have successfully been enrolled in $portalName Access.</p> 
+			
+			<p><span style="font-weight: bold;">Device MAC Address:</span>$macAddress</p>
+			<p><span style="font-weight: bold;">Endpoint Group Name:</span>$endpointGroupName</p>
+			
+			<p>Below you will find the applicable settings to connect to the WiFi network:</p>
 			<table>
 				<thead>
 					<tr style="background-color: #c0c0c0;">

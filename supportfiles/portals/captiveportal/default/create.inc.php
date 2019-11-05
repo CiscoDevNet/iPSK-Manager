@@ -77,7 +77,7 @@
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
 				if($ipskISEDB->emailEndpointGroup($sanitizedInput['associationGroup'])){
-					sendHTMLEmail($sanitizedInput['emailAddress'], $portalSettings['portalName'], $randomPassword, $wifiSsid, $smtpSettings);
+					sendHTMLEmail($sanitizedInput['emailAddress'], $portalSettings['portalName'], $randomPassword, $wifiSsid, $sanitizedInput['macAddress'], $endpointGroupAuthorization['groupName'], $smtpSettings);
 					/*
 					 *Second Method to Send Email.  (Plain Text)
 					 *
