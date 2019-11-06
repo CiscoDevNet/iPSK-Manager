@@ -27,16 +27,24 @@
 		header("Location: /index.php?portalId=".$portalId);
 		die();
 	}
-	
+
 	$sampleFile = (isset($_GET['samplefile'])) ? (filter_var($_GET['samplefile'],FILTER_VALIDATE_BOOLEAN)) : false;
-	
+
 	$sampleCSV = "macaddress,fullname,emailaddress,description\r\n00:00:00:FF:FF:FF,Sample Name,Sample@Demo.Local,My Device - Mobile Phone";
-	
-	if(isset($sanitizedInput['action'])) {	
+
+	if(isset($sanitizedInput['action'])){
 		if($sanitizedInput['action'] == "get_endpoint_groups"){
 			if($iseERSIntegrationAvailable){
-				print $ipskISEERS->getEndPointIdentityGroups();
-			}					
+				$endpointIdentityGroups = $ipskISEERS->getEndPointIdentityGroups();
+
+				if($endpointIdentityGroups){
+					$endpointIdentityGroupsArray = json_decode($endpointIdentityGroups,TRUE);
+					$endpointIdentityGroupsArray = arraySortAlpha($endpointIdentityGroupsArray);
+					$endpointIdentityGroups = json_encode($endpointIdentityGroupsArray);
+
+					print $endpointIdentityGroups;
+				}
+			}
 		}elseif($sanitizedInput['action'] == "get_endpoint_count"){
 			if($iseERSIntegrationAvailable){
 				print $ipskISEERS->getEndPointGroupCountbyId($sanitizedInput['groupUuid']);
@@ -51,6 +59,7 @@
 			
 			$psk = $ipskISEDB->generateRandomPassword($authZ['pskLength']);
 			
+			$_SESSION['temp']['expires'] = time() + 600;
 			$_SESSION['temp']['sponsoreditpsk'] = password_hash($psk, PASSWORD_DEFAULT);
 			
 			print $psk;
