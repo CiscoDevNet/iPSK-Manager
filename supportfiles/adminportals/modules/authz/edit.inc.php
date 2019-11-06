@@ -34,6 +34,7 @@
 		$pageiPSKType .= '<option value="0">Unique PSK per Device</option>';
 		$pageiPSKType .= '<option value="1" selected>Unique PSK per User</option>';
 		$password = "Random";
+		$minLength = '6';
 		$readonlyFlag = " readonly";
 		$passwordFeather = "slash";
 		$pskModeFlag = "1";
@@ -43,6 +44,7 @@
 		$pageiPSKType .= '<option value="0" selected>Unique PSK per Device</option>';
 		$pageiPSKType .= '<option value="1">Unique PSK per User</option>';
 		$password = "Random";
+		$minLength = '6';
 		$readonlyFlag = " readonly";
 		$passwordFeather = "slash";
 		$pskModeFlag = "1";
@@ -52,6 +54,7 @@
 		$pageiPSKType .= '<option value="1">Unique PSK per User</option>';
 		$password = $authorizationTemplate['ciscoAVPairPSK'];
 		$readonlyFlag = "";
+		$minLength = '8';
 		$passwordFeather = "shuffle";
 		$iPSKTypeFlag = " disabled";
 		$pskModeFlag = "0";
@@ -111,7 +114,7 @@ $htmlbody = <<<HTML
 					<div class="input-group-prepend shadow">
 						<span class="input-group-text font-weight-bold" id="basic-addon1">ASCII</span>
 					</div>
-					<input type="text" id="ciscoAVPairPSK" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="8" validation-maximum-length="64" value="$password" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true"$readonlyFlag>
+					<input type="text" id="ciscoAVPairPSK" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="$minLength" validation-maximum-length="64" value="$password" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true"$readonlyFlag>
 					<div class="input-group-append shadow">
 						<span class="input-group-text font-weight-bold" id="basic-addon1"><a id="generatepassword" data-command="generate" data-set="psk" href="#"><span id="passwordfeather" data-feather="$passwordFeather"></span></a></span>
 					</div>
