@@ -328,4 +328,43 @@
 		return $mysanitizedInputs;
 		
 	}
+
+	/* START: Functions for sorting the returned EP Groups
+	 * array from ISE ERS.
+	 */
+
+	/* Support function for sorting ISE Return Results.
+	 * This was created to sort the Endpoint Identity Groups array
+	 */
+	function ____alphaSorting($left, $right){
+		$result = strcmp($left["name"], $right["name"]);
+		return $result;
+	}
+
+	/* Function that checks the input and validates it meets the criteria.
+	 * This returns the array back; however, the 'name' field is sorted
+	 */
+	function arraySortAlpha($inputArray){
+		if(isset($inputArray['SearchResult']['total'])){
+			if($inputArray['SearchResult']['total'] > 7){
+				if(isset($inputArray['SearchResult']['resources'][0]['name'])){
+					$mySortedResources = $inputArray['SearchResult']['resources'];
+					usort($mySortedResources,'____alphaSorting');
+					$inputArray['SearchResult']['resources'] = $mySortedResources;
+
+					return $inputArray;
+
+				}else{
+					return $inputArray;
+				}
+			}else{
+				return $inputArray;
+			}
+		}else{
+			return $inputArray;
+		}
+	}
+	/* END: Functions for sorting the returned EP Groups
+	 * array from ISE ERS.
+	 */
 ?>
