@@ -139,78 +139,71 @@
 			<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
 			<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
 			<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
-				<div class="row">
-					<div class="col-3">				
-					{$pageData['createButton']}
-					</div>
-					<div class="col-3">				
-					{$pageData['bulkButton']}
-					</div>
-					<div class="col-3">				
-						<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
-					</div>
-					<div class="col-3">				
-						<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
+				<div class="container">
+					<div class="row">
+						<div class="col py-1">
+						{$pageData['createButton']}
+						</div>
+						<div class="col py-1">
+						{$pageData['bulkButton']}
+						</div>
+						<div class="col py-1">
+							<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
+						</div>
+						<div class="col py-1">
+							<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
+						</div>
 					</div>
 				</div>
 			</div>
 			<form id="bulkAssociationform" action="bulkimport.php?portalId=$portalId" method="post">
-				<div class="row text-left">
-					<div class="col-2"></div>
-					<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-								<h6>Association type:</h6>
-								{$pageData['endpointGroupList']}
+				<div class="container-fluid">
+					<div class="row text-left">
+						<div class="col-sm"></div>
+						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+							<h6>Association type:</h6>
+							{$pageData['endpointGroupList']}
+							<div class="container-fluid">
 								<div class="row">
-									<div class="col pr-0">
-										<p><small>
-											Maximum access duration:&nbsp;<span id="duration" class="text-danger count">-</span>
-										</small></p>
+									<div class="col-md">
+										<p><small>Maximum access duration:&nbsp;<span id="duration" class="text-danger count">-</span></small></p>
 									</div>
-									<div class="col pl-0">
-										<p><small>
-											Pre Shared Key Type:&nbsp;<span id="keyType" class="text-danger count">-</span>
-										</small></p>
+									<div class="col-md">
+										<p><small>Pre Shared Key Type:&nbsp;<span id="keyType" class="text-danger count">-</span></small></p>
 									</div>
 								</div>
-								<h6>Wireless SSID:</h6>
-								{$pageData['wirelessSSIDList']}
+							</div>
+							<h6>Wireless SSID:</h6>
+							{$pageData['wirelessSSIDList']}
+						</div>
+						<div class="col-sm"></div>
 					</div>
-					<div class="col-2"></div>
 				</div>
-				<div class="row text-left">
-					<div class="col-2"></div>
-						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+				<div class="container-fluid">
+					<div class="row text-left">
+						<div class="col-sm"></div>
+						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Bulk Import Type:</h6>
-							<div class="row">
-								<div class="col">
-									<select name="bulkImportType" id="bulkImportType" class="form-control mt-2 mb-3 shadow"><option value="0">(Select an Import Option)</option>{$pageData['bulkOption']}</select>
+							<div class="container-fluid">
+								<div class="row">
+									<div class="col-md">
+										<select name="bulkImportType" id="bulkImportType" class="form-control mt-2 mb-3 shadow"><option value="0">(Select an Import Option)</option>{$pageData['bulkOption']}</select>
+									</div>
 								</div>
-							</div>
-							<div id="sampleFileDownload" class="row d-none">
-								<div class="col">
-									CSV Format Sample File Download: <a href="/query.php?portalId=$portalId&samplefile=1">import_sample.csv</a>
-								</div>
-							</div>
-						</div>
-					<div class="col-2"></div>
-				</div>
-				<div id="textBulkImport" class="d-none row text-left">
-					<div class="col-2"></div>
-						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-							<h6>Select the file you would like to import:</h6>
-							<div class="row">
-								<div class="col">
-									<div class="form-group">
-										
+								<div id="sampleFileDownload" class="row d-none">
+									<div class="col-md">
+										CSV Format Sample File Download: <a href="/query.php?portalId=$portalId&samplefile=1">import_sample.csv</a>
 									</div>
 								</div>
 							</div>
 						</div>
-					<div class="col-2"></div>
+						<div class="col-sm"></div>
+					</div>
 				</div>
-				<div id="csvBulkImport" class="d-none row text-left">
-					<div class="col-2"></div>
-						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+				<div class="container-fluid">
+					<div id="csvBulkImport" class="d-none row text-left">
+						<div class="col-sm"></div>
+						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Upload CSV File to Import:</h6>
 							<div class="row">
 								<div class="col">
@@ -263,11 +256,13 @@
 								</div>
 							</div>
 						</div>
-					<div class="col-2"></div>
-				</div>				
-				<div id="iseBulkImport" class="d-none row text-left">
-					<div class="col-2"></div>
-						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+						<div class="col-sm"></div>
+					</div>
+				</div>
+				<div class="container-fluid">
+					<div id="iseBulkImport" class="d-none row text-left">
+						<div class="col-sm"></div>
+						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Select the Endpoint Identity Group you would like to import:</h6>
 							<div class="row">
 								<div class="col">
@@ -276,29 +271,31 @@
 									</div>
 								</div>
 							</div>
-							<div class="row">
-								<div class="col pr-0">
-									<p><small>
-										Description:&nbsp;<span id="iseepgDescription" class="text-danger count">-</span>
-									</small></p>
-								</div>
-								<div class="col-4 pl-0">
-									<p><small>
-										Endpoint Count:&nbsp;<span id="iseepgCount" class="text-danger count">-</span>
-									</small></p>
-								</div>
-								<div class="col-2 pl-0">
-									<p><small>
+							<div class="container-fluid">
+								<div class="row">
+									<div class="col-md pr-0">
+										<p><small>
+											Description:&nbsp;<span id="iseepgDescription" class="text-danger count">-</span>
+										</small></p>
+									</div>
+									<div class="col-md-4 pl-0">
+										<p><small>
+											Endpoint Count:&nbsp;<span id="iseepgCount" class="text-danger count">-</span>
+										</small></p>
+									</div>
+									<div class="col-md-2 pl-0">
 										<button class="btn btn-secondary shadow" id="getCount" type="button">Get Count</button>
-									</small></p>
+									</div>
 								</div>
 							</div>
 						</div>
-					<div class="col-2"></div>
+						<div class="col-sm"></div>
+					</div>
 				</div>
-				<div id="associationDetails" class="d-none row text-left">
-					<div class="col-2"></div>
-						<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+				<div class="container-fluid">
+					<div id="associationDetails" class="d-none row text-left">
+						<div class="col-sm"></div>
+						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Association Details:</h6>	
 							<div class="row associationrow">
 								<div class="col">
@@ -330,7 +327,8 @@
 								<button class="btn btn-primary shadow" id="submitbtn" type="button">Import</button>
 							</div>
 						</div>
-					<div class="col-2"></div>
+						<div class="col-sm"></div>
+					</div>
 				</div>
 			</form>
 		</div>

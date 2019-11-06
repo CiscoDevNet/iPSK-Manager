@@ -145,83 +145,91 @@
 				<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
 				<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
 				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
-					<div class="row">
-						<div class="col-3">				
-						{$pageData['createButton']}
-						</div>
-						<div class="col-3">				
-						{$pageData['bulkButton']}
-						</div>
-						<div class="col-3">				
-							<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
-						</div>
-						<div class="col-3">				
-							<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
+					<div class="container">
+						<div class="row">
+							<div class="col py-1">
+							{$pageData['createButton']}
+							</div>
+							<div class="col py-1">
+							{$pageData['bulkButton']}
+							</div>
+							<div class="col py-1">
+								<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
+							</div>
+							<div class="col py-1">
+								<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
+							</div>
 						</div>
 					</div>
 				</div>
-				<div class="row text-left">
-					<div class="col-2"></div>
-					<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-								<h6>Association type:</h6>
-								{$pageData['endpointGroupList']}
+				<div class="container-fluid">
+					<div class="row text-left">
+						<div class="col-sm"></div>
+						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+									<h6>Association type:</h6>
+									{$pageData['endpointGroupList']}
+									<div class="container-fluid">
+										<div class="row">
+											<div class="col-md">
+												<p><small>Maximum access duration:&nbsp;<span id="duration" class="text-danger count">-</span></small></p>
+											</div>
+											<div class="col-md">
+												<p><small>Pre Shared Key Type:&nbsp;<span id="keyType" class="text-danger count">-</span></small></p>
+											</div>
+										</div>
+									</div>
+									<h6>Wireless SSID:</h6>
+									{$pageData['wirelessSSIDList']}
+						</div>
+						<div class="col-sm"></div>
+					</div>
+				</div>
+				<div class="container-fluid">
+					<div class="row text-left">
+						<div class="col-sm"></div>
+						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+							<h6>Association Details:</h6>
+							<div class="container">
 								<div class="row">
-									<div class="col pr-0">
-										<p><small>
-											Maximum access duration:&nbsp;<span id="duration" class="text-danger count">-</span>
-										</small></p>
+									<div class="col-sm">
+										<div class="form-group">
+											<label for="macAddress">Endpoint MAC Address</label>
+											<input type="text" class="form-control mt-2 mb-3 shadow user-input form-validation" validation-state="required" validation-minimum-length="17" validation-maximum-length="17" value="" id="macAddress" name="macAddress" maxlength="17" placeholder="XX:XX:XX:XX:XX:XX">
+											<div class="invalid-feedback">Please enter a valid MAC Address</div>
+										</div>
 									</div>
-									<div class="col pl-0">
-										<p><small>
-											Pre Shared Key Type:&nbsp;<span id="keyType" class="text-danger count">-</span>
-										</small></p>
-									</div>
-								</div>
-								<h6>Wireless SSID:</h6>
-								{$pageData['wirelessSSIDList']}
-					</div>
-					<div class="col-2"></div>
-				</div>
-				<div class="row text-left">
-					<div class="col-2"></div>
-					<div class="col-8 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-						<h6>Association Details:</h6>
-							<div class="row">
-								<div class="col">
-									<div class="form-group">
-										<label for="macAddress">Endpoint MAC Address</label>
-										<input type="text" class="form-control mt-2 mb-3 shadow user-input form-validation" validation-state="required" validation-minimum-length="17" validation-maximum-length="17" value="" id="macAddress" name="macAddress" maxlength="17" placeholder="XX:XX:XX:XX:XX:XX">
-										<div class="invalid-feedback">Please enter a valid MAC Address</div>
-									</div>
-								</div>
-								<div class="col">
-									<div class="form-group">
-										<label for="endpointDescription">Endpoint Description</label>
-										<input type="text" class="form-control mt-2 mb-3 user-input shadow" value="" name="endpointDescription" placeholder="Device Description">
+									<div class="col-sm">
+										<div class="form-group">
+											<label for="endpointDescription">Endpoint Description</label>
+											<input type="text" class="form-control mt-2 mb-3 user-input shadow" value="" name="endpointDescription" placeholder="Device Description">
+										</div>
 									</div>
 								</div>
 							</div>
-							<div class="row">
-								<div class="col">
-									<div class="form-group">
-										<label for="fullName">Full Name</label>
-										<input type="text" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="{$sessionData['fullName']}" name="fullName" placeholder="John Smith">
-										<div class="invalid-feedback">Please enter your Full Name</div>
+							<div class="container">
+								<div class="row">
+									<div class="col-sm">
+										<div class="form-group">
+											<label for="fullName">Full Name</label>
+											<input type="text" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="{$sessionData['fullName']}" name="fullName" placeholder="John Smith">
+											<div class="invalid-feedback">Please enter your Full Name</div>
+										</div>
 									</div>
-								</div>
-								<div class="col">
-									<div class="form-group">
-										<label for="emailAddress">Email address</label>
-										<input type="email" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="{$sessionData['emailAddress']}" name="emailAddress" placeholder="john@company.com">
-										<div class="invalid-feedback">Please enter a valid email address</div>
-									</div> 
+									<div class="col-sm">
+										<div class="form-group">
+											<label for="emailAddress">Email address</label>
+											<input type="email" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="{$sessionData['emailAddress']}" name="emailAddress" placeholder="john@company.com">
+											<div class="invalid-feedback">Please enter a valid email address</div>
+										</div>
+									</div>
 								</div>
 							</div>
 							<div class="form-group text-center">
 								<button class="btn btn-primary shadow" id="submitbtn" type="button">Submit</button>
 							</div>
 						</div>
-					<div class="col-2"></div>
+						<div class="col-sm"></div>
+					</div>
 				</div>
 			</form>
 		</div>

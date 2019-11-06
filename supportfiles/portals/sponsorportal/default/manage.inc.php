@@ -238,73 +238,75 @@
   <body>
 	<div class="container">
 		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
-		{$pageData['pageNotice']}
-				<div class="mt-2 mb-4">
-					<img src="images/iPSK-Logo.svg" width="108" height="57" />
-				</div>
-				<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
-				<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
-				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
+			{$pageData['pageNotice']}
+			<div class="mt-2 mb-4">
+				<img src="images/iPSK-Logo.svg" width="108" height="57" />
+			</div>
+			<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
+			<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
+			<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
+				<div class="container">
 					<div class="row">
-						<div class="col-3">				
+						<div class="col py-1">
 						{$pageData['createButton']}
 						</div>
-						<div class="col-3">				
+						<div class="col py-1">
 						{$pageData['bulkButton']}
 						</div>
-						<div class="col-3">				
+						<div class="col py-1">
 							<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
 						</div>
-						<div class="col-3">				
+						<div class="col py-1">
 							<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
 						</div>
 					</div>
 				</div>
-				<div class="row text-left">
-					<div class="col"></div>
-					<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary text-center">
-						<h4 class="h4">Manage Endpoint Associations</h4>
-					</div>
-					<div class="col"></div>
+			</div>
+			<div class="row text-left">
+				<div class="col-sm"></div>
+				<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary text-center">
+					<h4 class="h4">Manage Endpoint Associations</h4>
 				</div>
-				<div id="bulkOptions" class="row text-left d-none">
-					<div class="col"></div>
-					<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary text-center">
-						<h5 class="h5 text-danger">Bulk Selected Options</h5>
-						<div class="row">
-							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="suspend" type="button">Suspend</button></div>
-							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="activate" type="button">Activate</button></div>
-							<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="delete" type="delete">Delete</button></div>
-						</div>
+				<div class="col-sm"></div>
+			</div>
+			<div id="bulkOptions" class="row text-left d-none">
+				<div class="col-sm"></div>
+				<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary text-center">
+					<h5 class="h5 text-danger">Bulk Selected Options</h5>
+					<div class="row">
+						<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="suspend" type="button">Suspend</button></div>
+						<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="activate" type="button">Activate</button></div>
+						<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="delete" type="delete">Delete</button></div>
 					</div>
-					<div class="col"></div>
 				</div>
-				<div class="row text-left">
-					<div class="col"></div>
-					<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+				<div class="col-sm"></div>
+			</div>
+			<div class="overflow-auto row text-left">
+				<div class="col-sm"></div>
+				<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
+					<div class="table-responsive">
 						{$pageData['endpointAssociationList']}
-						<div class="row">
-							<div class="col"><hr></div>
-						</div>
-						<div class="row">
-							<div class="col-4">
-								<label class="font-weight-bold" for="pageSize">Items per Page:</label>
-								<select id="pageSize">$currentPageSizeSelection</select>
-							</div>
-							<div class="col text-center"><strong>Total Items: ({$associationList['count']})  Total Pages: $totalPages</strong></div>
-							<div class="col-4 text-right">
-								{$pageData['pageinationOutput']}
-							</div>
-						</div>						
 					</div>
-					<div class="col"></div>
+					<div class="row">
+						<div class="col"><hr></div>
+					</div>
+					<div class="row">
+						<div class="col-4">
+							<label class="font-weight-bold" for="pageSize">Items per Page:</label>
+							<select id="pageSize">$currentPageSizeSelection</select>
+						</div>
+						<div class="col text-center"><strong>Total Items: ({$associationList['count']})  Total Pages: $totalPages</strong></div>
+						<div class="col-4 text-right">
+							{$pageData['pageinationOutput']}
+						</div>
+					</div>
 				</div>
-				
+				<div class="col-sm"></div>
+			</div>
 		</div>
 		<div class="m-0 mx-auto p-2 bg-white text-center">
 			<p>Copyright &copy; 2019 Cisco and/or its affiliates.</p>
 		</div>
-		
 	</div>
   <div id="popupcontent"></div>
   </body>
