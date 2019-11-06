@@ -81,6 +81,9 @@
 						}
 					}
 				}
+
+				//Revoke previously generated PSK for Enduser
+				unset($_SESSION['temp']);
 			}else{
 				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID']);
 			}
