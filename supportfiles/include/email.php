@@ -45,26 +45,26 @@
 			return false;
 		}
 	}
-	
-	function sendHTMLEmail($to, $portalName, $wirelessPassword, $wirelessSsid, $macAddress, $endpointGroupName, $smtpSettings){
-		$sendTo = filter_var($to, FILTER_SANITIZE_EMAIL);		
-		
+
+	function sendHTMLEmail($to, $portalName, $wirelessPassword, $wirelessSsid, $macAddress, $endpointGroupName, $description, $fullname, $enrolledBy, $smtpSettings){
+		$sendTo = filter_var($to, FILTER_SANITIZE_EMAIL);
+
 		if($sendTo != ""){
-			
+
 			if($smtpSettings['smtp-fromaddress'] != ''){
 				$mailFrom = filter_var($smtpSettings['smtp-fromaddress'], FILTER_SANITIZE_EMAIL);
 			}else{
 				$mailFrom = "ipskmanager@system.local";
 			}
-			
+
 			$headers = 'To: ' . $to . "\r\n";
-			
+
 			$headers .= 'From: ' . $mailFrom . "\r\n";
 			$headers .=	'Reply-To: ' . $mailFrom . "\r\n";
 			$headers .=	'X-Mailer: PHP/' . phpversion();
 			$headers .= "MIME-Version: 1.0\r\n";
 			$headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
-			
+
 			$subject = $portalName." Enrollment";
 			$body = <<< HTML
 <html>
@@ -81,6 +81,8 @@
 			<div style="background-color: #1ba0d7;"><h1 style="text-align:center; color: #ffffff;">Successfully Enrolled</h1></div>
 			<p>You have successfully been enrolled in $portalName Access.</p> 
 			
+			<p><span style="font-weight: bold;">Registered Name:</span>$fullname</p>
+			<p><span style="font-weight: bold;">Description:</span>$description</p>
 			<p><span style="font-weight: bold;">Device MAC Address:</span>$macAddress</p>
 			<p><span style="font-weight: bold;">Endpoint Group Name:</span>$endpointGroupName</p>
 			
@@ -105,8 +107,8 @@
 	</body>	
 </html>
 HTML;
-			
-			
+
+
 			if(mail($to, $subject, $body, $headers, "-f ".$mailFrom)){
 				return true;
 			}else{
