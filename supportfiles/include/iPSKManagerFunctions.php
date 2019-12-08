@@ -303,7 +303,8 @@
 			'complexUppercase'	=>	FILTER_VALIDATE_INT,
 			'complexNumbers'	=>	FILTER_VALIDATE_INT,
 			'complexSpecial'	=>	FILTER_VALIDATE_INT,
-			'complexSimilar'	=>	FILTER_VALIDATE_INT
+			'complexSimilar'	=>	FILTER_VALIDATE_INT,
+			'aupAccept'	=>	FILTER_VALIDATE_BOOLEAN
 		);
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);
