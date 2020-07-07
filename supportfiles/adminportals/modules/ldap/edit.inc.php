@@ -59,7 +59,7 @@ $htmlbody = <<<HTML
 		<div class="form-row">
 			<div class="col">
 				<div class="custom-control custom-checkbox">
-					<input type="checkbox" class="custom-control-input checkbox-update" name="permission" base-value="1" value="{$ldapServer['adSecure']}" id="adSecure"{$ldapServer['adSecureCheck']}>
+					<input type="checkbox" class="custom-control-input checkbox-update" name="adSecure" base-value="1" value="{$ldapServer['adSecure']}" id="adSecure"{$ldapServer['adSecureCheck']}>
 					<label class="custom-control-label" for="adSecure">Secure LDAP</label>
 				</div>
 			</div>
@@ -139,7 +139,15 @@ $htmlbody = <<<HTML
 			}
 		});
 	});
-		
+
+	$(".checkbox-update").change(function(){
+		if($(this).prop('checked')){
+			$(this).attr('value', $(this).attr('base-value'));
+		}else{
+			$(this).attr('value', '0');
+		}
+	});
+
 	$("#password,#confirmpassword").keyup(function(event){
 		var pass = $("#password").val();
 		var confirmpass = $("#confirmpassword").val();

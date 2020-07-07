@@ -49,7 +49,7 @@ $htmlbody = <<<HTML
 		<div class="form-row">
 			<div class="col">
 				<div class="custom-control custom-checkbox">
-					<input type="checkbox" class="custom-control-input checkbox-update" name="permission" base-value="1" value="0" id="adSecure">
+					<input type="checkbox" class="custom-control-input checkbox-update" name="adSecure" base-value="1" value="0" id="adSecure">
 					<label class="custom-control-label" for="adSecure">Secure LDAP</label>
 				</div>
 			</div>
@@ -57,7 +57,7 @@ $htmlbody = <<<HTML
 		<label class="font-weight-bold" for="adBaseDN">Search Base DN:</label>
 		<div class="form-group input-group-sm font-weight-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adBaseDN" value="">
-			<div class="invalid-feedback">Please enter a valid search abse</div>
+			<div class="invalid-feedback">Please enter a valid search base</div>
 		</div>
 		<label class="font-weight-bold" for="adUsername">Username:</label>
 		<div class="form-group input-group-sm font-weight-bold">
@@ -127,7 +127,15 @@ $htmlbody = <<<HTML
 			}
 		});
 	});
-		
+
+	$(".checkbox-update").change(function(){
+		if($(this).prop('checked')){
+			$(this).attr('value', $(this).attr('base-value'));
+		}else{
+			$(this).attr('value', '0');
+		}
+	});
+
 	$("#password,#confirmpassword").keyup(function(event){
 		var pass = $("#password").val();
 		var confirmpass = $("#confirmpassword").val();
