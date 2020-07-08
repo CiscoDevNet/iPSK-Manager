@@ -38,9 +38,9 @@
 		}
 		
 		if($internalGroup['permissions'] == 1){
-			$internalGroup['permissions'] = " checked";
+			$internalGroup['permissionsCheck'] = " checked";
 		}else{
-			$internalGroup['permissions'] = "";
+			$internalGroup['permissionsCheck'] = "";
 		}
 
 $htmlbody = <<<HTML
@@ -83,7 +83,7 @@ $htmlbody = <<<HTML
 		<div class="form-row">
 			<div class="col">
 				<div class="custom-control custom-checkbox">
-					<input type="checkbox" class="custom-control-input checkbox-update" name="permission" base-value="1" value="0" id="permission"{$internalGroup['permissions']}>
+					<input type="checkbox" class="custom-control-input checkbox-update" name="permission" base-value="1" value="{$internalGroup['permissions']}" id="permission"{$internalGroup['permissionsCheck']}>
 					<label class="custom-control-label" for="permission">Admin Portal Access</label>
 			</div>
 		</div>
