@@ -51,6 +51,7 @@ $htmlbody = <<<HTML
 				<div class="custom-control custom-checkbox">
 					<input type="checkbox" class="custom-control-input checkbox-update" name="adSecure" base-value="1" value="0" id="adSecure">
 					<label class="custom-control-label" for="adSecure">Secure LDAP</label>
+					<small id="endpointGroupMembersBlock" class="form-text text-muted">Note: The Root CA or Server Certificate must be Trusted by this Server for LDAPS.</small>
 				</div>
 			</div>
 		</div>
