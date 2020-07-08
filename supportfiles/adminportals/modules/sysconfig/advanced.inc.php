@@ -28,7 +28,7 @@
 		<label class="font-weight-bold" for="adminPortalHostname">Advanced Settings:</label>
 		<div class="custom-control custom-checkbox">
 			<input type="checkbox" class="custom-control-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-portal-psk-edit-value']}" id="portalPskEditEnabled"{$advancedSettings['enable-portal-psk-edit']}>
-			<label class="custom-control-label text-danger" for="portalPskEditEnabled"><strong>Enable per portal proup PSK editing functionality</strong></label>
+			<label class="custom-control-label text-danger" for="portalPskEditEnabled"><strong>Enable the "Manual PSK Editing" Portal Group Permission</strong></label>
 		</div>
 		<div class="custom-control custom-checkbox">
 			<input type="checkbox" class="custom-control-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-advanced-logging-value']}" id="advancedLoggingSettings"{$advancedSettings['enable-advanced-logging']}>
