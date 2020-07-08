@@ -131,8 +131,9 @@ $htmlbody = <<<HTML
 			<form class="needs-validation" novalidate>
 				<div class="form-group input-group-sm font-weight-bold">
 					<label class="font-weight-bold" for="portalName">Portal Name:</label>
-					<input type="text" class="form-control shadow form-validation" validation-state="required" id="portalName" value="{$portal['portalName']}">
+					<input type="text" class="form-control shadow form-validation" validation-state="required" id="portalName" value="{$portal['portalName']}" validation-minimum-length="1" validation-maximum-length="32">
 					<small id="endpointGroupMembersBlock" class="form-text text-muted">Portal Name is Required</small>
+					<div class="invalid-feedback">Please enter a Portal Name (Max: 32 Characters)</div>
 				</div>
 				<div class="form-group input-group-sm font-weight-bold">
 					<label class="font-weight-bold" for="description">Description:</label>

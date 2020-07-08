@@ -59,7 +59,8 @@ $htmlbody = <<<HTML
       <div class="modal-body">
 		<label class="font-weight-bold" for="epGroupName">iPSK Endpoint Group Name:</label>
 		<div class="form-group input-group-sm font-weight-bold">
-			<input type="text" class="form-control shadow form-validation" validation-state="required" id="epGroupName" value="{$endPointGroup['groupName']}">
+			<input type="text" class="form-control shadow form-validation" validation-state="required" id="epGroupName" value="{$endPointGroup['groupName']}" validation-minimum-length="1" validation-maximum-length="25">
+			<div class="invalid-feedback">Please enter a Endpoint Group Name (Max: 25 Characters)</div>
 		</div>
 		<label class="font-weight-bold" for="epGroupDescription">Description:</label>
 		<div class="form-group input-group-sm font-weight-bold">
