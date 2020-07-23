@@ -5,7 +5,7 @@ Identity PSK ("IPSK") Manager for Cisco ISE provides an example of how to manage
 
 The sample code provided is designed to integrate with Cisco ISE via ODBC, External RESTful Services (ERS) API, and Monitoring API.  The 'Sponsor' & 'Captive' Portals can be customized.
 
-The ODBC Connection provides the core functionality between IPSK Manager and Cisco ISE, while the API's are for other minor functionality such as performing Change of Authorizations ("CoA") and creation of Authoization Profiles for IPSK Captive Portals.
+The ODBC Connection provides the core functionality between IPSK Manager and Cisco ISE, while the API's are for other minor functionality such as performing Change of Authorizations ("CoA") and creation of Authorization Profiles for IPSK Captive Portals.
 
 ---
 
@@ -37,3 +37,10 @@ The ODBC Connection provides the core functionality between IPSK Manager and Cis
 
 This project is licensed to you under the terms of the [Cisco Sample
 Code License](./LICENSE).
+
+## Cisco Sample Code
+
+This project, and the code contained herein, is provided for example or demonstration purposes by Cisco for use by our partners and customers in working with Cisco's products and services.  While Cisco's customers and partners are free to use this code according to the terms of the [LICENSE](./LICENSE) associated with this project, this is not an *Open Source* project in as much as we are not seeking to build a community around the project and its capabilities.
+
+We do desire to provide functional and high-quality examples and demonstrations.  If you should discover some bug, issue, or opportunity for enhancement with the sample code contained in this project, please notify us by creating a new **Issue**.
+
