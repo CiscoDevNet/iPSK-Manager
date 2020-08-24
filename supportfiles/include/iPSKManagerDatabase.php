@@ -2803,7 +2803,7 @@
 		}
 		
 		function getTotalExpiredEndpointCount(){
-			$query = "SELECT COUNT(endpointAssociations.macAddress) as endpointCount FROM `endpointAssociations` INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId WHERE endpoints.accountExpired = 1 OR endpoints.expirationDate < '".time()."'";
+			$query = "SELECT COUNT(endpointAssociations.macAddress) as endpointCount FROM `endpointAssociations` INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId WHERE (endpoints.expirationDate != 0) AND (endpoints.accountExpired = 1 OR endpoints.expirationDate < '".time()."')";
 			
 			$queryResult = $this->dbConnection->query($query);
 			
