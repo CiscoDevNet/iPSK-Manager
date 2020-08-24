@@ -88,13 +88,13 @@
 	}
 	
 	if($_SESSION['portalAuthorization']['create'] == true){
-		$pageData['createButton'] = '<button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button>';
+		$pageData['createButton'] = '<div class="col py-1"><button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button></div>';
 	}else{
 		$pageData['createButton'] = '';
 	}
 	
 	if($_SESSION['portalAuthorization']['bulkcreate'] == true){
-		$pageData['bulkButton'] = '<button id="bulkAssoc" class="btn btn-primary shadow" type="button">Bulk Associations</button>';
+		$pageData['bulkButton'] = '<div class="col py-1"><button id="bulkAssoc" class="btn btn-primary shadow" type="button">Bulk Associations</button></div>';
 	}else{
 		$pageData['bulkButton'] = '';
 	}
@@ -141,12 +141,8 @@
 			<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
 				<div class="container">
 					<div class="row">
-						<div class="col py-1">
 						{$pageData['createButton']}
-						</div>
-						<div class="col py-1">
 						{$pageData['bulkButton']}
-						</div>
 						<div class="col py-1">
 							<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
 						</div>
