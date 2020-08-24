@@ -99,6 +99,7 @@
 	}
 	
 	if($_SESSION['portalAuthorization']['create'] == true){
+		$pageData['createButton'] = '<div class="col py-1"><button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button></div>';
 	}else{
 		$pageData['createButton'] = '';
 	}
