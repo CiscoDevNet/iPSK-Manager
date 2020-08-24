@@ -2652,21 +2652,25 @@
 		
 		function updateLdapServer($serverId, $adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $createdBy){
 			
-			$nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+			if($encryptedPassword != null){
+				$nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
 
-			$ciphertext = sodium_crypto_secretbox($encryptedPassword, $nonce, base64_decode($this->encryptionKey));
+				$ciphertext = sodium_crypto_secretbox($encryptedPassword, $nonce, base64_decode($this->encryptionKey));
 
-			$encryptedPassword = base64_encode($nonce . $ciphertext);
-						
-			$query = sprintf("UPDATE `ldapServers` SET `adConnectionName`='%s', `adServer`='%s', `adDomain`='%s', `adUsername`='%s', `adPassword`='%s', `adBaseDN`='%s', `adSecure`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($adConnectionName), $this->dbConnection->real_escape_string($adServer), $this->dbConnection->real_escape_string($adDomain), $this->dbConnection->real_escape_string($adUsername), $this->dbConnection->real_escape_string($encryptedPassword), $this->dbConnection->real_escape_string($adBaseDN), $this->dbConnection->real_escape_string($adSecure), $this->dbConnection->real_escape_string($serverId));
-
-			$queryResult = $this->dbConnection->query($query);
-
-			if($queryResult){
-				return true;
+				$encryptedPassword = base64_encode($nonce . $ciphertext);
+							
+				$query = sprintf("UPDATE `ldapServers` SET `adConnectionName`='%s', `adServer`='%s', `adDomain`='%s', `adUsername`='%s', `adPassword`='%s', `adBaseDN`='%s', `adSecure`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($adConnectionName), $this->dbConnection->real_escape_string($adServer), $this->dbConnection->real_escape_string($adDomain), $this->dbConnection->real_escape_string($adUsername), $this->dbConnection->real_escape_string($encryptedPassword), $this->dbConnection->real_escape_string($adBaseDN), $this->dbConnection->real_escape_string($adSecure), $this->dbConnection->real_escape_string($serverId));
 			}else{
-				return false;
+				$query = sprintf("UPDATE `ldapServers` SET `adConnectionName`='%s', `adServer`='%s', `adDomain`='%s', `adUsername`='%s', `adBaseDN`='%s', `adSecure`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($adConnectionName), $this->dbConnection->real_escape_string($adServer), $this->dbConnection->real_escape_string($adDomain), $this->dbConnection->real_escape_string($adUsername), $this->dbConnection->real_escape_string($adBaseDN), $this->dbConnection->real_escape_string($adSecure), $this->dbConnection->real_escape_string($serverId));
+				
 			}
+				$queryResult = $this->dbConnection->query($query);
+
+				if($queryResult){
+					return true;
+				}else{
+					return false;
+				}
 		}
 
 		function updateEndpoint($endpointId, $fullName, $description, $email, $createdBy, $psk = null, $expirationDate = null){

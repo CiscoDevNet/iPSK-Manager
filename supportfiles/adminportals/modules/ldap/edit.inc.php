@@ -75,14 +75,14 @@ $htmlbody = <<<HTML
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adUsername" value="{$ldapServer['adUsername']}">
 			<div class="invalid-feedback">Please enter a valid username, userPrincipalName is preffered.</div>
 		</div>
-		<label class="font-weight-bold" for="password">Password:</label>
+		<label class="font-weight-bold" for="password">Password: <small class="form-text text-muted">(Note: Leave blank to keep current password)</small></label>
 		<div class="form-group input-group-sm font-weight-bold">
-			<input type="password" validation-state="required" class="form-control shadow form-validation my-password-field" id="password" value="">
+			<input type="password" validation-state="" class="form-control shadow form-validation my-password-field" id="password" value="">
 			<div class="invalid-feedback">Please enter a password</div>
 		</div>
 		<label class="font-weight-bold" for="confirmpassword">Confirm Password:</label>
 		<div class="form-group input-group-sm font-weight-bold">
-			<input type="password" validation-state="required" class="form-control shadow form-validation" id="confirmpassword" value="">
+			<input type="password" validation-state="" class="form-control shadow form-validation" id="confirmpassword" value="" disabled>
 			<div class="invalid-feedback">Please confirm your password</div>
 			<div class="font-weight-bold small" id="passwordfeedback"></div>
 		</div>
@@ -152,7 +152,13 @@ $htmlbody = <<<HTML
 	$("#password,#confirmpassword").keyup(function(event){
 		var pass = $("#password").val();
 		var confirmpass = $("#confirmpassword").val();
-
+		
+		$("#password,#confirmpassword").attr('validation-state', 'required');
+		
+		if($("#confirmpassword").prop('disabled')){
+			$("#confirmpassword").attr('disabled', false);
+		}
+		
 		if(pass != confirmpass){
 			$("#passwordfeedback").removeClass('text-success');
 			$("#passwordfeedback").addClass('text-danger');
