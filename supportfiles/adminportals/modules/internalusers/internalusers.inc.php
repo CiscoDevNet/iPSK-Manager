@@ -34,7 +34,7 @@
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-1"><a id="addGroup" module="internalusers" sub-module="add" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add User</a></div>
+	<div class="col-2"><a id="addGroup" module="internalusers" sub-module="add" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add User</a></div>
 	<div class="col"></div>
 </div>
 <div class="row">
