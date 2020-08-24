@@ -100,8 +100,8 @@ function formFieldValidation(){
 }
 
 function macAddressFormat(userInput) {
-	//Load Existing Value, Remove ':', and convert to Uppercase
-	var fieldContents = $(userInput).val().replace(/\:/g, "").toUpperCase();
+	//Filter out invalid characters from string and convert to Uppercase
+	var fieldContents = $(userInput).val().replace(/[g-z]|[G-Z]|\W|\s/g, "").toUpperCase();
 	
 	//Format value to comply with MAC Address Format
 	var formatted = fieldContents.replace(/(.{2})/g, "$1:");

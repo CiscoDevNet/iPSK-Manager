@@ -238,27 +238,42 @@
   </body>
   <script type="text/javascript" src="scripts/jquery-3.3.1.min.js"></script>
   <script type="text/javascript" src="scripts/ipsk-portal-v1.js"></script>
-    <script type="text/javascript">
+  <script type="text/javascript">
 	
 	var failure;
+	var ctrlActive = false;
 	
 	$("#macAddress").keydown( function( event ) {
 		//Load Event data into Variables
 		var keyPressed = event.key;
 		var charPressed = event.which;
-		
-		//Check if Valid keys were pressed
-		if (!keyPressed.match(/[a-f]|[A-F]|[0-9]/g)) {
-			event.preventDefault();
-		}else{
-			//Bypass BackSpace (ASCII[8])
-			if(charPressed != 8){
-				charPressed = keyPressed.match(/[a-f]|[A-F]|[0-9]/g);
-				macAddressFormat($(this));
-			}
-		}			
-	});
 
+		if(charPressed  == 17 || charPressed  == 19){
+			ctrlActive = true;
+		}else if(keyPressed.match(/c|x|v|C|V|X/g) && !ctrlActive){
+			if(!keyPressed.match(/[a-f]|[A-F]|[0-9]/g)) {
+				event.preventDefault();
+			}
+		}else if(!ctrlActive){
+			if(!keyPressed.match(/[a-f]|[A-F]|[0-9]/g)) {
+				event.preventDefault();
+			}
+		}
+	});
+	
+	$("#macAddress").keyup( function( event ) {
+		//Load Event data into Variables
+		var keyPressed = event.key;
+		var charPressed = event.which;
+		
+		if(charPressed  == 17 || charPressed  == 19){
+			ctrlActive = false;
+		}
+		if(charPressed  != 8){
+			macAddressFormat($(this));
+		}
+	});
+	
 	$("#macAddress").focusout( function( event ) {
 		macAddressFormat($(this));
 	});
