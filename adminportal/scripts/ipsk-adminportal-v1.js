@@ -167,3 +167,18 @@ function formFieldValidation(){
 	
 	return validationFailure;
 }
+
+function macAddressFormat(userInput) {
+	//Filter out invalid characters from string and convert to Uppercase
+	var fieldContents = $(userInput).val().replace(/[g-z]|[G-Z]|\W|\s/g, "").toUpperCase();
+	
+	//Format value to comply with MAC Address Format
+	var formatted = fieldContents.replace(/(.{2})/g, "$1:");
+	
+	//Output base on length to truncate excess ':'
+	if(formatted.length >= 18){
+		$(userInput).val(formatted.substring(0, 17));
+	}else{
+		$(userInput).val(formatted);
+	}
+}

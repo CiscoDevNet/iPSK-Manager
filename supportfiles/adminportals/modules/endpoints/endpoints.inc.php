@@ -133,8 +133,8 @@
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-2">No Actions Available<!--<a id="addEndpoint" module="endpoints" sub-module="add" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add End Point</a>--></div>
-	<div class="col-11"></div>
+	<div class="col-2"><a id="newEndpoint" module="endpoints" sub-module="add" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add Endpoint</a></div>
+	<div class="col-10"></div>
 </div>
 <div class="row">
 	<div class="col">
