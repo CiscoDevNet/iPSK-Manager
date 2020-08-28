@@ -1,0 +1,5 @@
+*.log
+*.sql
+patches.json
+
+supportfiles/include/config.php
