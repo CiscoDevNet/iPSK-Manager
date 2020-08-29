@@ -29,7 +29,7 @@
  */
 	$maxModuleKeywordLength = 15;
 		
-	$subModuleRegEx = "/^(?:create|new|add|edit|view|delete|enable|disable|extend|modify|update|suspend|activate|groups|updategroups|pass|updatepass|authzprofile)$/";
+	$subModuleRegEx = "/^(?:create|new|add|edit|view|delete|enable|disable|extend|modify|update|suspend|activate|groups|updategroups|pass|updatepass|authzprofile|bulk|bulkimport)$/";
 	
 	function ipskSessionHandler(){
 		
@@ -321,6 +321,10 @@
 			'authzProfileName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
+			  'groupUuid'	=>	array('filter'    => FILTER_VALIDATE_REGEXP,
+			  'flags'     => '' ,
+			  'options'   => array('regexp' => '/^(?:[A-F]|[a-f]|[0-9]){8}-(?:[A-F]|[a-f]|[0-9]){4}-(?:[A-F]|[a-f]|[0-9]){4}-(?:[A-F]|[a-f]|[0-9]){4}-(?:[A-F]|[a-f]|[0-9]){12}$/')
+			),
 			"$dataInputName" =>	$dataInputFilter
 		);
 		

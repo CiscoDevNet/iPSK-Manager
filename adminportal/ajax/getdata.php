@@ -24,9 +24,9 @@
 	
 	$dataCommandRegEx = "/^(?:getdata|test|generate|validate)$/";
 	
-	$dataDataSetRegEx = "/^(?:internalgroups|ldap|psk|authzprofile)$/";
+	$dataDataSetRegEx = "/^(?:internalgroups|ldap|psk|authzprofile|get_endpoint_groups|get_endpoint_count)$/";
 	
-	$dataInputTypeRegEx = "/^(?:id)$/";
+	$dataInputTypeRegEx = "/^(?:id|groupUuid)$/";
 		
 	//Core Components
 	include("../../supportfiles/include/config.php");
@@ -45,6 +45,8 @@
 	
 	$ipskISEDB->set_encryptionKey($encryptionKey);
 	$encryptionKey = "";
+	
+	$sampleFile = (isset($_GET['samplefile'])) ? (filter_var($_GET['samplefile'],FILTER_VALIDATE_BOOLEAN)) : false;
 	
 	if(!ipskLoginSessionCheck()){
 		session_destroy();
@@ -160,6 +162,32 @@
 				
 				print "no_integration";
 			}
+		}else if($sanitizedInput['data-command'] == "getdata" && $sanitizedInput['data-set'] == "get_endpoint_groups"){
+			if($iseERSIntegrationAvailable){
+				$endpointIdentityGroups = $ipskISEERS->getEndPointIdentityGroups();
+
+				if($endpointIdentityGroups){
+					$endpointIdentityGroupsArray = json_decode($endpointIdentityGroups,TRUE);
+					$endpointIdentityGroupsArray = arraySortAlpha($endpointIdentityGroupsArray);
+					$endpointIdentityGroups = json_encode($endpointIdentityGroupsArray);
+
+					print $endpointIdentityGroups;
+				}
+			}
+		}else if($sanitizedInput['data-command'] == "getdata" && $sanitizedInput['data-set'] == "get_endpoint_count"){
+			if($iseERSIntegrationAvailable){
+				print $ipskISEERS->getEndPointGroupCountbyId($sanitizedInput['groupUuid']);
+			}
+		}else if($sampleFile == true){
+			$sampleCSV = "macaddress,fullname,emailaddress,description\r\n00:00:00:FF:FF:FF,Sample Name,Sample@Demo.Local,My Device - Mobile Phone";
+			
+			header('Content-Description: File Transfer');
+			header('Content-Type: plain/text');
+			header('Content-Disposition: attachment; filename=import_sample.csv'); 
+			header('Content-Transfer-Encoding: text');
+			header('Content-Length: '.strlen($sampleCSV));
+			echo $sampleCSV;
+
 		}else{
 			//LOG::Entry
 			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));

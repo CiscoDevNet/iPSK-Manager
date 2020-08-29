@@ -134,7 +134,8 @@
 </div>
 <div class="row menubar">
 	<div class="col-2"><a id="newEndpoint" module="endpoints" sub-module="add" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add Endpoint</a></div>
-	<div class="col-10"></div>
+	<div class="col-2"><a id="bulkEndpoint" module="endpoints" sub-module="bulk" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add Bulk Endpoints</a></div>
+	<div class="col-8"></div>
 </div>
 <div class="row">
 	<div class="col">
