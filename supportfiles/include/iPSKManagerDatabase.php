@@ -2680,7 +2680,7 @@
 			}elseif($psk != null && $expirationDate == null){
 				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($endpointId));
 			}else{
-				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($expirationDate), $this->dbConnection->real_escape_string($endpointId));
+				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s', `accountExpired` = 'False', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($expirationDate), $this->dbConnection->real_escape_string($endpointId));
 			}
 			$queryResult = $this->dbConnection->query($query);
 			
@@ -2706,7 +2706,7 @@
 
 		function extendEndpoint($endpointId, $termLengthSeconds, $createdBy){
 			
-			$query = sprintf("UPDATE `endpoints` SET `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($endpointId));
+			$query = sprintf("UPDATE `endpoints` SET `accountExpired` = 'False', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($endpointId));
 
 			$queryResult = $this->dbConnection->query($query);
 			
