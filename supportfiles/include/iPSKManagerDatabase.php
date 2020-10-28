@@ -2716,7 +2716,20 @@
 				return false;
 			}
 		}
-	
+		
+		function updateExpiredEndpoints(){
+			
+			$query = "UPDATE `endpoints` SET `accountExpired` = 'True' WHERE `expirationDate` != 0 AND `expirationDate` < UNIX_TIMESTAMP(NOW())";
+
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				return true;
+			}else{
+				return false;
+			}
+		}
+		
 		function resetUserPassword($userId, $encryptedpassword, $createdBy){
 			
 			$query = sprintf("UPDATE `internalUsers` SET `password`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($encryptedpassword), $this->dbConnection->real_escape_string($userId));
