@@ -86,6 +86,9 @@ $(document).ready(function() {
 		event.preventDefault();
 	});
 	
+	if($("#databaseUpdateDetected").length){
+		$("#databaseUpdateDetected").modal({keyboard: false,backdrop: 'static',show: true});
+	}
 });	
 
 function formFieldValidation(){
