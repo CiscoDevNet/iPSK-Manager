@@ -30,7 +30,7 @@
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 1;
+		public $requiredSchemaVersion = 2;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
 		public $systemConfigured;
@@ -147,6 +147,14 @@
 		
 		function get_dbSchemaVersion(){
 			return $this->dbSchemaVersion;
+		}
+		
+		function check_dbSchemaUpdates(){
+			if($this->requiredSchemaVersion > $this->dbSchemaVersion){
+				return true;
+			}else{
+				return false;
+			}
 		}
 		
 		function set_encryptionKey($key){
