@@ -59,7 +59,7 @@
 		<div style="z-index: 1090; height: 56px; width: 100%; pointer-events: none;" id="notifiationBar" class="fixed-top position-sticky row">
 			<div class="col"></div>
 			<div style="pointer-events: auto;" id="notifiationWindow" class="position-sticky shadow-lg text-center alert alert-danger col-4">
-			<h6><strong>ALERT:  Installation Files are still Installed</strong></h6></div>
+			<h6><strong>ALERT:  Installation Files are still installed.</strong></h6></div>
 			<div class="col"></div>
 		</div>
 HTML;
@@ -68,7 +68,32 @@ HTML;
 	}
 	
 	$adminMenuSetting = $ipskISEDB->getGlobalSetting("menu-config", "adminMenu");
-
+	
+	//Added Database Scheme Update Modal Dialog	for update to DB
+	if($ipskISEDB->check_dbSchemaUpdates()){
+		$databaseSchemeUpdate = <<< HTML
+		<div class="modal fade" id="databaseUpdateDetected" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header shadow alert alert-danger">
+						<h5 class="modal-title font-weight-bold" id="modalLongTitle">Database Update Required</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						  <span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<p class="h5" style="text-decoration: underline;">Database Schema Update Required:</p><br /><p class="h6">Updates to Stored Procedures:<br /><br />Please review Database Change Log @ </p><p><a href="https://github.com/CiscoSE/iPSK-Manager/blob/master/DB_CHANGELOG.md">(GitHub) /CiscoSE/iPSK-Manager/blob/master/DB_CHANGELOG.md</a></p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Ok</button>
+					</div>
+				</div>
+			</div>
+		</div>
+HTML;
+	}else{
+		$databaseSchemeUpdate = "";
+	}
 ?><!doctype html>
 <html lang="en">
 	<head>
@@ -166,10 +191,12 @@ HTML;
 				<div id="mainContent" class="float-rounded mx-auto shadow-lg p-2 bg-white">
 				
 				</div>
+				<div id="adminPortalNotifications">	
+					<?php print $databaseSchemeUpdate;?>
+				</div>
 			</main>
 		</div>
 	</div>
-
 </body>
 	<script type="text/javascript" src="scripts/jquery-3.3.1.min.js"></script>
 	<script type="text/javascript" src="scripts/popper.min.js"></script>
