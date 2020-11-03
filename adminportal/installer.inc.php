@@ -24,8 +24,9 @@
  *@author	Hosuk Won (howon@cisco.com)
  *@contributor	Drew Betz (anbetz@cisco.com)
  */
-
-
+	
+	ini_set('display_errors', 'Off');
+	
 	//Installer Configuration Output
 	$configurationFile = <<< 'DATA'
 <?php		
@@ -303,9 +304,9 @@ SQL;
 CREATE DEFINER=`{$_SESSION['iseusername']}`@`%` PROCEDURE `iPSK_MACLookup` (IN `username` VARCHAR(64))  SQL SECURITY INVOKER
 BEGIN
 	SELECT UCASE(REPLACE(REPLACE(username,':',''),'-','')) INTO @strippedMAC;
-		
+	
 	SELECT CONCAT_WS(':',SUBSTRING(@strippedMAC,1,2),SUBSTRING(@strippedMAC,3,2),SUBSTRING(@strippedMAC,5,2),SUBSTRING(@strippedMAC,7,2),SUBSTRING(@strippedMAC,9,2),SUBSTRING(@strippedMAC,11,2)) INTO @formattedMAC;
-
+	
 	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC) THEN
 		IF NOT (SELECT expirationDate FROM endpoints WHERE endpoints.macAddress = @formattedMAC) = 0 THEN
 			IF NOT (SELECT accountExpired FROM endpoints WHERE endpoints.macAddress = @formattedMAC) = 'True' THEN
@@ -315,17 +316,28 @@ BEGIN
 			END IF;
 		END IF;
 	END IF;
-
-	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND accountEnabled = 1) THEN
+	
+	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC) THEN
 		UPDATE `endpoints` SET `endpoints`.`lastAccessed` = CURRENT_TIMESTAMP WHERE `endpoints`.`macAddress` = @formattedMAC;
-		SELECT 0,11,'This is a very good user, give him all access','no error';
+		
+		IF EXISTS(SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND accountEnabled = 1) THEN
+			SELECT 0,11,'This is a very good user, give him all access','no error';
+		ELSE
+			IF EXISTS(SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND accountEnabled = 0) THEN
+				SELECT 10001, 0, 'Account Disabled','ODBC Authen Error';
+			ELSE
+				SELECT 4, 0, 'odbc','ODBC Authen Error';
+			END IF;
+		END IF;
 	ELSE
 		IF EXISTS(SELECT * FROM `unknownEndpoints` WHERE `unknownEndpoints`.`macAddress` = @formattedMAC) THEN
 			UPDATE `unknownEndpoints` SET `unknownEndpoints`.`lastSeen` = CURRENT_TIMESTAMP WHERE `unknownEndpoints`.`macAddress` = @formattedMAC;
 		ELSE
 			INSERT INTO `unknownEndpoints` (`macAddress`,`createdBy`) VALUES(@formattedMAC ,'SYSTEM-ODBC');
 		END IF;
-		SELECT 3, 0, 'odbc','ODBC Authen Error';
+		
+		SELECT 1, 0, 'odbc','ODBC Authen Error';
+		
 	END IF;
 END
 SQL;
@@ -347,17 +359,26 @@ BEGIN
 		END IF;
 	END IF;
 	
-	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND accountEnabled = 1) THEN
+	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC) THEN
 		UPDATE `endpoints` SET `endpoints`.`lastAccessed` = CURRENT_TIMESTAMP WHERE `endpoints`.`macAddress` = @formattedMAC;
-		IF (SELECT expirationDate FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND accountEnabled = 1) = 0 THEN
+		
+		IF EXISTS(SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND accountEnabled = 1 AND expirationDate = 0) THEN
 			SELECT 0,11,'This is a very good user, give him all access','no error';
 		ELSE
 			IF EXISTS(SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND accountEnabled = 1 AND expirationDate > UNIX_TIMESTAMP(NOW())) THEN
 				SELECT 0,11,'This is a very good user, give him all access','no error';
 			ELSE
-				SELECT 10001, 0, 'Account Disabled','ODBC Authen Error';
+				IF EXISTS(SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND accountEnabled = 0) THEN
+					SELECT 10001, 0, 'Account Disabled','ODBC Authen Error';
+				ELSE
+					IF EXISTS(SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND expirationDate < UNIX_TIMESTAMP(NOW())) THEN
+						SELECT 10002, 0, 'Account Expired','ODBC Authen Error';
+					ELSE
+						SELECT 4, 0, 'odbc','ODBC Authen Error';
+					END IF;
+				END IF;
 			END IF;
-			END IF;
+		END IF;
 	ELSE
 		IF EXISTS(SELECT * FROM `unknownEndpoints` WHERE `unknownEndpoints`.`macAddress` = @formattedMAC) THEN
 			UPDATE `unknownEndpoints` SET `unknownEndpoints`.`lastSeen` = CURRENT_TIMESTAMP WHERE `unknownEndpoints`.`macAddress` = @formattedMAC;
@@ -365,7 +386,7 @@ BEGIN
 			INSERT INTO `unknownEndpoints` (`macAddress`,`createdBy`) VALUES(@formattedMAC ,'SYSTEM-ODBC');
 		END IF;
 		
-		SELECT 3, 0, 'odbc','ODBC Authen Error';
+		SELECT 1, 0, 'odbc','ODBC Authen Error';
 		
 	END IF;
 END
@@ -458,20 +479,22 @@ SQL;
 	$sqlInsert[1] = "INSERT INTO `internalUsers` (`id`, `userName`, `password`, `fullName`, `description`, `email`, `dn`, `sid`, `enabled`, `createdBy`, `createdDate`) VALUES(1, 'Administrator', '$ipskManagerAdminPassword', 'Built-In Administrator', 'Built-in System Administrator Account', '', 'CN=Administrator,CN=Users,DC=System,DC=Local', '$adminSID', 1, '$systemSID', '2019-05-01 00:00:00')";
 	$sqlInsert[2] = "INSERT INTO `internalUserGroupMapping` (`id`, `userId`, `groupId`, `createdBy`, `createdDate`) VALUES(1, 1, 1, '$systemSID', '2019-05-01 00:00:00')";
 	$sqlInsert[3] = "INSERT INTO `portalPorts` (`id`, `portalPort`, `portalSecure`, `enabled`, `visible`, `createdBy`, `createdDate`) VALUES(1, 80, 0, 1, 1, '$systemSID', '2019-05-01 00:00:00'),(2, 8080, 0, 1, 1, '$systemSID', '2019-05-01 00:00:00'),(3, 443, 1, 1, 1, '$systemSID', '2019-05-01 00:00:00'),(4, 8443, 1, 1, 1, '$systemSID', '2019-05-01 00:00:00'),(5, 8444, 1, 1, 1, '$systemSID', '2019-05-01 00:00:00'),(6, 8445, 1, 1, 1, '$systemSID', '2019-05-01 00:00:00')";
-	$sqlInsert[4] = "INSERT INTO `settings` (`id`, `page`, `settingClass`, `keyName`, `optionIndex`, `value`, `encrypted`) VALUES (1, 'global', 'platform-config', 'system-configured', 0, '1', 0), (2, 'global', 'platform-config', 'logging-level', 0, '3', 0),(3, 'global', 'db-schema', 'version', 0, '1', 0),(4, 'global', 'admin-portal', 'admin-portal-hostname', 0, '', 0),(5, 'global', 'admin-portal', 'admin-portal-strict-hostname', 0, '', 0),(6, 'global', 'admin-portal', 'redirect-on-hostname-match', 0, '', 0),(7, 'global', 'menu-config', 'adminMenu', 0, '$menuConfig', 0),(8, 'global', 'ise-ers-credentials', 'enabled', 0, '', 0),(9, 'global', 'ise-ers-credentials', 'ersHost', 0, '', 0),(10, 'global', 'ise-ers-credentials', 'ersUsername', 0, '', 0),(11, 'global', 'ise-ers-credentials', 'ersPassword', 0, '', 1),(12, 'global', 'ise-ers-credentials', 'verify-ssl-peer', 0, '', 0),(13, 'global', 'ise-mnt-credentials', 'enabled', 0, '', 0),(14, 'global', 'ise-mnt-credentials', 'mntHost', 0, '', 0),(15, 'global', 'ise-mnt-credentials', 'mntUsername', 0, '', 0),(16, 'global', 'ise-mnt-credentials', 'mntPassword', 0, '', 1),(17, 'global', 'ise-mnt-credentials', 'verify-ssl-peer', 0, '', 0),(18, 'global', 'smtp-settings', 'smtp-hostname', 0, '', 0),(19, 'global', 'smtp-settings', 'smtp-port', 0, '', 0),(20, 'global', 'smtp-settings', 'smtp-username', 0, '', 0),(21, 'global', 'smtp-settings', 'smtp-password', 0, '', 1),(22, 'global', 'smtp-settings', 'smtp-fromaddress', 0, '', 0),(23, 'global', 'smtp-settings', 'enabled', 0, '', 0)";
+	$sqlInsert[4] = "INSERT INTO `settings` (`id`, `page`, `settingClass`, `keyName`, `optionIndex`, `value`, `encrypted`) VALUES (1, 'global', 'platform-config', 'system-configured', 0, '1', 0), (2, 'global', 'platform-config', 'logging-level', 0, '3', 0),(3, 'global', 'db-schema', 'version', 0, '2', 0),(4, 'global', 'admin-portal', 'admin-portal-hostname', 0, '', 0),(5, 'global', 'admin-portal', 'admin-portal-strict-hostname', 0, '', 0),(6, 'global', 'admin-portal', 'redirect-on-hostname-match', 0, '', 0),(7, 'global', 'menu-config', 'adminMenu', 0, '$menuConfig', 0),(8, 'global', 'ise-ers-credentials', 'enabled', 0, '', 0),(9, 'global', 'ise-ers-credentials', 'ersHost', 0, '', 0),(10, 'global', 'ise-ers-credentials', 'ersUsername', 0, '', 0),(11, 'global', 'ise-ers-credentials', 'ersPassword', 0, '', 1),(12, 'global', 'ise-ers-credentials', 'verify-ssl-peer', 0, '', 0),(13, 'global', 'ise-mnt-credentials', 'enabled', 0, '', 0),(14, 'global', 'ise-mnt-credentials', 'mntHost', 0, '', 0),(15, 'global', 'ise-mnt-credentials', 'mntUsername', 0, '', 0),(16, 'global', 'ise-mnt-credentials', 'mntPassword', 0, '', 1),(17, 'global', 'ise-mnt-credentials', 'verify-ssl-peer', 0, '', 0),(18, 'global', 'smtp-settings', 'smtp-hostname', 0, '', 0),(19, 'global', 'smtp-settings', 'smtp-port', 0, '', 0),(20, 'global', 'smtp-settings', 'smtp-username', 0, '', 0),(21, 'global', 'smtp-settings', 'smtp-password', 0, '', 1),(22, 'global', 'smtp-settings', 'smtp-fromaddress', 0, '', 0),(23, 'global', 'smtp-settings', 'enabled', 0, '', 0)";
 	$sqlInsert[5] = "INSERT INTO `sites` (`id`, `siteName`, `siteLocation`, `siteOwner`, `parent`, `visible`, `enabled`, `createdBy`, `createdDate`) VALUES(1, 'Global', 'Global', 'System', 1, 1, 1, '$systemSID', '2019-05-01 00:00:00')";
 	$sqlInsert[6] = "INSERT INTO `userSidCache` (`id`, `sid`, `userPrincipalName`, `samAccountName`, `userDn`, `createdBy`, `createdDate`) VALUES(1, '$systemSID', 'SYSTEM', 'SYSTEM', 'DC=System,DC=Local','$systemSID', '2019-05-01 00:00:00'),(2, '$adminSID', 'Administrator@System.Local', 'Administrator', 'CN=Administrator,CN=Users,DC=System,DC=Local', '$systemSID', '2019-05-01 00:00:00')";
 	$sqlInsert[7] = "INSERT INTO `sponsorPortalTypes` (`id`, `portalTypeName`, `portalTypeDescription`, `maxSponsorGroups`, `maxEndpointsOverride`, `maxEndpointsAllowed`, `portalClass`, `portalModule`) VALUES(1, 'Sponsor Portal', 'Portal which allows Sponsors the ability to enroll devices into the iPSK system for access.', 1, 0, 5, 'core', 'sponsorportal'),(2, 'Captive Portal', 'Captive Portal allowing Users to login to enroll their device into the iPSK system.', 3, 0, 5, 'core', 'captiveportal')";
 	
-	$managerSqlPermissions[0] = "CREATE USER '{$_SESSION['dbusername']}'@'%' IDENTIFIED BY '$managerDbPassword'";
-	$managerSqlPermissions[1] = "GRANT USAGE ON *.* TO '{$_SESSION['dbusername']}'@'%'";
-	$managerSqlPermissions[2] = "GRANT ALL PRIVILEGES ON `{$_SESSION['databasename']}`.* TO '{$_SESSION['dbusername']}'@'%' WITH GRANT OPTION";
+	$managerSqlUser[0] = "CREATE USER '{$_SESSION['dbusername']}'@'%' IDENTIFIED BY '$managerDbPassword'";
 
-	$iseSqlPermissions[0] = "CREATE USER '{$_SESSION['iseusername']}'@'%' IDENTIFIED BY '$iseDbPassword'";
-	$iseSqlPermissions[1] = "GRANT USAGE ON *.* TO '{$_SESSION['iseusername']}'@'%'";
-	$iseSqlPermissions[2] = "GRANT SELECT, EXECUTE ON `{$_SESSION['databasename']}`.* TO '{$_SESSION['iseusername']}'@'%'";
-	$iseSqlPermissions[3] = "GRANT SELECT ON `mysql`.`proc` TO '{$_SESSION['iseusername']}'@'%'";
-	$iseSqlPermissions[4] = "GRANT UPDATE (lastAccessed, accountExpired) ON `{$_SESSION['databasename']}`.`endpoints` TO '{$_SESSION['iseusername']}'@'%'";
-	$iseSqlPermissions[5] = "GRANT INSERT (lastSeen, createdBy, macAddress), UPDATE (lastSeen) ON `{$_SESSION['databasename']}`.`unknownEndpoints` TO '{$_SESSION['iseusername']}'@'%'";
+	$managerSqlPermissions[0] = "GRANT USAGE ON *.* TO '{$_SESSION['dbusername']}'@'%'";
+	$managerSqlPermissions[1] = "GRANT ALL PRIVILEGES ON `{$_SESSION['databasename']}`.* TO '{$_SESSION['dbusername']}'@'%' WITH GRANT OPTION";
+
+	$iseSqlUser[0] = "CREATE USER '{$_SESSION['iseusername']}'@'%' IDENTIFIED BY '$iseDbPassword'";
+	
+	$iseSqlPermissions[0] = "GRANT USAGE ON *.* TO '{$_SESSION['iseusername']}'@'%'";
+	$iseSqlPermissions[1] = "GRANT SELECT, EXECUTE ON `{$_SESSION['databasename']}`.* TO '{$_SESSION['iseusername']}'@'%'";
+	//$iseSqlPermissions[3] = "GRANT SELECT ON `mysql`.`proc` TO '{$_SESSION['iseusername']}'@'%'";
+	$iseSqlPermissions[2] = "GRANT UPDATE (lastAccessed, accountExpired) ON `{$_SESSION['databasename']}`.`endpoints` TO '{$_SESSION['iseusername']}'@'%'";
+	$iseSqlPermissions[3] = "GRANT INSERT (lastSeen, createdBy, macAddress), UPDATE (lastSeen) ON `{$_SESSION['databasename']}`.`unknownEndpoints` TO '{$_SESSION['iseusername']}'@'%'";
 	
 ?>

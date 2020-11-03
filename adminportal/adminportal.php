@@ -22,6 +22,17 @@
 	header("Cache-Control: post-check=0, pre-check=0", false);
 	header("Pragma: no-cache");
 	
+	//Check if Configuration file exists, if not redirect to Installer
+	if(!file_exists("../supportfiles/include/config.php")){
+		if(is_file("./installer.php") && is_file("./installer.inc.php")){
+			require("./installer.php");
+			exit(0);
+		}else{
+			header("Location: /404.php");
+			die();
+		}
+	}
+	
 	//Core Components
 	include("../supportfiles/include/config.php");
 	include("../supportfiles/include/iPSKManagerFunctions.php");
