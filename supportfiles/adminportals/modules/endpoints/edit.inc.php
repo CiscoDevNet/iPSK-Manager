@@ -110,25 +110,27 @@ HTML;
 		if($endpointGroups){
 			$_SESSION['editAssociationEndpointId'] = $sanitizedInput['id'];
 			while($row = $endpointGroups->fetch_assoc()){
-				if($row['termLengthSeconds'] == 0){
-					$termLength = "No Expiry";
-				}else{
-					$termLength = ($row['termLengthSeconds'] / 60 / 60 / 24) . " Days";
-				}
-				
-				if($row['ciscoAVPairPSK'] == "*userrandom*"){
-					$keyType = "Randomly Chosen per User";
-				}elseif($row['ciscoAVPairPSK'] == "*devicerandom*"){
-					$keyType = "Randomly Chosen per Device";
-				}else{
-					$keyType = "Common PSK";
-				}
-				
-				if($endpoint['epGroupId'] == $row['id']){
-					$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$row['id']."\" selected>".$row['groupName']."</option>";
-				}else{
-					$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$row['id']."\">".$row['groupName']."</option>";
-				}			
+				if($row["visible"] == true){
+					if($row['termLengthSeconds'] == 0){
+						$termLength = "No Expiry";
+					}else{
+						$termLength = ($row['termLengthSeconds'] / 60 / 60 / 24) . " Days";
+					}
+					
+					if($row['ciscoAVPairPSK'] == "*userrandom*"){
+						$keyType = "Randomly Chosen per User";
+					}elseif($row['ciscoAVPairPSK'] == "*devicerandom*"){
+						$keyType = "Randomly Chosen per Device";
+					}else{
+						$keyType = "Common PSK";
+					}
+					
+					if($endpoint['epGroupId'] == $row['id']){
+						$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$row['id']."\" selected>".$row['groupName']."</option>";
+					}else{
+						$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$row['id']."\">".$row['groupName']."</option>";
+					}
+				}				
 			}
 			$pageData['endpointGroupList'] .= "</select>";
 		}
