@@ -213,7 +213,7 @@ HTML;
 	<script type="text/javascript" src="scripts/popper.min.js"></script>
 	<script type="text/javascript" src="scripts/bootstrap.min.js"></script>
     <script type="text/javascript" src="scripts/feather.min.js"></script>
-    <script type="text/javascript" src="scripts/Chart.bundle.min.js"></script>
+    <script type="text/javascript" src="scripts/chart.min.js"></script>
 	<script type="text/javascript" src="scripts/clipboard.min.js"></script>
 	<script type="text/javascript" src="scripts/ipsk-adminportal-v1.js"></script>
 </html>
