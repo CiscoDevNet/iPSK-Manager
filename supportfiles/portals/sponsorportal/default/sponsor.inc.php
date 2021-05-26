@@ -236,7 +236,7 @@
 	</div>
 
   </body>
-  <script type="text/javascript" src="scripts/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="scripts/jquery.min.js"></script>
   <script type="text/javascript" src="scripts/ipsk-portal-v1.js"></script>
   <script type="text/javascript">
 	

@@ -220,7 +220,7 @@
 		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2019 Cisco and/or its affiliates.</p>
 	</div>
   </body>
-  <script type="text/javascript" src="scripts/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="scripts/jquery.min.js"></script>
     <script type="text/javascript">
 
 	</script>
