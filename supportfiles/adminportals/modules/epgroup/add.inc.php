@@ -27,9 +27,10 @@
 		while($row = $authorizationTemplatesNames->fetch_assoc()) {
 			$authList .= "<option value=\"".$row['id']."\">".$row['authzPolicyName']."</option>\n";
 		}
-	}
+
+		
 	
-$htmlbody = <<<HTML
+		$htmlbody = <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="viewepggroup" tabindex="-1" role="dialog" aria-labelledby="viewepggroupModal" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
@@ -141,6 +142,38 @@ $htmlbody = <<<HTML
 	});
 </script>
 HTML;
+
+	}else{
+		$htmlbody = <<< HTML
+		<div class="modal fade" id="noAuthorizationTemplates" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header shadow alert alert-danger">
+						<h5 class="modal-title font-weight-bold" id="modalLongTitle">Missing Dependencies</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						  <span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<p class="h6">Authorization Template missing</p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Ok</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script>
+			var failure;
+			
+			$("#noAuthorizationTemplates").modal();
+
+			$(function() {	
+				feather.replace()
+			});
+		</script>
+HTML;
+	}
 
 print $htmlbody;
 ?>

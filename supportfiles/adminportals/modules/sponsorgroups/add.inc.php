@@ -23,6 +23,8 @@
 	$endpointGroups = "";
 	$wirelessNetworks = "";
 	$authZGroups = "";
+	$userMessage = "";
+	$dependencyMissing = false;
 	
 	$endPointGroupListing = $ipskISEDB->getEndpointGroupListing();
 	$wirelessNetworkListing = $ipskISEDB->getWirelessNetworks();
@@ -33,12 +35,16 @@
 		while($row = $endPointGroupListing->fetch_assoc()){
 			$endpointGroups .= '<option value="'.$row['id'].'">'.$row['groupName'].'</option>';
 		}
+	}else{
+		$userMessage = "Endpoint Grouping missing<br /><br />";
 	}
 
 	if($wirelessNetworkListing){
 		while($row = $wirelessNetworkListing->fetch_assoc()){
 			$wirelessNetworks .= '<option value="'.$row['id'].'">'.$row['ssidName'].'</option>';
 		}
+	}else{
+		$userMessage .= "Wireless Network missing";
 	}
 	
 	if($internalGroups){
@@ -63,7 +69,9 @@ HTML;
 		$pskEdit = '<input type="hidden" value="" id="portalPskEditCheck">';
 	}
 
-$htmlbody = <<<HTML
+	if($endPointGroupListing && $wirelessNetworkListing){
+
+		$htmlbody = <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="addSponsorGroup" tabindex="-1" role="dialog" aria-labelledby="addSponsorGroupModal" aria-hidden="true">
 	<form class="needs-validation" novalidate>
@@ -321,6 +329,38 @@ $htmlbody = <<<HTML
 	
 </script>
 HTML;
+
+	}else{
+		$htmlbody = <<< HTML
+		<div class="modal fade" id="missingDependencies" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header shadow alert alert-danger">
+						<h5 class="modal-title font-weight-bold" id="modalLongTitle">Missing Dependencies</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						  <span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<p class="h6">$userMessage</p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Ok</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script>
+			var failure;
+			
+			$("#missingDependencies").modal();
+
+			$(function() {	
+				feather.replace()
+			});
+		</script>
+HTML;
+	}
 
 print $htmlbody;
 ?>
