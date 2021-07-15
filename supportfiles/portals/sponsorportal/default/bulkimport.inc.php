@@ -28,6 +28,7 @@
 	$pageData['hidePskFlag'] = "";
 	$randomPassword = "";
 	$validInput = false;
+	$deviceRandom = false;
 	
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];
@@ -67,19 +68,20 @@
 		
 		if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
 			$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-			$randomPSK = "psk=".$randomPassword;
+			$deviceRandom = true;
+			
 		}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
 			$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'],$_SESSION['logonSID']);
 			if(!$userPsk){
 				$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-				$randomPSK = "psk=".$randomPassword;
+				$randomPSKList = "psk=".$randomPassword;
 			}else{
 				$randomPassword = $userPsk;
-				$randomPSK = "psk=".$randomPassword;
+				$randomPSKList = "psk=".$randomPassword;
 			}
 		}else{
 			$randomPassword = $endpointGroupAuthorization['ciscoAVPairPSK'];
-			$randomPSK = "psk=".$randomPassword;
+			$randomPSKList = "psk=".$randomPassword;
 		}
 		
 		if($endpointGroupAuthorization['termLengthSeconds'] == 0){
@@ -100,6 +102,12 @@
 						$fullnameList[$entryIdx] = $macaddressArray[$entryIdx]['fullname'];
 						$emailaddressList[$entryIdx] = $macaddressArray[$entryIdx]['emailaddress'];
 						$descriptionList[$entryIdx] = $macaddressArray[$entryIdx]['description'];
+					
+						if($deviceRandom){
+							$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
+							$deviceRandomPSK = "psk=".$randomPassword;
+							$randomPSKList[$entryIdx] = $deviceRandomPSK;
+						}
 					}
 				}
 			}
@@ -117,9 +125,9 @@
 		}
 		
 		if($sanitizedInput['bulkImportType'] == 1 && $macAddressList){
-			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList, $fullnameList, $descriptionList, $emailaddressList, $randomPSK, $duration, $_SESSION['logonSID']);
+			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList, $fullnameList, $descriptionList, $emailaddressList, $randomPSKList, $duration, $_SESSION['logonSID']);
 		}elseif($sanitizedInput['bulkImportType'] == 3 && $macAddressList){
-			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList,$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $duration, $_SESSION['logonSID']);
+			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList,$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSKList, $duration, $_SESSION['logonSID']);
 		}
 		
 		if($macAddressInsertID){
@@ -146,7 +154,7 @@
 							if($macAddressInsertID[$rowCount]['exists'] == true){
 								$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><span class="text-danger">Endpoint Exists</span></td></tr>';
 							}else{
-								$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $randomPSK).'</td></tr>';
+								$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $macAddressInsertID[$rowCount]['psk']).'</td></tr>';
 							}
 						}
 					}
@@ -170,7 +178,7 @@
 							if($macAddressInsertID[$rowCount]['exists'] == true){
 								$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><span class="text-danger">Endpoint Exists</span></td></tr>';
 							}else{
-								$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $randomPSK).'</td></tr>';
+								$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $macAddressInsertID[$rowCount]['psk']).'</td></tr>';
 							}
 						}
 					}
@@ -195,7 +203,7 @@
 						if($macAddressInsertID[$rowCount]['exists'] == true){
 							$insertAssociation .= '<tr><td><div><span style="color: #ff0000" data-feather="x-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td><span class="text-danger">Endpoint Exists</span></td></tr>';
 						}else{
-							$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $randomPSK).'</td></tr>';
+							$insertAssociation .= '<tr><td><div><span style="color: #2d8c32" data-feather="check-circle"></span>'.$macAddressInsertID[$rowCount]['macAddress'].'</div></td><td>'.str_replace("psk=","", $macAddressInsertID[$rowCount]['psk']).'</td></tr>';
 						}
 					}
 				}
