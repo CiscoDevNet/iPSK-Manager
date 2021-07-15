@@ -29,9 +29,6 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Sponsor & Captive Portals
 
 
-## Key Design Requirements
-- Add something here
-
 ## Technologies & Frameworks Used
 
 **Cisco Products:**
