@@ -2,20 +2,20 @@
 	
 /**
  *@license
- *Copyright (c) 2019 Cisco and/or its affiliates.
  *
- *This software is licensed to you under the terms of the Cisco Sample
- *Code License, Version 1.1 (the "License"). You may obtain a copy of the
- *License at
+ *Copyright 2021 Cisco Systems, Inc. or its affiliates
  *
- *			   https://developer.cisco.com/docs/licenses
+ *Licensed under the Apache License, Version 2.0 (the "License");
+ *you may not use this file except in compliance with the License.
+ *You may obtain a copy of the License at
  *
- *All use of the material herein must be in accordance with the terms of
- *the License. All rights not expressly granted by the License are
- *reserved. Unless required by applicable law or agreed to separately in
- *writing, software distributed under the License is distributed on an "AS
- *IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- *or implied.
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *Unless required by applicable law or agreed to in writing, software
+ *distributed under the License is distributed on an "AS IS" BASIS,
+ *WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *See the License for the specific language governing permissions and
+ *limitations under the License.
  */
 	
 	$termLenOptions = '{"0":{"value":"0","text":"No Expiration"},"1":{"value":"86400","text":"1 Day"},"2":{"value":"172800","text":"2 Days"},"3":{"value":"259200","text":"3 Days"},"4":{"value":"345600","text":"4 Days"},"5":{"value":"432000","text":"5 Days"},"6":{"value":"518400","text":"6 Days"},"7":{"value":"604800","text":"1 Week"},"8":{"value":"1209600","text":"2 Weeks"},"9":{"value":"1814400","text":"3 Weeks"},"10":{"value":"2419200","text":"4 Weeks"},"11":{"value":"2592000","text":"1 Month"},"12":{"value":"5184000","text":"2 Months"},"13":{"value":"7776000","text":"3 Months"},"14":{"value":"10368000","text":"4 Months"},"15":{"value":"12960000","text":"5 Months"},"16":{"value":"15552000","text":"6 Months"},"17":{"value":"18144000","text":"7 Months"},"18":{"value":"20736000","text":"8 Months"},"19":{"value":"23328000","text":"9 Months"},"20":{"value":"25920000","text":"10 Months"},"21":{"value":"28512000","text":"11 Months"},"22":{"value":"31536000","text":"1 Year"},"23":{"value":"63072000","text":"2 Years"},"24":{"value":"94608000","text":"3 Years"},"25":{"value":"126144000","text":"4 Years"},"26":{"value":"157680000","text":"5 Years"},"count":27}';
