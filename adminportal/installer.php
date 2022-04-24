@@ -2,20 +2,20 @@
 
 /**
  *@license
- *Copyright (c) 2019 Cisco and/or its affiliates.
  *
- *This software is licensed to you under the terms of the Cisco Sample
- *Code License, Version 1.1 (the "License"). You may obtain a copy of the
- *License at
+ *Copyright 2021 Cisco Systems, Inc. or its affiliates
  *
- *			   https://developer.cisco.com/docs/licenses
+ *Licensed under the Apache License, Version 2.0 (the "License");
+ *you may not use this file except in compliance with the License.
+ *You may obtain a copy of the License at
  *
- *All use of the material herein must be in accordance with the terms of
- *the License. All rights not expressly granted by the License are
- *reserved. Unless required by applicable law or agreed to separately in
- *writing, software distributed under the License is distributed on an "AS
- *IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- *or implied.
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *Unless required by applicable law or agreed to in writing, software
+ *distributed under the License is distributed on an "AS IS" BASIS,
+ *WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *See the License for the specific language governing permissions and
+ *limitations under the License.
  */
 
 
@@ -39,20 +39,19 @@
 	}
 	
 	$license = <<< TEXT
-	Copyright (c) 2019 Cisco and/or its affiliates.
+	Copyright 2021 Cisco Systems, Inc. or its affiliates
 
-	This software is licensed to you under the terms of the Cisco Sample
-	Code License, Version 1.1 (the "License"). You may obtain a copy of the
-	License at
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
 
-				   https://developer.cisco.com/docs/licenses
+		http://www.apache.org/licenses/LICENSE-2.0
 
-	All use of the material herein must be in accordance with the terms of
-	the License. All rights not expressly granted by the License are
-	reserved. Unless required by applicable law or agreed to separately in
-	writing, software distributed under the License is distributed on an "AS
-	IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-	or implied.
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
 TEXT;
 
 	$installerOutput = "";
@@ -127,6 +126,9 @@ HTML;
 			if (extension_loaded('mysqlnd')){ $platformDetails .=  "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span> PHP Extension <strong>'mysqlng'</strong> Installed</div>"; }else{ $platformDetails .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span> PHP Extension <strong>'mysqlng'</strong> is NOT Installed</div>"; $platformValid = false;}
 			if (extension_loaded('curl')){ $platformDetails .=  "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span> PHP Extension <strong>'curl'</strong> Installed</div>"; }else{ $platformDetails .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span> PHP Extension <strong>'curl'</strong> is NOT Installed</div>"; $platformValid = false;}  
 			if (extension_loaded('simplexml')){ $platformDetails .=  "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span> PHP Extension <strong>'simplexml'</strong> Installed</div>";}else{ $platformDetails .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span> PHP Extension <strong>'simplexml'</strong> is NOT Installed</div>"; $platformValid = false;}
+			if (extension_loaded('xml')){ $platformDetails .=  "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span> PHP Extension <strong>'xml'</strong> Installed</div>";}else{ $platformDetails .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span> PHP Extension <strong>'xml'</strong> is NOT Installed</div>"; $platformValid = false;}
+			if (extension_loaded('sodium')){ $platformDetails .=  "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span> PHP Extension <strong>'sodium'</strong> Installed</div>";}else{ $platformDetails .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span> PHP Extension <strong>'sodium'</strong> is NOT Installed</div>"; $platformValid = false;}
+			if (extension_loaded('json')){ $platformDetails .=  "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span> PHP Extension <strong>'json'</strong> Installed</div>";}else{ $platformDetails .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span> PHP Extension <strong>'json'</strong> is NOT Installed</div>"; $platformValid = false;}
 			
 			if($platformValid == true){
 				$nextText = "Click Next to continue to Database Setup.";
@@ -651,7 +653,7 @@ HTML;
 
     <link href="styles/installer.css" rel="stylesheet">
 	
-	<script type="text/javascript" src="scripts/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="scripts/jquery.min.js"></script>
 	<script type="text/javascript" src="scripts/feather.min.js"></script>
 	
   </head>

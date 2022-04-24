@@ -2,20 +2,20 @@
 
 /**
  *@license
- *Copyright (c) 2019 Cisco and/or its affiliates.
  *
- *This software is licensed to you under the terms of the Cisco Sample
- *Code License, Version 1.1 (the "License"). You may obtain a copy of the
- *License at
+ *Copyright 2021 Cisco Systems, Inc. or its affiliates
  *
- *			   https://developer.cisco.com/docs/licenses
+ *Licensed under the Apache License, Version 2.0 (the "License");
+ *you may not use this file except in compliance with the License.
+ *You may obtain a copy of the License at
  *
- *All use of the material herein must be in accordance with the terms of
- *the License. All rights not expressly granted by the License are
- *reserved. Unless required by applicable law or agreed to separately in
- *writing, software distributed under the License is distributed on an "AS
- *IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- *or implied.
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *Unless required by applicable law or agreed to in writing, software
+ *distributed under the License is distributed on an "AS IS" BASIS,
+ *WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *See the License for the specific language governing permissions and
+ *limitations under the License.
  */
 
 
@@ -33,20 +33,20 @@
 
 /**
  *@license
- *Copyright (c) 2019 Cisco and/or its affiliates.
  *
- *This software is licensed to you under the terms of the Cisco Sample
- *Code License, Version 1.1 (the "License"). You may obtain a copy of the
- *License at
+ *Copyright 2021 Cisco Systems, Inc. or its affiliates
  *
- *			   https://developer.cisco.com/docs/licenses
+ *Licensed under the Apache License, Version 2.0 (the "License");
+ *you may not use this file except in compliance with the License.
+ *You may obtain a copy of the License at
  *
- *All use of the material herein must be in accordance with the terms of
- *the License. All rights not expressly granted by the License are
- *reserved. Unless required by applicable law or agreed to separately in
- *writing, software distributed under the License is distributed on an "AS
- *IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- *or implied.
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *Unless required by applicable law or agreed to in writing, software
+ *distributed under the License is distributed on an "AS IS" BASIS,
+ *WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *See the License for the specific language governing permissions and
+ *limitations under the License.
  */
 	
 	
@@ -76,20 +76,19 @@ DATA;
 	
 	//Installation Configuration Backup Output
 	$installDetails = <<< TEXT
-#Copyright (c) 2019 Cisco and/or its affiliates.
+#Copyright 2021 Cisco Systems, Inc. or its affiliates
 #
-#This software is licensed to you under the terms of the Cisco Sample
-#Code License, Version 1.1 (the "License"). You may obtain a copy of the
-#License at
+#Licensed under the Apache License, Version 2.0 (the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
 #
-#			   https://developer.cisco.com/docs/licenses
+#  http://www.apache.org/licenses/LICENSE-2.0
 #
-#All use of the material herein must be in accordance with the terms of
-#the License. All rights not expressly granted by the License are
-#reserved. Unless required by applicable law or agreed to separately in
-#writing, software distributed under the License is distributed on an "AS
-#IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
-#or implied.
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
 
 ########################################################
 ##				iPSK Manager
@@ -176,7 +175,7 @@ BEGIN
 		END IF;
 	END IF;
 	
-	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND users.password = password ) THEN
+	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND endpoints.password = password ) THEN
 		SELECT 0,11,'This is a very good user, give him all access','no error';
 	ELSE
 		SELECT 3, 0, 'odbc','ODBC Authen Error';
@@ -199,7 +198,7 @@ BEGIN
 		END IF;
 	END IF;
 	
-	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND users.password = password ) THEN
+	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND endpoints.password = password ) THEN
 		IF (SELECT expirationDate FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND accountEnabled = 1) = 0 THEN
 			SELECT 0,11,'This is a very good user, give him all access','no error';
 		ELSE
@@ -479,7 +478,7 @@ SQL;
 	$sqlInsert[1] = "INSERT INTO `internalUsers` (`id`, `userName`, `password`, `fullName`, `description`, `email`, `dn`, `sid`, `enabled`, `createdBy`, `createdDate`) VALUES(1, 'Administrator', '$ipskManagerAdminPassword', 'Built-In Administrator', 'Built-in System Administrator Account', '', 'CN=Administrator,CN=Users,DC=System,DC=Local', '$adminSID', 1, '$systemSID', '2019-05-01 00:00:00')";
 	$sqlInsert[2] = "INSERT INTO `internalUserGroupMapping` (`id`, `userId`, `groupId`, `createdBy`, `createdDate`) VALUES(1, 1, 1, '$systemSID', '2019-05-01 00:00:00')";
 	$sqlInsert[3] = "INSERT INTO `portalPorts` (`id`, `portalPort`, `portalSecure`, `enabled`, `visible`, `createdBy`, `createdDate`) VALUES(1, 80, 0, 1, 1, '$systemSID', '2019-05-01 00:00:00'),(2, 8080, 0, 1, 1, '$systemSID', '2019-05-01 00:00:00'),(3, 443, 1, 1, 1, '$systemSID', '2019-05-01 00:00:00'),(4, 8443, 1, 1, 1, '$systemSID', '2019-05-01 00:00:00'),(5, 8444, 1, 1, 1, '$systemSID', '2019-05-01 00:00:00'),(6, 8445, 1, 1, 1, '$systemSID', '2019-05-01 00:00:00')";
-	$sqlInsert[4] = "INSERT INTO `settings` (`id`, `page`, `settingClass`, `keyName`, `optionIndex`, `value`, `encrypted`) VALUES (1, 'global', 'platform-config', 'system-configured', 0, '1', 0), (2, 'global', 'platform-config', 'logging-level', 0, '3', 0),(3, 'global', 'db-schema', 'version', 0, '2', 0),(4, 'global', 'admin-portal', 'admin-portal-hostname', 0, '', 0),(5, 'global', 'admin-portal', 'admin-portal-strict-hostname', 0, '', 0),(6, 'global', 'admin-portal', 'redirect-on-hostname-match', 0, '', 0),(7, 'global', 'menu-config', 'adminMenu', 0, '$menuConfig', 0),(8, 'global', 'ise-ers-credentials', 'enabled', 0, '', 0),(9, 'global', 'ise-ers-credentials', 'ersHost', 0, '', 0),(10, 'global', 'ise-ers-credentials', 'ersUsername', 0, '', 0),(11, 'global', 'ise-ers-credentials', 'ersPassword', 0, '', 1),(12, 'global', 'ise-ers-credentials', 'verify-ssl-peer', 0, '', 0),(13, 'global', 'ise-mnt-credentials', 'enabled', 0, '', 0),(14, 'global', 'ise-mnt-credentials', 'mntHost', 0, '', 0),(15, 'global', 'ise-mnt-credentials', 'mntUsername', 0, '', 0),(16, 'global', 'ise-mnt-credentials', 'mntPassword', 0, '', 1),(17, 'global', 'ise-mnt-credentials', 'verify-ssl-peer', 0, '', 0),(18, 'global', 'smtp-settings', 'smtp-hostname', 0, '', 0),(19, 'global', 'smtp-settings', 'smtp-port', 0, '', 0),(20, 'global', 'smtp-settings', 'smtp-username', 0, '', 0),(21, 'global', 'smtp-settings', 'smtp-password', 0, '', 1),(22, 'global', 'smtp-settings', 'smtp-fromaddress', 0, '', 0),(23, 'global', 'smtp-settings', 'enabled', 0, '', 0)";
+	$sqlInsert[4] = "INSERT INTO `settings` (`id`, `page`, `settingClass`, `keyName`, `optionIndex`, `value`, `encrypted`) VALUES (1, 'global', 'platform-config', 'system-configured', 0, '1', 0), (2, 'global', 'platform-config', 'logging-level', 0, '3', 0),(3, 'global', 'db-schema', 'version', 0, '3', 0),(4, 'global', 'admin-portal', 'admin-portal-hostname', 0, '', 0),(5, 'global', 'admin-portal', 'admin-portal-strict-hostname', 0, '', 0),(6, 'global', 'admin-portal', 'redirect-on-hostname-match', 0, '', 0),(7, 'global', 'menu-config', 'adminMenu', 0, '$menuConfig', 0),(8, 'global', 'ise-ers-credentials', 'enabled', 0, '', 0),(9, 'global', 'ise-ers-credentials', 'ersHost', 0, '', 0),(10, 'global', 'ise-ers-credentials', 'ersUsername', 0, '', 0),(11, 'global', 'ise-ers-credentials', 'ersPassword', 0, '', 1),(12, 'global', 'ise-ers-credentials', 'verify-ssl-peer', 0, '', 0),(13, 'global', 'ise-mnt-credentials', 'enabled', 0, '', 0),(14, 'global', 'ise-mnt-credentials', 'mntHost', 0, '', 0),(15, 'global', 'ise-mnt-credentials', 'mntUsername', 0, '', 0),(16, 'global', 'ise-mnt-credentials', 'mntPassword', 0, '', 1),(17, 'global', 'ise-mnt-credentials', 'verify-ssl-peer', 0, '', 0),(18, 'global', 'smtp-settings', 'smtp-hostname', 0, '', 0),(19, 'global', 'smtp-settings', 'smtp-port', 0, '', 0),(20, 'global', 'smtp-settings', 'smtp-username', 0, '', 0),(21, 'global', 'smtp-settings', 'smtp-password', 0, '', 1),(22, 'global', 'smtp-settings', 'smtp-fromaddress', 0, '', 0),(23, 'global', 'smtp-settings', 'enabled', 0, '', 0)";
 	$sqlInsert[5] = "INSERT INTO `sites` (`id`, `siteName`, `siteLocation`, `siteOwner`, `parent`, `visible`, `enabled`, `createdBy`, `createdDate`) VALUES(1, 'Global', 'Global', 'System', 1, 1, 1, '$systemSID', '2019-05-01 00:00:00')";
 	$sqlInsert[6] = "INSERT INTO `userSidCache` (`id`, `sid`, `userPrincipalName`, `samAccountName`, `userDn`, `createdBy`, `createdDate`) VALUES(1, '$systemSID', 'SYSTEM', 'SYSTEM', 'DC=System,DC=Local','$systemSID', '2019-05-01 00:00:00'),(2, '$adminSID', 'Administrator@System.Local', 'Administrator', 'CN=Administrator,CN=Users,DC=System,DC=Local', '$systemSID', '2019-05-01 00:00:00')";
 	$sqlInsert[7] = "INSERT INTO `sponsorPortalTypes` (`id`, `portalTypeName`, `portalTypeDescription`, `maxSponsorGroups`, `maxEndpointsOverride`, `maxEndpointsAllowed`, `portalClass`, `portalModule`) VALUES(1, 'Sponsor Portal', 'Portal which allows Sponsors the ability to enroll devices into the iPSK system for access.', 1, 0, 5, 'core', 'sponsorportal'),(2, 'Captive Portal', 'Captive Portal allowing Users to login to enroll their device into the iPSK system.', 3, 0, 5, 'core', 'captiveportal')";
