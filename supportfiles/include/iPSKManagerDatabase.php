@@ -1093,7 +1093,7 @@
 		}
 		
 		function getEndPointAssociations(){
-			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, endpoints.macAddress, endpoints.createdBy, endpointGroups.groupName as epGroupName, endpoints.accountEnabled, endpoints.expirationDate, endpointAssociations.createdDate, endpoints.fullName, endpoints.emailAddress FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId ORDER BY endpoints.macAddress ASC";
+			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, endpoints.macAddress, endpoints.createdBy, endpoints.description, endpointGroups.groupName as epGroupName, endpoints.accountEnabled, endpoints.expirationDate, endpointAssociations.createdDate, endpoints.fullName, endpoints.emailAddress FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId ORDER BY endpoints.macAddress ASC";
 			
 			$queryResult = $this->dbConnection->query($query);
 			
@@ -1113,6 +1113,7 @@
 						$rawAssociationList[$listCount]['groupName'] = $row['epGroupName'];
 						$rawAssociationList[$listCount]['fullName'] = $row['fullName'];
 						$rawAssociationList[$listCount]['email'] = $row['emailAddress'];
+						$rawAssociationList[$listCount]['description'] = $row['description'];
 						
 						$listCount++;
 					}
