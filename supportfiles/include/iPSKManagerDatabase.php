@@ -26,6 +26,7 @@
  *@author	Gary Oppel (gaoppel@cisco.com)
  *@author	Hosuk Won (howon@cisco.com)
  *@contributor	Drew Betz (anbetz@cisco.com)
+ *@contributor	Nick Ciesinski (nciesins@cisco.com)
  */
 	
 	class iPSKManagerDatabase {
@@ -1716,7 +1717,7 @@
 		}
 		
 		function getWirelessNetworkById($wirelessId){
-			$query = "SELECT * FROM wirelessNetworks WHERE id = $wirelessId LIMIT 1";
+			$query = "SELECT * FROM wirelessNetworks WHERE id = '$wirelessId' LIMIT 1";
 			
 			$queryResult = $this->dbConnection->query($query);
 			
@@ -1985,11 +1986,12 @@
 			
 			$query = sprintf("INSERT INTO wirelessNetworks (`ssidName`, `ssidDescription`, `createdBy`) VALUES('%s','%s','%s')", $this->dbConnection->real_escape_string($ssidName), $this->dbConnection->real_escape_string($ssidDescription), $this->dbConnection->real_escape_string($createdBy));
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -1998,11 +2000,12 @@
 			
 			$query = sprintf("INSERT INTO authorizationTemplates (`authzPolicyName`, `authzPolicyDescription`, `ciscoAVPairPSK`, `termLengthSeconds`, `pskLength`, `createdBy`) VALUES('%s','%s','%s',%d,%d,'%s')", $this->dbConnection->real_escape_string($authzPolicyName), $this->dbConnection->real_escape_string($authzPolicyDescription), $this->dbConnection->real_escape_string($ciscoAVPairPSK), $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($pskLength), $this->dbConnection->real_escape_string($createdBy));
 
-			$queryResult = $this->dbConnection->query($query);
-
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2011,11 +2014,12 @@
 			
 			$query = sprintf("INSERT INTO sponsorGroups (`sponsorGroupName`, `sponsorGroupDescription`, `sponsorGroupType`, `sponsorGroupAuthType`, `maxDevices`, `members`, `createdBy`) VALUES('%s','%s','%d','%d',%d,'%s','%s')", $this->dbConnection->real_escape_string($groupName), $this->dbConnection->real_escape_string($groupDescription), $this->dbConnection->real_escape_string($groupType), $this->dbConnection->real_escape_string($sponsorGroupAuthType), $this->dbConnection->real_escape_string($maxDevices), $this->dbConnection->real_escape_string(""), $this->dbConnection->real_escape_string($createdBy));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
-				return $this->dbConnection->insert_id;
-			}else{
+			try {
+				$queryResult = $this->dbConnection->query($query);
+				return true;
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2024,9 +2028,9 @@
 			
 			$query = sprintf("INSERT INTO internalUsers (`userName`, `fullName`, `description`, `email`, `password`, `dn`, `createdBy`) VALUES('%s','%s','%s','%s','%s','%s','%s')", $this->dbConnection->real_escape_string($userName), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($encryptedpassword), "CN=".$this->dbConnection->real_escape_string($userName).",CN=Users,DC=System,DC=Local", $this->dbConnection->real_escape_string($createdBy));
 
-			$queryResult = $this->dbConnection->query($query);
+			try {
+				$queryResult = $this->dbConnection->query($query);
 			
-			if($queryResult){
 				$insertId = $this->dbConnection->insert_id;
 				
 				$userSidId = 1000 + $insertId;
@@ -2037,7 +2041,9 @@
 				$queryResult = $this->dbConnection->query($sidQuery);
 								
 				return $insertId;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2092,11 +2098,12 @@
 			
 			$query = sprintf("INSERT INTO sponsorGroupInternalMapping (`sponsorGroupId`, `internalGroupId`, `groupPermissions`, `createdBy`) VALUES %s", $querysuffix);
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2112,11 +2119,12 @@
 			
 			$query = sprintf("INSERT INTO sponsorGroupPortalMapping (`sponsorGroupId`, `sponsorPortalId`, `createdBy`) VALUES %s", $querysuffix);
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2136,11 +2144,12 @@
 			
 			$query = sprintf("INSERT INTO sponsorGroupSSIDMapping (`sponsorGroupId`, `wirelessSSIDId`, `createdBy`) VALUES %s", $querysuffix);
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2160,11 +2169,12 @@
 			
 			$query = sprintf("INSERT INTO sponsorGroupEPGMapping (`sponsorGroupId`, `endpointGroupId`, `createdBy`) VALUES %s", $querysuffix);
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2173,11 +2183,12 @@
 			
 			$query = sprintf("INSERT INTO endpointGroups (`groupName`, `description`, `authzTemplateId`, `notificationPermission`, `createdBy`) VALUES('%s','%s',%d, %d,'%s')", $this->dbConnection->real_escape_string($epGroupName), $this->dbConnection->real_escape_string($epGroupDescription), $this->dbConnection->real_escape_string($authzTemplate), $this->dbConnection->real_escape_string($notificationPermission), $this->dbConnection->real_escape_string($createdBy));
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2185,12 +2196,13 @@
 		function addUserCacheEntry($sid, $userPrincipalName, $samAccountName, $userDn, $systemSid){
 			
 			$query = sprintf("INSERT INTO `userSidCache` (`sid`, `userPrincipalName`, `samAccountName`, `userDn`,`createdBy`) VALUES('%s','%s','%s','%s','%s')", $this->dbConnection->real_escape_string($sid), $this->dbConnection->real_escape_string($userPrincipalName), $this->dbConnection->real_escape_string($samAccountName), $this->dbConnection->real_escape_string($userDn), $systemSid);
-			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+				
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2245,11 +2257,12 @@
 			
 			$query = sprintf("UPDATE wirelessNetworks SET `visible`='0' WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2258,11 +2271,12 @@
 			
 			$query = sprintf("DELETE FROM `internalUserGroupMapping` WHERE `groupId` = %d", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2271,11 +2285,12 @@
 			
 			$query = sprintf("DELETE FROM `internalUserGroupMapping` WHERE `userId` = %d", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2284,11 +2299,12 @@
 			
 			$query = sprintf("DELETE FROM `sponsorGroupInternalMapping` WHERE `internalGroupId` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2297,11 +2313,12 @@
 			
 			$query = sprintf("DELETE FROM `internalGroups` WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2310,11 +2327,12 @@
 			
 			$query = sprintf("DELETE FROM `internalUsers` WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2323,11 +2341,12 @@
 			
 			$query = sprintf("DELETE FROM `ldapServers` WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2336,11 +2355,12 @@
 			
 			$query = sprintf("UPDATE authorizationTemplates SET `visible`='0' WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2349,11 +2369,12 @@
 			
 			$query = sprintf("DELETE FROM `endpoints` WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2362,11 +2383,12 @@
 			
 			$query = sprintf("UPDATE endpointGroups SET `visible`='0' WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2375,11 +2397,12 @@
 			
 			$query = sprintf("DELETE FROM `endpointAssociations` WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2388,11 +2411,12 @@
 			
 			$query = sprintf("UPDATE sponsorGroups SET `visible`='0' WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2401,11 +2425,12 @@
 			
 			$query = sprintf("UPDATE sponsorPortals SET `visible`='0', `enabled`='0' WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			print $this->dbConnection->error;
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2423,11 +2448,12 @@
 
 				$query = "DELETE FROM `portalHostnames` WHERE `id` IN ($removeIds)";
 				
-				$queryResult = $this->dbConnection->query($query);
-				
-				if($queryResult){
+				try {
+					$queryResult = $this->dbConnection->query($query);
 					return true;
-				}else{
+				}
+				catch (Exception $e) {
+					error_log("Caught Exception: $e");
 					return false;
 				}
 			}else{
@@ -2448,11 +2474,12 @@
 
 				$query = "DELETE FROM `portalPorts` WHERE `id` IN ($removeIds)";
 				
-				$queryResult = $this->dbConnection->query($query);
-				
-				if($queryResult){
+				try {
+					$queryResult = $this->dbConnection->query($query);
 					return true;
-				}else{
+				}
+				catch (Exception $e) {
+					error_log("Caught Exception: $e");
 					return false;
 				}
 			}else{
@@ -2468,11 +2495,12 @@
 				
 				$query = sprintf("UPDATE sponsorPortals SET `portalName`='%s', `description`='%s', `portalType`='%d', `portalHostname`='%s', `portalTcpPort`='%s', `portalSecure`='%d', `authenticationDirectory`='%d' WHERE id='%d'", $this->dbConnection->real_escape_string($portalName), $this->dbConnection->real_escape_string($portalDescription), $this->dbConnection->real_escape_string($portalType), $this->dbConnection->real_escape_string($sponsorHostname), $this->dbConnection->real_escape_string($portProtocol['portalPort']), $this->dbConnection->real_escape_string($portProtocol['portalSecure']), $this->dbConnection->real_escape_string($authDirectory), $this->dbConnection->real_escape_string($portalId));
 				
-				$queryResult = $this->dbConnection->query($query);
-				
-				if($queryResult){
+				try {
+					$queryResult = $this->dbConnection->query($query);
 					return true;
-				}else{
+				}
+				catch (Exception $e) {
+					error_log("Caught Exception: $e");
 					return false;
 				}
 			}else{
@@ -2495,11 +2523,12 @@
 			
 			$query = sprintf("INSERT INTO sponsorGroupPortalMapping (`sponsorGroupId`, `sponsorPortalId`, `createdBy`) VALUES %s", $querysuffix);
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2514,11 +2543,12 @@
 			
 			$query = sprintf("UPDATE `internalGroups` SET `groupName`='%s', `groupType`='%d', `description`='%s', `groupDn`='%s', `permissions`='%d' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($groupName), $this->dbConnection->real_escape_string($groupType), $this->dbConnection->real_escape_string($groupDescription), $this->dbConnection->real_escape_string($groupDnUpdate), $this->dbConnection->real_escape_string($permission), $this->dbConnection->real_escape_string($groupId));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2538,12 +2568,12 @@
 			
 			$query = sprintf("INSERT INTO `internalUserGroupMapping` (`groupId`, `userId`, `createdBy`) VALUES %s", $querysuffix);
 
-			$queryResult = $this->dbConnection->query($query);
-
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
-				
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2552,11 +2582,12 @@
 			
 			$query = sprintf("UPDATE `wirelessNetworks` SET `ssidName` = '%s', `ssidDescription` = '%s' WHERE `id` = %d", $ssidName, $ssidDescription, $ssidId);
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2565,11 +2596,12 @@
 			
 			$query = sprintf("UPDATE `authorizationTemplates` SET `authzPolicyName`='%s', `authzPolicyDescription`='%s', `ciscoAVPairPSK`='%s', `termLengthSeconds`='%d', `pskLength`='%d' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($authzPolicyName), $this->dbConnection->real_escape_string($authzPolicyDescription), $this->dbConnection->real_escape_string($ciscoAVPairPSK), $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($pskLength), $this->dbConnection->real_escape_string($authzId));
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2578,11 +2610,12 @@
 			
 			$query = sprintf("UPDATE `endpointGroups` SET `groupName`='%s', `description`='%s', `authzTemplateId`='%d', `notificationPermission`='%d' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($epGroupName), $this->dbConnection->real_escape_string($epGroupDescription), $this->dbConnection->real_escape_string($authzTemplate), $this->dbConnection->real_escape_string($notifyPermission), $this->dbConnection->real_escape_string($epGroupId));
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2606,11 +2639,12 @@
 			
 			$query = sprintf("INSERT INTO `sponsorGroupEPGMapping` (`sponsorGroupId`, `endpointGroupId`, `createdBy`) VALUES %s", $querysuffix);
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2634,11 +2668,12 @@
 			
 			$query = sprintf("INSERT INTO sponsorGroupSSIDMapping (`sponsorGroupId`, `wirelessSSIDId`, `createdBy`) VALUES %s", $querysuffix);
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2658,11 +2693,12 @@
 			
 			$query = sprintf("INSERT INTO `sponsorGroupInternalMapping` (`sponsorGroupId`, `internalGroupId`, `groupPermissions`, `createdBy`) VALUES %s", $querysuffix);
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2671,11 +2707,12 @@
 			
 			$query = sprintf("UPDATE `sponsorGroups` SET `sponsorGroupName`='%s', `sponsorGroupDescription`='%s', `sponsorGroupType`='%d', `sponsorGroupAuthType`='%d', `maxDevices`='%d', `members`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($groupName), $this->dbConnection->real_escape_string($groupDescription), $this->dbConnection->real_escape_string($groupType), $this->dbConnection->real_escape_string($sponsorGroupAuthType), $this->dbConnection->real_escape_string($maxDevices), $this->dbConnection->real_escape_string(""), $this->dbConnection->real_escape_string($groupId));
 			
-			$queryResult = $this->dbConnection->query($query);
-	
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2684,11 +2721,12 @@
 			
 			$query = sprintf("UPDATE `internalUsers` SET `userName`='%s', `fullName`='%s', `description`='%s', `email`='%s', `dn`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($userName), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), "CN=".$this->dbConnection->real_escape_string($userName).",CN=Users,DC=System,DC=Local", $this->dbConnection->real_escape_string($userId));
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2707,13 +2745,14 @@
 				$query = sprintf("UPDATE `ldapServers` SET `adConnectionName`='%s', `adServer`='%s', `adDomain`='%s', `adUsername`='%s', `adBaseDN`='%s', `adSecure`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($adConnectionName), $this->dbConnection->real_escape_string($adServer), $this->dbConnection->real_escape_string($adDomain), $this->dbConnection->real_escape_string($adUsername), $this->dbConnection->real_escape_string($adBaseDN), $this->dbConnection->real_escape_string($adSecure), $this->dbConnection->real_escape_string($serverId));
 				
 			}
+			try {
 				$queryResult = $this->dbConnection->query($query);
-
-				if($queryResult){
-					return true;
-				}else{
-					return false;
-				}
+				return true;
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
+				return false;
+			}
 		}
 
 		function updateEndpoint($endpointId, $fullName, $description, $email, $createdBy, $psk = null, $expirationDate = null){
@@ -2725,11 +2764,12 @@
 			}else{
 				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s', `accountExpired` = 'False', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($expirationDate), $this->dbConnection->real_escape_string($endpointId));
 			}
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2738,11 +2778,12 @@
 			
 			$query = sprintf("UPDATE `endpoints` SET `pskValue` = '%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($endpointId));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2751,11 +2792,12 @@
 			
 			$query = sprintf("UPDATE `endpoints` SET `accountExpired` = 'False', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($endpointId));
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2764,11 +2806,12 @@
 			
 			$query = "UPDATE `endpoints` SET `accountExpired` = 'True' WHERE `expirationDate` != 0 AND `expirationDate` < UNIX_TIMESTAMP(NOW())";
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2777,11 +2820,12 @@
 			
 			$query = sprintf("UPDATE `internalUsers` SET `password`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($encryptedpassword), $this->dbConnection->real_escape_string($userId));
 
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2790,11 +2834,12 @@
 			
 			$query = sprintf("UPDATE `endpoints` SET `accountEnabled` = 0 WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2803,11 +2848,12 @@
 			
 			$query = sprintf("UPDATE `endpoints` SET `accountEnabled` = 1 WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2915,11 +2961,12 @@
 			$query = sprintf("INSERT INTO `logging` (`sessionID`, `fileName`, `functionName`, `className`,`classMethodName`, `lineNumber`, `message`, `logDataPayload`) VALUES('%s','%s','%s','%s','%s',%d,'%s','%s')", $_SESSION['sessionID'], $filename, $functionName, $className, $classMethodName, $lineNumber, $this->dbConnection->real_escape_string($message), $this->dbConnection->real_escape_string($payloadData));
 			
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 			

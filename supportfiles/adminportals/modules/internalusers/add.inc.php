@@ -52,12 +52,12 @@ $htmlbody = <<<HTML
 		</div>
 		<label class="font-weight-bold" for="password">Password:</label>
 		<div class="form-group input-group-sm font-weight-bold">
-			<input type="password" validation-state="required" class="form-control shadow form-validation my-password-field" id="password" value="">
+			<input type="password" validation-state="required" validation-minimum-length="6" class="form-control shadow form-validation my-password-field" id="password" value="">
 			<div class="invalid-feedback">Please enter a password</div>
 		</div>
 		<label class="font-weight-bold" for="confirmpassword">Confirm Password:</label>
 		<div class="form-group input-group-sm font-weight-bold">
-			<input type="password" validation-state="required" class="form-control shadow form-validation" id="confirmpassword" value="">
+			<input type="password" validation-state="required" validation-minimum-length="6" class="form-control shadow form-validation" id="confirmpassword" value="">
 			<div class="invalid-feedback">Please confirm your password</div>
 			<div class="font-weight-bold small" id="passwordfeedback"></div>
 		</div>
@@ -119,8 +119,14 @@ $htmlbody = <<<HTML
 		if(pass != confirmpass){
 			$("#passwordfeedback").removeClass('text-success');
 			$("#passwordfeedback").addClass('text-danger');
-			$("#passwordfeedback").html('Passwords must match and be at least 6 characters long!');
-		}else{
+			$("#passwordfeedback").html('Passwords must match and be at least 6 characters long!');	
+		}
+		else if(pass.length < 6) {
+			$("#passwordfeedback").removeClass('text-success');
+			$("#passwordfeedback").addClass('text-danger');
+			$("#passwordfeedback").html('Passwords must be at least 6 characters long!');
+		}
+		else{
 			$("#passwordfeedback").addClass('text-success');
 			$("#passwordfeedback").removeClass('text-danger');
 			$("#passwordfeedback").html('Passwords Match!');

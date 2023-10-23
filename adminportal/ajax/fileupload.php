@@ -24,7 +24,7 @@
 	header("Pragma: no-cache");
 			
 	//Core Components
-	//include("../../supportfiles/include/config.php");
+	include("../../supportfiles/include/config.php");
 	include("../../supportfiles/include/iPSKManagerFunctions.php");
 	//include("../../supportfiles/include/iPSKManagerDatabase.php");
 	

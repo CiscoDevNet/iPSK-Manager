@@ -159,7 +159,7 @@
 								}
 								//LOG::Entry
 								$logData = $ipskISEDB->generateLogData(Array("authorizedGroups"=>$authorizedGroups), Array("ldapCreds"=>$ldapCreds), Array("sanitizedInput"=>$sanitizedInput));
-								$logMessage = "REQUEST:FAILURE{1}[user_authz_failure];ACTION:ADMINAUTHZ;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
+								$logMessage = "REQUEST:FAILURE{1}[user_authz_failure];ACTION:ADMINAUTHZ;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";".$authorizedGroups['count'].";";
 								$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						
 								header("Location: /index.php?error=1");

@@ -26,6 +26,7 @@
  *@author	Gary Oppel (gaoppel@cisco.com)
  *@author	Hosuk Won (howon@cisco.com)
  *@contributor	Drew Betz (anbetz@cisco.com)
+ *@contributor	Nick Ciesinski (nciesins@cisco.com)
  */
 	$maxModuleKeywordLength = 15;
 		
@@ -89,7 +90,52 @@
 
 	function sanitizeGetModuleInput($RegEx){
 		
-		
+		// String keys to sanitize seperatly due to deprecation of filter FILTER_SANITIZE_STRING
+		$stringKeysToSanitize = [
+			'ssidName',
+			'ssidDescription',
+			'authzPolicyName',
+			'authzPolicyDescription',
+			'ciscoAVPairPSK',
+			'epGroupName',
+			'epGroupDescription',
+			'sponsorGroupName',
+			'sponsorGroupDescription',
+			'groupName',
+			'groupDn',
+			'portalName',
+			'authzProfileName',
+			'description',
+			'hostname',
+			'userName',
+			'fullName',
+			'email',
+			'password',
+			'confirmpassword',
+			'adConnectionName',
+			'adServer',
+			'adDomain',
+			'adUsername',
+			'adBaseDN',
+			'presharedKey',
+			'emailAddress',
+			'macAddress',
+			'endpointDescription',
+			'fullName',
+			'hostname',
+			'ersHost',
+			'ersUsername',
+			'ersPassword',
+			'mntHost',
+			'mntHostSecondary',
+			'mntUsername',
+			'mntPassword',
+			'adminPortalHostname',
+			'smtpHost',
+			'smtpUsername',
+			'smtpFromAddress',	
+		];
+
 		$arguments = array(
 			'module'	=>	array('filter'    => FILTER_VALIDATE_REGEXP,
 								  'flags'     => '' ,
@@ -119,46 +165,43 @@
 								),
 			'confirmaction'	=>	FILTER_VALIDATE_INT,
 			'wirelessSSID'	=>	FILTER_VALIDATE_INT,
-			'ssidName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'ssidName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'ssidDescription'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'ssidDescription'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'authzPolicyName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'authzPolicyName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'authzPolicyDescription'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'authzPolicyDescription'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'termLengthSeconds'	=>	FILTER_VALIDATE_INT,
-			'ciscoAVPairPSK'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'ciscoAVPairPSK'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'pskLength'	=>	FILTER_VALIDATE_INT,
 			'pskType'	=>	FILTER_VALIDATE_INT,
 			'pskMode'	=>	FILTER_VALIDATE_INT,
-			'epGroupName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'epGroupName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'epGroupDescription'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'epGroupDescription'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'authzTemplate'	=>	FILTER_VALIDATE_INT,
 			'notificationPermission'	=>	FILTER_VALIDATE_INT,
 			'maxDevices'	=>	FILTER_VALIDATE_INT,
-			'sponsorGroupName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'sponsorGroupName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'sponsorGroupDescription'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'sponsorGroupDescription'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'sponsorGroupAuthType'	=>	FILTER_VALIDATE_INT,
 			'sponsorGroupType'	=>	FILTER_VALIDATE_INT,
 			'sponsorPortalType'	=>	FILTER_VALIDATE_INT,
-			'sponsorGroupName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
-								  ),
 			'suspendCheck'	=>	FILTER_VALIDATE_INT,
 			'unsuspendCheck'	=>	FILTER_VALIDATE_INT,
 			'extendCheck'	=>	FILTER_VALIDATE_INT,
@@ -168,22 +211,22 @@
 			'viewPassCheck'	=>	FILTER_VALIDATE_INT,
 			'viewPermission'	=>	FILTER_VALIDATE_INT,
 			'resetPskCheck'	=>	FILTER_VALIDATE_INT,
-			'groupName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'groupName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'groupDn'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'groupDn'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'portalName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'portalName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'authzProfileName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'authzProfileName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'description'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'description'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'hostname'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'hostname'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'tcpPort'	=>	FILTER_VALIDATE_INT,
@@ -191,99 +234,99 @@
 			'groupType'	=>	FILTER_VALIDATE_INT,
 			'authDirectory'	=>	FILTER_VALIDATE_INT,
 			'inputUsername'	=> FILTER_SANITIZE_EMAIL,
-			'userName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'userName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'fullName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'fullName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'email'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'email'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'password'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'password'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'confirmpassword'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'confirmpassword'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'adConnectionName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'adConnectionName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'adServer'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'adServer'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'adDomain'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'adDomain'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'adUsername'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'adUsername'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'adBaseDN'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'adBaseDN'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'adSecure'	=>	FILTER_VALIDATE_INT,
 			'associationGroup'	=>	FILTER_VALIDATE_INT,
 			'editAssociation'	=>	FILTER_VALIDATE_INT,
 			'editPSK'	=>	FILTER_VALIDATE_INT,
-			'presharedKey'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'presharedKey'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'emailAddress'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'emailAddress'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'macAddress'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'macAddress'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'endpointDescription'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'endpointDescription'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'fullName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'fullName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'hostname'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'hostname'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'protocol'	=>	FILTER_VALIDATE_INT,
 			'portalPort'	=>	FILTER_VALIDATE_INT,
-			'ersHost'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'ersHost'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'ersUsername'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'ersUsername'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'ersPassword'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'ersPassword'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'ersEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
 			'ersVerifySsl'	=>	FILTER_VALIDATE_BOOLEAN,
-			'mntHost'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'mntHost'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'mntHostSecondary'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'mntHostSecondary'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'mntUsername'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'mntUsername'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'mntPassword'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'mntPassword'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'mntEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
 			'mntVerifySsl'	=>	FILTER_VALIDATE_BOOLEAN,
 			'fullAuthZUpdate'	=>	FILTER_VALIDATE_BOOLEAN,
-			'adminPortalHostname'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'adminPortalHostname'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'strict-hostname'	=>	FILTER_VALIDATE_BOOLEAN,
 			'redirect-hostname'	=>	FILTER_VALIDATE_BOOLEAN,
-			'smtpHost'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'smtpHost'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'smtpPort'	=>	FILTER_VALIDATE_INT,
-			'smtpUsername'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'smtpUsername'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
-			'smtpFromAddress'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'smtpFromAddress'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'smtpEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
@@ -309,16 +352,27 @@
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);
 
+		// Added sanitization method for strings due to deprecation of filter FILTER_SANITIZE_STRING
+		foreach ($mysanitizedInputs as $key => $value) {
+			if (in_array($key, $stringKeysToSanitize)) {
+				$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value), ENT_QUOTES, 'UTF-8');
+			} 
+		}
+
 		return $mysanitizedInputs;
 	}
 
 	function sanitizeGetDataInput($dataCommandRegEx, $dataDataSetRegEx, $dataInputName, $dataInputFilter){
+
+		$stringKeysToSanitize = [
+			'authzProfileName',
+		];
 			
 		$arguments = array(
 			'data-command'	=>	array('filter' => FILTER_VALIDATE_REGEXP, 'flags' => '' , 'options' => array('regexp' => $dataCommandRegEx)),
 			'data-set'	=>	array('filter' => FILTER_VALIDATE_REGEXP, 'flags' => '' , 'options' => array('regexp' => $dataDataSetRegEx)),
 			'pskLength'	=>	FILTER_VALIDATE_INT,
-			'authzProfileName'	=>	array('filter'	=>	FILTER_SANITIZE_STRING,
+			'authzProfileName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			  'groupUuid'	=>	array('filter'    => FILTER_VALIDATE_REGEXP,
@@ -329,6 +383,12 @@
 		);
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);
+
+		foreach ($mysanitizedInputs as $key => $value) {
+			if (in_array($key, $stringKeysToSanitize)) {
+				$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value), ENT_QUOTES, 'UTF-8');
+			} 
+		}
 
 		return $mysanitizedInputs;
 		

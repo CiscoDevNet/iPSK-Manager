@@ -23,6 +23,7 @@
  *@author	Gary Oppel (gaoppel@cisco.com)
  *@author	Hosuk Won (howon@cisco.com)
  *@contributor	Drew Betz (anbetz@cisco.com)
+ *@contributor	Nick Ciesinski (nciesins@cisco.com)
 */
 	
 	ini_set('display_errors', 'Off');
@@ -33,13 +34,13 @@
 	if(!isset($_SESSION['identityPSKInstalling'])){
 		if(file_exists("../supportfiles/include/config.php")){
 			http_response_code(404);
-			header("Location: /404.php");
+			header("Location: ./404.php");
 			exit(0);
 		}
 	}
 	
 	$license = <<< TEXT
-	Copyright 2021 Cisco Systems, Inc. or its affiliates
+	Copyright 2023 Cisco Systems, Inc. or its affiliates
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -99,7 +100,7 @@ TEXT;
 	if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['step'])){
 		if($_POST['step'] == 1){
 			$installerOutput = <<< HTML
-			<form method="POST" action="/installer.php">
+			<form method="POST" action="./installer.php">
 				<div class="row m-2">
 					<div class="col-2"></div>
 					<div class="col"><textarea style="height: 350px; width: 750px;" readonly>$license</textarea></div>
@@ -139,7 +140,7 @@ HTML;
 			}
 				
 			$installerOutput = <<< HTML
-			<form method="POST" action="/installer.php">
+			<form method="POST" action="./installer.php">
 				<div class="row m-2">
 					<div class="col-2"></div>
 					<div class="col text-left"><h4>PHP Validation Checks</h4> $platformDetails</div>
@@ -164,7 +165,7 @@ HTML;
 HTML;
 		}elseif($_POST['step'] == 3){
 			$installerOutput = <<< HTML
-			<form method="POST" action="/installer.php">
+			<form method="POST" action="./installer.php">
 				<div class="row m-2">
 					<div class="col-2"></div>
 					<div class="col text-left"><h4>MySQL Database Parameters</h4></div>
@@ -187,6 +188,7 @@ HTML;
 						<div class="form-group input-group-sm font-weight-bold">
 							<input type="text" my-field-state="required" class="form-control shadow my-form-field" id="iseusername" name="iseusername">
 							<div class="invalid-feedback">Please enter a Name</div>
+							<div class="font-weight-bold small" id="usernamefeedback"></div>
 						</div>
 						<label class="font-weight-bold" for="databasename">iPSK Database Name:</label>
 						<div class="form-group input-group-sm font-weight-bold">
@@ -215,6 +217,27 @@ HTML;
 					<div class="col-2"><input type="hidden" name="step" value="4"><input type="submit" id="btnNext" value="Next >" class="btn btn-primary shadow"></div>
 				</div>
 			</form>
+			<script type="text/javascript">			
+				$("#dbusername,#iseusername").keyup(function(event){
+					var dbusername = $("#dbusername").val();
+					var iseusername = $("#iseusername").val();
+
+					if(dbusername != iseusername){
+						$("#usernamefeedback").addClass('text-success');
+						$("#usernamefeedback").removeClass('text-danger');
+						$("#usernamefeedback").html('');
+						$("#btnNext").prop("disabled", false);
+					}else{
+						$("#usernamefeedback").removeClass('text-success');
+						$("#usernamefeedback").addClass('text-danger');
+						$("#usernamefeedback").html('iPSK DB and ISE Username can not be the same!');
+						$("#btnNext").prop("disabled", true);
+					}
+					pass = "";
+					confirmpass = "";
+					
+				});
+			</script>
 HTML;
 		}elseif($_POST['step'] == 4){
 			$_SESSION['dbhostname'] = (isset($_POST['dbhostname'])) ? $_POST['dbhostname'] : '';
@@ -225,7 +248,7 @@ HTML;
 			$_SESSION['rootpassword'] = (isset($_POST['rootpassword'])) ? $_POST['rootpassword'] : '';
 			
 			$installerOutput = <<< HTML
-			<form method="POST" action="/installer.php">
+			<form method="POST" action="./installer.php">
 				<div class="row m-2">
 					<div class="col-2"></div>
 					<div class="col text-left"><h4>iPSK Manager's Administrator Password</h4></div>
@@ -284,7 +307,7 @@ HTML;
 			$_SESSION['adminpassword'] = (isset($_POST['password'])) ? $_POST['password'] : '';
 			
 			$installerOutput = <<< HTML
-			<form method="POST" action="/installer.php">
+			<form method="POST" action="./installer.php">
 				<div class="row m-2">
 					<div class="col-2"></div>
 					<div class="col text-center"><h5>Please confirm the following setup parameters:</h5></div>
@@ -355,10 +378,13 @@ HTML;
 				$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>MySQL Connection Successful</div>";
 			}
 							
-			if($dbConnection->select_db($_SESSION['databasename'])){
-				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Database Already Exists</div>";
-				goto Bail;
-			}else{
+			try {
+				if($dbConnection->select_db($_SESSION['databasename'])){
+					$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Database Already Exists</div>";
+					goto Bail;
+				}
+			}
+			catch (Exception $e){
 				$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Database is not in use</div>";
 			}
 			
@@ -442,9 +468,14 @@ HTML;
 			}else{
 				$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Inserting of initial data Successful</div>";
 			}
-			
-			if(!$dbConnection->query($managerSqlUser[0])){
-				$actionValid = false;
+			try {
+				if(!$dbConnection->query($managerSqlUser[0])){
+					$actionValid = false;
+				}
+			}
+			catch (Exception $e) {
+				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Error creating iPSK Manager User</div>";
+				goto Bail;
 			}				
 
 			if(!$actionValid){
@@ -468,9 +499,15 @@ HTML;
 				$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Setting of iPSK Manager MySQL User Permissions Successful</div>";
 			}
 
-			if(!$dbConnection->query($iseSqlUser[0])){
-				$actionValid = false;
-			}				
+			try {
+				if(!$dbConnection->query($iseSqlUser[0])){
+					$actionValid = false;
+				}				
+			}
+			catch (Exception $e) {
+				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Error creating ISE ODBC User</div>";
+				goto Bail;
+			}
 
 			if(!$actionValid){
 				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Creation of Cisco ISE MySQL User Failed</div>";
@@ -550,7 +587,7 @@ HTML;
 			}
 		
 			$installerOutput = <<< HTML
-			<form method="POST" action="/installer.php">
+			<form method="POST" action="./installer.php">
 				<div class="row">
 					<div class="col-2"></div>
 					<div class="col float-rounded mx-auto shadow-lg p-2 bg-white text-left"
@@ -610,7 +647,7 @@ HTML;
 		$_SESSION['identityPSKInstalling'] = true;
 		
 		$installerOutput = <<< HTML
-			<form method="POST" action="/installer.php">
+			<form method="POST" action="./installer.php">
 				<div class="row m-2">
 					<div class="col-2"></div>
 					<div class="col text-left"><p>Welcome to the installer for iPSK Manager.  The installer will perform the intial setup and database population as well as create the proper credentials for both iPSK Manager and Cisco ISE for the ODBC integration.<br /><br />
@@ -626,7 +663,7 @@ HTML;
 				</div>
 				<div class="row">
 					<div class="col"></div>
-					<div class="col-2"><input type="hidden" name="step" value="1"><input type="submit" id="btnNext" value="Next >" class="btn btn-primary shadow"></div>
+					<div class="col-2"><input type="hidden" name="step" value="1"><input type="submit" id="btn../installer.php" value="Next >" class="btn btn-primary shadow"></div>
 				</div>
 			</form>
 			<script type="text/javascript">

@@ -26,6 +26,7 @@
  *@author	Gary Oppel (gaoppel@cisco.com)
  *@author	Hosuk Won (howon@cisco.com)
  *@contributor	Drew Betz (anbetz@cisco.com)
+ *@contributor	Nick Ciesinski (nciesins@cisco.com)
  */
 
 	class BaseLDAPInterface {
@@ -93,7 +94,10 @@
 		}
 		
 		function testLdapServer(){
-		
+			
+			// TO DISABLE SERVER NAME IN SSL CERTIFICATE CHECK UNCOMMENT LINE BELOW AND IN FUNCTION BELOW
+			//ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
+
 			if($this->ldapsecure){
 				$ldapConnection = ldap_connect("ldaps://".$this->ldapHost);
 			}else{
@@ -113,6 +117,9 @@
 			
 		}
 		function authenticateUser($username, $password){
+
+			// TO DISABLE SERVER NAME IN SSL CERTIFICATE CHECK UNCOMMENT LINE BELOW
+			//ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
 			
 			if($this->ldapsecure){
 				$ldapConnection = ldap_connect("ldaps://".$this->ldapHost);

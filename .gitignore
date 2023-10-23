@@ -2,3 +2,5 @@
 patches.json
 
 supportfiles/include/config.php
+
+Dockerfile
