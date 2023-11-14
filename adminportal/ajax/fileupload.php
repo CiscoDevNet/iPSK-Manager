@@ -102,7 +102,7 @@
 											if($entry != 0){
 												//Filter the content of the entry of the CSV
 												//NOTE: Quotation Marks (") are currently illegal
-												$tempEntrydata = filter_var(trim($data),FILTER_VALIDATE_REGEXP, Array('options'=> Array('regexp' => "/^(?:([a-z]|[A-Z]|[0-9]|-|:|,|'|@|\.|;|\/|\(|\\|&amp;|&|#|\*|\s){1,})$/")));
+												$tempEntrydata = filter_var(trim($data),FILTER_VALIDATE_REGEXP, Array('options'=> Array('regexp' => "/^(?:([a-z]|[A-Z]|[0-9]|-|_|:|,|'|@|\.|;|\/|\(|\\|&amp;|&|#|\*|\s){1,})$/")));
 												
 												if($tempEntrydata != ""){
 													$temp = explode(",",$tempEntrydata);
