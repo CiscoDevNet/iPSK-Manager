@@ -336,7 +336,135 @@ mysql> REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'install'@'%';
 mysql> FLUSH PRIVILEGES;
 mysql> DROP USER 'install'@'%';
 ```
+
+## Appendix
+## (Experimental) Keeping iPSK Manager up to date
+When there is an update to the Git repository, local iPSK Manager deployment can be updated without reinstallation
+
+1. Make sure to make backups of the install directory and the database, and also the config.php file should be backed up
+```
+admin@ubuntu:~$ sudo cp /var/www/iPSK-Manager/supportfiles/include/config.php /some/backup/directory/
+```
+2. Go to iPSK Manager install directory
+```
+admin@ubuntu:~$ cd /var/www/iPSK-Manager
+```
+3. Pull repository
+```
+admin@ubuntu:~$ sudo git pull
+```
+## Notes about Ubuntu 20.04 LTS based installation
+Perform the following steps after the IPSK Manager setup:
+
+Update the MySQL Configuration located in ‘/etc/mysql/mysql.conf.d/mysqld.cnf’ and add the following line below.
+
+**default_authentication_plugin=mysql_native_password**
+
+Then restart the MySQL Service or Reboot the system.
+```
+admin@ubuntu:~$ sudo service mysql restart
+```
+Then update the ISE MySQL credential with mysql_native_password to make it compatibe with ISE
+```
+admin@ubuntu:~$ sudo mysql -p
+mysql> ALTER USER 'ipsk-ise-user'@'%' IDENTIFIED WITH mysql_native_password BY '{PASSWORD}';
+mysql> FLUSH PRIVILEGES;
+```
+
+## (Experimental) GUI Logging
+Logging via GUI can be enabled by editing the **'additionalmenus.json'** file in **/var/www/iPSK-Manager/supportfiles/adminportals/modules/** directory. Change the "menuEnabled" flag at the end to 1 (default is 0) as shown below and refresh admin GUI and you will see 'System Logging' option visible just below 'About' settings. Note that logging view currently lacks few features to make it useable beyond basic troubleshooting.
+```
+{"0":{"id":"menuLogging","module":"logging","data-feather":"flag","menuText":"System Logging"},"menuItems":1,"menuEnabled":1}
+```
+Note: Rest of the logging settings are under Platform Configuration > Advanced Settings and Logging Settings
+## Use non-SSL port for admin and end user portal
+It is recommended to use SSL for security and main section of the document describes how to enable SSL. However, if no certificate is available, port 80 request to admin portal can be used by creating a file called '80.conf' with following content and placed in '/etc/apache2/sites-enabled' directory: 
+```
+<VirtualHost *:80>
+# The ServerName directive sets the request scheme, hostname and port that
+# the server uses to identify itself. This is used when creating
+# redirection URLs. In the context of virtual hosts, the ServerName
+# specifies what hostname must appear in the request's Host: header to
+# match this virtual host. For the default virtual host (this file) this
+# value is not decisive as it is used as a last resort host regardless.
+# However, you must set it for any further virtual host explicitly.
+#ServerName www.example.com
+
+ServerAdmin webmaster@localhost
+DocumentRoot /var/www/iPSK-Manager/adminportal
+
+<Directory /var/www/iPSK-Manager/adminportal>
+AllowOverride All
+</Directory>
+
+# Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+# error, crit, alert, emerg.
+# It is also possible to configure the loglevel for particular
+# modules, e.g.
+#LogLevel info ssl:warn
+
+ErrorLog ${APACHE_LOG_DIR}/error.log
+CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+# For most configuration files from conf-available/, which are
+# enabled or disabled at a global level, it is possible to
+# include a line for only one particular virtual host. For example the
+# following line enables the CGI configuration for this host only
+# after it has been globally disabled with "a2disconf".
+#Include conf-available/serve-cgi-bin.conf
+
+</VirtualHost>
+```
+
+Note: May need to remove default config file in the '/etc/apache2/sites-enabled' directory
+
+Next, point port 8080 request to end user portal by creating a file called '8080.conf' with following content and place it in '/etc/apache2/sites-enabled' directory: 
+
+```
+Listen 8080
+
+<VirtualHost *:8080>
+# The ServerName directive sets the request scheme, hostname and port that
+# the server uses to identify itself. This is used when creating
+# redirection URLs. In the context of virtual hosts, the ServerName
+# specifies what hostname must appear in the request's Host: header to
+# match this virtual host. For the default virtual host (this file) this
+# value is not decisive as it is used as a last resort host regardless.
+# However, you must set it for any further virtual host explicitly.
+#ServerName www.example.com
+
+ServerAdmin webmaster@localhost
+DocumentRoot /var/www/iPSK-Manager/portals
+
+<Directory /var/www/iPSK-Manager/portals>
+AllowOverride All
+</Directory>
+
+# Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+# error, crit, alert, emerg.
+# It is also possible to configure the loglevel for particular
+# modules, e.g.
+#LogLevel info ssl:warn
+
+ErrorLog ${APACHE_LOG_DIR}/error.log
+CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+# For most configuration files from conf-available/, which are
+# enabled or disabled at a global level, it is possible to
+# include a line for only one particular virtual host. For example the
+# following line enables the CGI configuration for this host only
+# after it has been globally disabled with "a2disconf".
+#Include conf-available/serve-cgi-bin.conf
+
+</VirtualHost>
+```
+
+Note: Within iPSK manager admin portal, go to Portals and make sure the end user portals are configured with port 8080
  
+Lastly, restart apache service: 
+```
+admin@ubuntu:~$ sudo service apache2 restart
+```
 ## Authors
 
 - Gary Oppel
