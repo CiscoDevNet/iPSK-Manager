@@ -97,9 +97,13 @@
 										$filtereditems = 0;
 										$invalidItems = 0;
 										$invalidCharacters = 0;
+										$invalidLines = '';
+										$lineCount = 0;
+										$invalidLineCount = 0;
 										
 										foreach($fileContentsArray as $entry => $data){
 											if($entry != 0){
+												$lineCount++;
 												//Filter the content of the entry of the CSV
 												//NOTE: Quotation Marks (") are currently illegal
 												$tempEntrydata = filter_var(trim($data),FILTER_VALIDATE_REGEXP, Array('options'=> Array('regexp' => "/^(?:([a-z]|[A-Z]|[0-9]|-|_|:|,|'|@|\.|;|\/|\(|\\|&amp;|&|#|\*|\s){1,})$/")));
@@ -120,12 +124,18 @@
 															$entryCount++;
 														}else{
 															$filtereditems++;
+															$invalidLineCount++;
+															$invalidLines = $invalidLines.($invalidLineCount > 1 ? ',' : '' ).' '.$lineCount;
 														}
 													}else{
 														$invalidItems++;
+														$invalidLineCount++;
+														$invalidLines = $invalidLines.($invalidLineCount > 1 ? ',' : '' ).' '.$lineCount;
 													}
 												}else{
 													$invalidCharacters++;
+													$invalidLineCount++;
+													$invalidLines = $invalidLines.($invalidLineCount > 1 ? ',' : '' ).' '.$lineCount;
 												}	
 											}
 										}
@@ -146,7 +156,7 @@
 										if($returnResult['validitems'] == $returnResult['recordsprocessed']){
 											$returnResult['message'] = "Successful Upload";
 										}else{
-											$returnResult['message'] = "Successful Upload with exceptions on unformatted content";
+											$returnResult['message'] = "Successful Upload with exceptions on lines ".$invalidLines;
 										}			
 									}else{
 										
