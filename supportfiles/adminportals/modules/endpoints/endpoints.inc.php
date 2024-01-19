@@ -29,6 +29,7 @@
 	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
 	
 	$associationList = $ipskISEDB->getEndPointAssociations();
+	$pageStart = 0;
 	$pageEnd = $associationList['count'];
 		
 	if($associationList){
@@ -48,11 +49,6 @@
 					}
 				}else{
 					$expiration = "Suspended";
-				}
-
-				// Skips adding the row to the table if the MAC address is empty.
-				if ($associationList[$idxId]['macAddress'] == "") {
-					continue;
 				}
 
 				$pageData['endpointAssociationList'] .= '<tr>';
