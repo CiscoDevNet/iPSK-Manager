@@ -385,7 +385,7 @@
 		$("#endpoint-table").DataTable({
 			"paging": true,
 			"stateSave": true,
-			"lengthMenu": [ [5,15, 30, 45, 60, -1], [5,15, 30, 45, 60, "All"] ]
+			"lengthMenu": [ [15, 30, 45, 60, -1], [15, 30, 45, 60, "All"] ]
 		});
 	} );
 
