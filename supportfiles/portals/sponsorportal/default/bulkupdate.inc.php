@@ -26,11 +26,6 @@
 		header("Location: /index.php?portalId=".$portalId);
 		die();
 	}
-
-	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
-	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
-	
-	$queryDetails = "pageSize=$pageSize&currentPage=$currentPage";
 	
 	$page['endpoints'] = "";
 	
@@ -107,7 +102,7 @@
 				print <<<HTML
 			
 <script>
-	window.location = "/manage.php?portalId=$portalId&$queryDetails";
+	window.location = "/manage.php?portalId=$portalId";
 </script>
 HTML;
 			}elseif($sanitizedInput['sub-module'] == "activate"){
@@ -158,7 +153,7 @@ HTML;
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId&$queryDetails",
+				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
 
 				data: formData,
 				processData: false,
@@ -222,7 +217,7 @@ HTML;
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId&$queryDetails",
+				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
 
 				data: formData,
 				processData: false,
@@ -286,7 +281,7 @@ HTML;
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId&$queryDetails",
+				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
 
 				data: formData,
 				processData: false,

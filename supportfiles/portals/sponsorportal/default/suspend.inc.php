@@ -26,11 +26,6 @@
 		die();
 	}
 
-	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
-	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
-	
-	$queryDetails = "pageSize=$pageSize&currentPage=$currentPage";
-
 	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction']){
 		$endpointPermissions = $ipskISEDB->getEndPointAssociationPermissions($sanitizedInput['id'],$_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id']);
 		
@@ -46,7 +41,7 @@
 
 				print <<<HTML
 <script>
-	window.location = "/manage.php?portalId=$portalId&$queryDetails";
+	window.location = "/manage.php?portalId=$portalId";
 </script>
 HTML;
 			}

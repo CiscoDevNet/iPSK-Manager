@@ -26,10 +26,7 @@
 	$pageData['wirelessSSIDList'] = "";
 	$pageData['endpointAssociationList'] = "";
 	$pageData['pageinationOutput'] = '';
-	$totalPages = 0;
-	$currentPage = 0;
-	$currentPageSizeSelection = "";
-	
+	$pageStart = 0;
 	
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];
@@ -39,19 +36,14 @@
 		die();
 	}
 
-	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
-	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
-	$pageNotice = (isset($_GET['notice'])) ? $_GET['notice'] : 0;
-	
-	$queryDetails = "pageSize=$pageSize&currentPage=$currentPage";
-	
+	$pageNotice = (isset($_GET['notice'])) ? $_GET['notice'] : 0;		
 	$listCount = 0;
 
 	$endpointAssociationList = $ipskISEDB->getEndPointAssociationList($_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id'], $_SESSION['portalAuthorization']['viewall'], $_SESSION['portalAuthorization']['viewallDn']);
+	$pageEnd = $endpointAssociationList['count'];
 
 	if($endpointAssociationList){
-		$pageData['endpointAssociationList'] .= '<table class="table table-hover"><thead><tr><th scope="col"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" base-value="1" value="0" id="allCheck"><label class="custom-control-label" for="allCheck">MAC Address</label></div></th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
-		
+		$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr><th scope="col"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" base-value="1" value="0" id="allCheck"><label class="custom-control-label" for="allCheck">MAC Address</label></div></th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
 		for($idxId = 0; $idxId < $endpointAssociationList['count']; $idxId++) {
 			$viewEnabled = false;
 			
@@ -133,58 +125,7 @@
 			
 		}
 	}
-	
-	$pageSizes = Array(25, 50, 75, 100);
-	
-	foreach($pageSizes as $entry){
-		if($entry == $pageSize){
-			$currentPageSizeSelection .= '<option value="'.$entry.'" selected>'.$entry.'</option>';
-		}else{
-			$currentPageSizeSelection .= '<option value="'.$entry.'">'.$entry.'</option>';
-		}
-	}
-	
-	$associationList['count'] = $listCount;
-	
-	$totalPages = ceil($associationList['count'] / $pageSize);
-	
-	if($currentPage > $totalPages){
-		$currentPage = $totalPages;
-	}
 		
-	$nextPage = $currentPage + 1;
-	
-	if($currentPage == 0 || $currentPage == 1){
-		$currentPage = 1;
-		
-		$pageStart = 0;
-		$pageEnd = $pageStart + $pageSize;
-		
-		if($pageEnd > $associationList['count']){
-			$pageEnd = $associationList['count'];
-		}
-		
-	}else{
-		$pageStart = ($currentPage - 1) * $pageSize;
-		$pageEnd = $pageStart + $pageSize;
-		
-		$previousPage = $currentPage - 1;
-		
-		$pageData['pageinationOutput'] .= '<a class="action-pageicons mx-1" page="1" href="#"><span data-feather="chevrons-left"></span></a>';
-		$pageData['pageinationOutput'] .= '<a class="action-pageicons mx-1" page="'.$previousPage.'" href="#"><span data-feather="chevron-left"></span></a>';		
-		
-		if($pageEnd > $associationList['count']){
-			$pageEnd = $associationList['count'];
-		}
-	}
-	
-	$pageData['pageinationOutput'] .= "<strong>".$currentPage."</strong>";
-	
-	if($currentPage != $totalPages && $totalPages != 0){
-		$pageData['pageinationOutput'] .= '<a class="action-pageicons mx-1" page="'.$nextPage.'" href="#"><span data-feather="chevron-right"></span></a>';
-		$pageData['pageinationOutput'] .= '<a class="action-pageicons mx-1" page="'.$totalPages.'" href="#"><span data-feather="chevrons-right"></span></a>';
-	}
-	
 	for($assocId = $pageStart;$assocId < $pageEnd; $assocId++){
 		$pageData['endpointAssociationList'] .= '<tr>';
 		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['macAddress'].'</td>';
@@ -286,16 +227,6 @@
 					<div class="row">
 						<div class="col"><hr></div>
 					</div>
-					<div class="row">
-						<div class="col-4">
-							<label class="font-weight-bold" for="pageSize">Items per Page:</label>
-							<select id="pageSize">$currentPageSizeSelection</select>
-						</div>
-						<div class="col text-center"><strong>Total Items: ({$associationList['count']})  Total Pages: $totalPages</strong></div>
-						<div class="col-4 text-right">
-							{$pageData['pageinationOutput']}
-						</div>
-					</div>
 				</div>
 				<div class="col-sm"></div>
 			</div>
@@ -306,7 +237,10 @@
 	</div>
   <div id="popupcontent"></div>
   </body>
+  <!-- Javascript DataTables -->
   <script type="text/javascript" src="scripts/jquery.min.js"></script>
+  <link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
+  <script type="text/javascript" src="scripts/jquery.dataTables.min.js"></script>
   <script type="text/javascript" src="scripts/feather.min.js"></script>
   <script type="text/javascript" src="scripts/popper.min.js"></script>
   <script type="text/javascript" src="scripts/bootstrap.min.js"></script>
@@ -321,7 +255,7 @@
 	
 	$(".action-tableicons").click(function(event) {
 		$.ajax({
-			url: "/" + $(this).attr('module') + ".php?portalId=$portalId&$queryDetails",
+			url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
 			
 			data: {
 				id: $(this).attr('row-id')
@@ -337,10 +271,6 @@
 		event.preventDefault();
 	});
 	
-	$(".action-pageicons").click(function(event) {
-		window.location.href = "/manage.php?portalId=$portalId&pageSize=" + $("#pageSize").val() + "&currentPage=" + $(this).attr("page");
-	});
-	
 	$("#createAssoc").click(function() {
 		window.location.href = "/sponsor.php?portalId=$portalId";
 	});
@@ -351,10 +281,11 @@
 	
 	$("#manageAssoc").click(function() {
 		window.location.href = "/manage.php?portalId=$portalId";
-	});
-	
-	$("#pageSize").change(function() {
-		window.location.href = "/manage.php?portalId=$portalId&pageSize=" + $(this).val();
+		
+		// Comment out if you want to clear table state when pressing manage associations 
+		
+		//var table = $('#endpoint-table').DataTable();
+		//table.state.clear();
 	});
 		
 	$("#signOut").click(function(event) {
@@ -370,6 +301,8 @@
 				window.location = "/index.php?portalId=$portalId";
 			}
 		});
+		var table = $('#endpoint-table').DataTable();
+		table.state.clear();
 		
 		event.preventDefault();
 	});
@@ -432,7 +365,7 @@
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId&$queryDetails",
+				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
 
 				data: formData,
 				processData: false,
@@ -447,6 +380,14 @@
 
 		event.preventDefault();
 	});
+
+	$(document).ready( function makeDataTable() {
+		$("#endpoint-table").DataTable({
+			"paging": true,
+			"stateSave": true,
+			"lengthMenu": [ [5,15, 30, 45, 60, -1], [5,15, 30, 45, 60, "All"] ]
+		});
+	} );
 
 	</script>
 </html>
