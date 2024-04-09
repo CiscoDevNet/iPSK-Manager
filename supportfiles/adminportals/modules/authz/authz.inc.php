@@ -29,16 +29,15 @@
 </div>
 </div>
 <div class="row">
-	<div class="col-1 text-danger">Actions:</div>
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-3"><a id="addAuthZTemp" module="authz" sub-module="add" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add Authorization Template</a></div>
+	<div class="col-3"><a id="addAuthZTemp" module="authz" sub-module="add" class="btn btn-primary nav-link custom-link text-white" href="#" role="button">Add Authorization Template</a></div>
 	<div class="col-9"></div>
 </div>
 <div class="row">
 	<div class="col">
-		<hr>
+		<br />
 	</div>
 </div>
 <table class="table table-hover">

@@ -30,16 +30,15 @@
 	<div class="col-12"><h6 class="text-center">Manage iPSK Wireless SSIDs to Add, View, Edit, and/or Delete</h6><div class="text-center">Wireless SSIDs are used in email communications when an endpoint is Enrolled in the iPSK Management Database.</div></div>
 </div>
 <div class="row">
-	<div class="col-1 text-danger">Actions:</div>
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-2"><a id="addWirelessNetwork" module="wireless" sub-module="add" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add Wireless Network</a></div>
-	<div class="col-11"></div>
+	<div class="col-3"><a id="addWirelessNetwork" module="wireless" sub-module="add" class="btn btn-primary nav-link custom-link text-white" href="#" role="button">Add Wireless Network</a></div>
+	<div class="col-10"></div>
 </div>
 <div class="row">
 	<div class="col">
-		<hr>
+		<br />
 	</div>
 </div>
 <table class="table table-hover">

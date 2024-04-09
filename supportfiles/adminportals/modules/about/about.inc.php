@@ -54,7 +54,7 @@
 <div class="row">
 	<div class="col-6 text-center"><h5>License Information</h5><a target="new" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a>
 	<textarea class="form-control" style="min-width: 100%; min-height: 450px;" readonly>
-     Copyright 2021 Cisco Systems, Inc. or its affiliates
+     Copyright 2024 Cisco Systems, Inc. or its affiliates
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

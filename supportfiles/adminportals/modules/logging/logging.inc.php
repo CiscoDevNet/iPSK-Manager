@@ -27,16 +27,8 @@
 	<div class="col-12"><h1 class="text-center">Logging</h1></div>
 </div>
 <div class="row">
-	<div class="col-1 text-danger">Actions:</div>
-	<div class="col"><hr></div>
-</div>
-<div class="row menubar">
-	<div class="col-2">No Actions</div>
-	<div class="col-11"></div>
-</div>
-<div class="row">
 	<div class="col">
-		<hr>
+		<br />
 	</div>
 </div>
 <table class="table table-hover">

@@ -20,13 +20,6 @@
 	
 	$actionRowData = "";
 	$pageData['endpointAssociationList'] = '';
-	$pageData['pageinationOutput'] = '';
-	$totalPages = 0;
-	$currentPage = 0;
-	$currentPageSizeSelection = "";
-	
-	$pageSize = (isset($_GET['pageSize'])) ? $_GET['pageSize'] : 25;
-	$currentPage = (isset($_GET['currentPage'])) ? $_GET['currentPage'] : 1;
 	
 	$associationList = $ipskISEDB->getEndPointAssociations();
 	$pageStart = 0;
@@ -35,7 +28,7 @@
 	if($associationList){
 		if($associationList['count'] > 0){
 
-			$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr><th scope="col">MAC Address</th><th scope="col">iPSK Endpoint Grouping</th><th scope="col">Expiration Date</th><th style="display:none;">Full Name</th><th style="display:none;">Email</th><th style="display:none;">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
+			$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr id="endpoint-table-filter"><th scope="col">MAC Address</th><th scope="col">iPSK Endpoint Grouping</th><th scope="col">Expiration Date</th><th style="display:none;">Full Name</th><th style="display:none;">Email</th><th style="display:none;">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr><tr id="endpoint-table-header"><th scope="col">MAC Address</th><th scope="col">iPSK Endpoint Grouping</th><th scope="col">Expiration Date</th><th style="display:none;">Full Name</th><th style="display:none;">Email</th><th style="display:none;">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
 			
 			for($idxId = $pageStart; $idxId < $pageEnd; $idxId++) {
 							
@@ -87,13 +80,12 @@
 	<div class="col-12"><h6 class="text-center">Manage iPSK Endpoints to Add, View, Edit, and/or Delete</h6></div>
 </div>
 <div class="row">
-	<div class="col-1 text-danger">Actions:</div>
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-2"><a id="newEndpoint" module="endpoints" sub-module="add" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add Endpoint</a></div>
-	<div class="col-2"><a id="bulkEndpoint" module="endpoints" sub-module="bulk" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add Bulk Endpoints</a></div>
-	<div class="col-8"></div>
+	<div class="col-2"><a id="newEndpoint" module="endpoints" sub-module="add" class="btn btn-primary nav-link custom-link text-white" href="#" role="button">Add Endpoint</a></div>
+	<div class="col-3"><a id="bulkEndpoint" module="endpoints" sub-module="bulk" class="btn btn-primary nav-link custom-link text-white" href="#" role="button">Add Bulk Endpoints</a></div>
+	<div class="col-7"></div>
 </div>
 <div class="row">
 	<div class="col">
@@ -106,56 +98,9 @@
 </div>
 <div id="popupcontent"></div>
 
-
-<!-- Javascript DataTables -->
-<link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
-<script type="text/javascript" src="/scripts/jquery.dataTables.min.js"></script>
-
 <script>
 	$(function() {	
 		feather.replace()
-	});
-	
-	$(".action-pageicons").click(function(event) {
-		
-		$.ajax({
-			url: "ajax/getmodule.php?pageSize=" + $("#pageSize").val() + "&currentPage=" + $(this).attr("page"),
-			
-			data: {
-				module: $(this).attr('module')
-			},
-			type: "POST",
-			dataType: "html",
-			success: function (data) {
-				$('#mainContent').html(data);
-			},
-			error: function (xhr, status) {
-				$('#mainContent').html("<h6 class=\"text-center\"><span class=\"text-danger\">Error Loading Selection:</span>  Verify the installation/configuration and/or contact your system administrator!</h6>");
-			}
-		});
-		
-		event.preventDefault();
-	
-	});
-	
-	$("#pageSize").change(function() {
-		
-		$.ajax({
-			url: "ajax/getmodule.php?pageSize=" + $(this).val(),
-			
-			data: {
-				module: $(this).attr('module')
-			},
-			type: "POST",
-			dataType: "html",
-			success: function (data) {
-				$('#mainContent').html(data);
-			},
-			error: function (xhr, status) {
-				$('#mainContent').html("<h6 class=\"text-center\"><span class=\"text-danger\">Error Loading Selection:</span>  Verify the installation/configuration and/or contact your system administrator!</h6>");
-			}
-		});
-		
 	});
 	
 	$(".epg-tableicons").click(function(event) {
@@ -222,10 +167,42 @@
 	});
 
 	$(document).ready( function makeDataTable() {
+		$('#endpoint-table thead #endpoint-table-filter th').each( function () {
+        var title = $('#endpoint-table thead #endpoint-table-header th').eq( $(this).index() ).text();
+		if (/^(View|Actions)$/.test(title)) {
+			$(this).html('&nbsp;');
+		} else {
+			$(this).html('<input type="text" placeholder="Filter '+title+'" />');
+		}
+    	} );
+
+		$("input[placeholder]").each(function () {
+        	$(this).attr('size', $(this).attr('placeholder').length);
+    	});
+		
 		$("#endpoint-table").DataTable({
 			"paging": true,
-			"lengthMenu": [ [15, 30, 45, 60, -1], [15, 30, 45, 60, "All"] ]
+			"stateSave": true,
+			"lengthMenu": [ [15, 30, 45, 60, -1], [15, 30, 45, 60, "All"] ],
+			"stateLoadParams": function(settings, data) {
+  				for (i = 0; i < data.columns["length"]; i++) {
+    				var col_search_val = data.columns[i].search.search;
+    				if (col_search_val != "") {
+      					$("input", $("#endpoint-table thead #endpoint-table-filter th")[i]).val(col_search_val);
+    				}
+  				}
+			}
 		});
+
+		var table = $("#endpoint-table").DataTable();
+		$("#endpoint-table thead #endpoint-table-filter input").on( 'keyup change', function () {
+        table
+            .column( $(this).parent().index()+':visible' )
+            .search( this.value )
+            .draw();
+    } );
+
+
 	} );
 
 </script>

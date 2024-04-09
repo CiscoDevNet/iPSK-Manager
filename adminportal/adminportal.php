@@ -216,4 +216,19 @@ HTML;
     <script type="text/javascript" src="scripts/chart.min.js"></script>
 	<script type="text/javascript" src="scripts/clipboard.min.js"></script>
 	<script type="text/javascript" src="scripts/ipsk-adminportal-v1.js"></script>
+	<link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
+	<script type="text/javascript" src="/scripts/jquery.dataTables.min.js"></script>
+	<script>
+    $(document).ready(function () {
+		// Clear Datatable Filters On Reload Or Page Change
+    	$('.nav-link').click(function () {
+			var table = $('#endpoint-table').DataTable();
+			table.state.clear();
+    	});
+		$(window).on('beforeunload', function() {
+			var table = $('#endpoint-table').DataTable();
+			table.state.clear();
+    	});
+    });
+  </script>
 </html>

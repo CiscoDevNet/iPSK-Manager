@@ -30,15 +30,16 @@
 	<div class="col-12"><h6 class="text-center">Manage iPSK Internal Users and Group Membership</h6></div>
 </div>
 <div class="row">
-	<div class="col-1 text-danger">Actions:</div>
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-2"><a id="addGroup" module="internalusers" sub-module="add" class="nav-link custom-link" href="#"><span data-feather="plus-circle"></span>Add User</a></div>
+	<div class="col-2"><a id="addGroup" module="internalusers" sub-module="add" class="btn btn-primary nav-link custom-link text-white" href="#" role="button">Add User</a></div>
 	<div class="col"></div>
 </div>
 <div class="row">
-	<div class="col"><hr></div>
+	<div class="col">
+		<br/>
+	</div>
 </div>
 <table class="table table-hover">
   <thead>
