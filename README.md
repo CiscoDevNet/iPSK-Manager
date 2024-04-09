@@ -1,3 +1,6 @@
+# DO NOT USE
+# DEVELOPMENT VERSION FOR SAML IMPLEMENTATION AND MAY NOT WORK AT ALL
+
 # Identity PSK Manager for Cisco ISE
 
 *Identity Pre-Shared Key(PSK) Manager that simplifies the management and provisioning of unique PSK to devices within your environment.  This is a standalone application which integrates with Cisco ISE through an ODBC Connection and Cisco ISE's APIs.*
