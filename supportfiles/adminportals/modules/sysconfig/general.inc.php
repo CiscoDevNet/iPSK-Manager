@@ -45,6 +45,66 @@ $alphabetArray = Array(1=>"abcdefghijkmnopqrstuvwxyz", 2=>"ABCDEFGHJKLMNPQRSTUVW
 			<input type="checkbox" class="custom-control-input checkbox-update generaltab" base-value="1" value="{$adminPortalSettings['redirect-on-hostname-match-value']}" id="redirectOnHostname"{$adminPortalSettings['redirect-on-hostname-match']}>
 			<label class="custom-control-label" for="redirectOnHostname">Redirect to Portal on Hostname Match</label>
 		</div>
+		<div class="row">
+			<div class="col text-center text-primary"><br /></div>
+		</div>
+		<div class="row">
+			<div class="col text-center text-primary"><h5>SAML Settings</h5></div>
+		</div>
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input checkbox-update generaltab" base-value="1" value="{$samlSettings['enabled-value']}" id="samlEnabled"{$samlSettings['enabled']}>
+			<label class="custom-control-label" for="samlEnabled">Enable SAML Authentication</label>
+		</div>
+		
+HTML;
+				
+
+
+
+				if($ipskISEDB->getLdapDirectoryCount() > 0){
+					$ldapListing = $ipskISEDB->getLdapDirectoryListing();
+					print <<< HTML
+					<div class="custom-control custom-checkbox">
+					<input type="checkbox" class="custom-control-input checkbox-update generaltab" base-value="1" value="{$samlSettings['ldap-source-value']}" id="samlLdapSource"{$samlSettings['ldap-source']}>
+					<label class="custom-control-label" for="samlLdapSource">Use LDAP as SAML User Source</label>
+					</div>
+					<br />
+					<div class="form-group font-weight-bold">
+					<label class="font-weight-bold" for="samlLdapSourceDirectory">Select LDAP Server For SAML (LDAP as SAML User Source Must Be Checked):</label>		
+					<select class="form-control shadow generaltab" id="samlLdapSourceDirectory">
+					HTML;
+					while($row = $ldapListing->fetch_assoc()){
+						if($row['id'] == $samlSettings['ldap-source-directory']){
+							print "<option value=\"".$row['id']."\" selected>".$row['adConnectionName']."</option>";
+						}else{
+							print "<option value=\"".$row['id']."\">".$row['adConnectionName']."</option>";
+						}
+					}
+					print <<< HTML
+
+					</select>
+					</div>
+					HTML;
+					
+					
+				}
+						
+			
+	print <<< HTML
+		
+
+
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input checkbox-update generaltab" base-value="1" value="{$samlSettings['headers-value']}" id="samlHeaders"{$samlSettings['headers']}>
+			<label class="custom-control-label" for="samlHeaders">Use Headers Not Enviroment Variables For SAML</label>
+		</div>
+		<div class="row">
+			<div class="col text-center text-primary"><br /></div>
+		</div>
+		<label class="font-weight-bold" for="samlUsernameVariable">Override SAML Username Attribute Name (Defaults to REMOTE_USER):</label>
+		<div class="form-group input-group-sm font-weight-bold">
+			<input type="text" class="form-control shadow generaltab" id="samlUsernameVariable" value="{$samlSettings['usernamefield']}">
+		</div>
 		<button id="updateGeneral" module="sysconfig" sub-module="update" module-action="general" type="submit" class="btn btn-primary shadow" disabled>Update Settings</button>
 	</div>
 	<div class="col m-3 shadow border border-secondary p-2">

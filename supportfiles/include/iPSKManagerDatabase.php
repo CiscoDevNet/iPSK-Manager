@@ -499,7 +499,7 @@
 			}
 		}
 		
-		function authenticateInternalUser($username,$password){
+		function authenticateInternalUser($username,$password,$saml){
 			
 			$authQuery = sprintf("SELECT password FROM `internalUsers` WHERE userName = '%s' LIMIT 1", $this->dbConnection->real_escape_string($username));
 			
@@ -509,7 +509,11 @@
 				if($authQueryResult->num_rows > 0){
 					$user = $authQueryResult->fetch_assoc();
 					
-					if(password_verify($password,$user['password'])){
+					if($saml == false) {
+						$passwordVerify = password_verify($password,$user['password']);
+					}
+
+					if($passwordVerify == true || $saml == true){
 						
 						$userQuery = sprintf("SELECT `id`,`userName`,`fullName`,`description`, `email`, `dn`,`sid`,`createdBy`,`createdDate` FROM `internalUsers` WHERE userName = '%s' LIMIT 1", $this->dbConnection->real_escape_string($username));
 			

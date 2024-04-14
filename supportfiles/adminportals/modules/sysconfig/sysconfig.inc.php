@@ -27,6 +27,7 @@
 	$iseMNTSettings = $ipskISEDB->getGlobalClassSetting("ise-mnt-credentials");
 	$smtpSettings = $ipskISEDB->getGlobalClassSetting("smtp-settings");
 	$advancedSettings = $ipskISEDB->getGlobalClassSetting("advanced-settings");
+	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
 	$hostnameListing = $ipskISEDB->getHostnameList();	
 	$portsAndProtocols = $ipskISEDB->getTcpPortList();
 	
@@ -95,7 +96,46 @@
 		$adminPortalSettings['redirect-on-hostname-match'] = "";
 		$adminPortalSettings['redirect-on-hostname-match-value'] = "0";
 	}
-	
+
+	if(isset($samlSettings['ldap-source'])){
+		if($samlSettings['ldap-source'] == 1){
+			$samlSettings['ldap-source'] = " checked";
+			$samlSettings['ldap-source-value'] = "1";
+		}else{
+			$samlSettings['ldap-source'] = "";
+			$samlSettings['ldap-source-value'] = "0";
+		}
+	}else{
+		$samlSettings['ldap-source'] = "";
+		$samlSettings['ldap-source-value'] = "0";
+	}
+
+	if(isset($samlSettings['enabled'])){
+		if($samlSettings['enabled'] == 1){
+			$samlSettings['enabled'] = " checked";
+			$samlSettings['enabled-value'] = "1";
+		}else{
+			$samlSettings['enabled'] = "";
+			$samlSettings['enabled-value'] = "0";
+		}
+	}else{
+		$samlSettings['enabled'] = "";
+		$samlSettings['enabled-value'] = "0";
+	}
+
+	if(isset($samlSettings['headers'])){
+		if($samlSettings['headers'] == 1){
+			$samlSettings['headers'] = " checked";
+			$samlSettings['headers-value'] = "1";
+		}else{
+			$samlSettings['headers'] = "";
+			$samlSettings['headers-value'] = "0";
+		}
+	}else{
+		$samlSettings['headers'] = "";
+		$samlSettings['headers-value'] = "0";
+	}
+
 	if(isset($iseERSSettings['enabled'])){
 		if($iseERSSettings['enabled'] == 1){
 			$iseERSSettings['enabled-check'] = " checked";
@@ -289,7 +329,12 @@
 				'module-action': $(this).attr('module-action'),
 				adminPortalHostname: $("#adminPortalHostname").val(),
 				'strict-hostname': $("#strictHostname").val(),
-				'redirect-hostname': $("#redirectOnHostname").val()				
+				'redirect-hostname': $("#redirectOnHostname").val(),
+				'samlEnabled': $("#samlEnabled").val(),
+				'samlLdapSource': $("#samlLdapSource").val(),
+				'samlHeaders': $("#samlHeaders").val(),
+				'samlUsernameVariable': $("#samlUsernameVariable").val(),
+				'samlLdapSourceDirectory': $('#samlLdapSourceDirectory').val()
 			},
 			type: "POST",
 			dataType: "text",

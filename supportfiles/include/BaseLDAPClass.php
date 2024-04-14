@@ -116,7 +116,7 @@
 			}
 			
 		}
-		function authenticateUser($username, $password){
+		function authenticateUser($username, $password, $saml){
 
 			// TO DISABLE SERVER NAME IN SSL CERTIFICATE CHECK UNCOMMENT LINE BELOW
 			//ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
@@ -131,7 +131,7 @@
 			ldap_set_option($ldapConnection, LDAP_OPT_REFERRALS, 0);
 			
 			$ldapBind = @ldap_bind($ldapConnection, $this->ldapUsername, $this->ldapPassword);
-			
+
 			if($ldapBind){
 				
 				if(strpos($username,"@")){
@@ -147,11 +147,16 @@
 				$result = ldap_search($ldapConnection, $this->ldapBaseDN, $filter, $attributes);
 
 				$entries = ldap_get_entries($ldapConnection, $result);  
-						
+
 				if($entries['count'] == 1){
 					$userDN = $entries[0]['dn'];
-					$ldapBind = @ldap_bind($ldapConnection, $userDN, $password);
-					
+					if ($saml == false) {
+						$ldapBind = @ldap_bind($ldapConnection, $userDN, $password);
+					}
+					else {
+						$ldapBind == true;
+					}
+
 					if($ldapBind){
 						if($this->iPSKManagerClass){
 							//LOG::Entry

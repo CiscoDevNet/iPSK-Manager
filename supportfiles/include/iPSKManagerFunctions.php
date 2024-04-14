@@ -133,7 +133,8 @@
 			'adminPortalHostname',
 			'smtpHost',
 			'smtpUsername',
-			'smtpFromAddress',	
+			'smtpFromAddress',
+			'samlUsernameVariable',	
 		];
 
 		$arguments = array(
@@ -347,7 +348,14 @@
 			'complexNumbers'	=>	FILTER_VALIDATE_INT,
 			'complexSpecial'	=>	FILTER_VALIDATE_INT,
 			'complexSimilar'	=>	FILTER_VALIDATE_INT,
-			'aupAccept'	=>	FILTER_VALIDATE_BOOLEAN
+			'aupAccept'	=>	FILTER_VALIDATE_BOOLEAN,
+			'samlEnabled' => FILTER_VALIDATE_BOOLEAN,
+			'samlLdapSource' => FILTER_VALIDATE_BOOLEAN,
+			'samlHeaders' => FILTER_VALIDATE_BOOLEAN,
+			'samlUsernameVariable'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  ),
+			'samlLdapSourceDirectory' => FILTER_VALIDATE_INT,
 		);
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);

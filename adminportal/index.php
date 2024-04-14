@@ -52,6 +52,7 @@
 	$idxID = 0;
 	
 	$adminPortalSettings = $ipskISEDB->getGlobalClassSetting("admin-portal");
+	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
 	
 	//LOG::Entry
 	$logData = $ipskISEDB->generateLogData(Array("adminPortalSettings"=>$adminPortalSettings));
@@ -99,7 +100,10 @@
 		}
 	}
 	
-    if(isset($_GET['error'])){
+    if (!isset($_GET['error']) && $samlSettings['enabled'] == true) {
+		header("Location: /login.php");
+		die();
+	} elseif(isset($_GET['error'])) {
 ?><!doctype html>
 <html lang="en">
   <head>

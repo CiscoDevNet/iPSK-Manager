@@ -1,5 +1,4 @@
-# DO NOT USE
-# DEVELOPMENT VERSION FOR SAML IMPLEMENTATION AND MAY NOT WORK AT ALL
+# DEVELOPMENT VERSION FOR SAML IMPLEMENTATION. MAY NOT WORK.
 
 # Identity PSK Manager for Cisco ISE
 
@@ -26,6 +25,7 @@ Identity PSK Manager enables the following features/functionality:
 - Cisco ISE Monitoring API Integration
 - Internal iPSK Identity Store for Management of Administration & Portal Access
 - LDAP & Active Directory Authenication Capable
+- SAML Authentication Preview (admin portal only)
 - Customizable Authorization Profiles (Unique or Random PSK on a per Device or User basis)
 - Customizable Endpoint Groups
 - Customizable Portal Groups
@@ -468,10 +468,25 @@ Lastly, restart apache service:
 ```
 admin@ubuntu:~$ sudo service apache2 restart
 ```
+## (Preview) SAML Authentication Support
+
+A preview of SAML authentication is now available for admin portal authentication.  iPSK-Manager does not act as a SAML SP and requires a external SP to interact with your SAML IDP (such as Apache module mod_shib) and after sucessful SAML Authentication Apache set either Apache Enviroment Variable or a Header.  By default Header is disabled and Enviroment Variable used is REMOTE_USER, but can be changed.  Settings for SAML are located in Platform Configuration. 
+
+Users authenticated with SAML still need to be in either the local database or a LDAP database and assigned to groups for Authorization.  For local database users the password does not matter and can be set to any value as users will not use a password.
+
+Items to note:
+- There is no backdoor login support when SAML is enabled.  If you need to gain access to a system with broken SAML authentication edit the DB manually to disable SAML authentication. 
+- SAML only currently works for admin portal logins.
+- Use of headers for SAML authentication verification should be used with caution and protective measures should be made to make sure a user can not inject the header used for SAML authentication.
+
+
+
+
 ## Authors
 
 - Gary Oppel
 - Hosuk Won
+- Nick Ciesinski
 
 ## License
 

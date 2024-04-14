@@ -58,6 +58,27 @@
 	$systemSID = $baseSid."-".$orgSid."-".$systemSid;
 
 	$sanitizedInput = sanitizeGetModuleInput($subModuleRegEx);
+
+	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
+	$samlLogin = (isset($samlSettings['enabled'])) ? $samlSettings['enabled'] : false;
+	$samlUsernameField = ($samlSettings['usernamefield'] != '') ? $samlSettings['usernamefield'] : 'REMOTE_USER';
+	
+	if ($samlLogin == true && $samlSettings['headers'] == true) {
+		$requestHeaders = getallheaders();
+		$samlUsername = (isset($requestHeaders[$samlUsernameField])) ? $requestHeaders[$samlUsernameField] : '';
+		$sanitizedInput["inputUsername"] = $samlUsername;
+		$inputPassword = 'bogus';
+	} elseif ($samlLogin == true) {
+		$samlUsername = (isset($_SERVER[$samlUsernameField])) ? $_SERVER[$samlUsernameField] : '';
+		$sanitizedInput["inputUsername"] = $samlUsername;
+		$inputPassword = 'bogus';
+	}
+
+	if ($samlLogin == true && $samlSettings['ldap-source'] == true) {
+		$sanitizedInput['authDirectory'] = $samlSettings['ldap-source-directory'];
+	} else {
+		$sanitizedInput['authDirectory'] = 0;
+	}
 	
 	//LOG::Entry
 	$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
@@ -66,7 +87,7 @@
 	
 	if($sanitizedInput["inputUsername"] != "" && $inputPassword != "" && is_numeric($sanitizedInput["authDirectory"])){
 		if($sanitizedInput['authDirectory'] == "0"){
-			if($ipskISEDB->authenticateInternalUser($sanitizedInput["inputUsername"], $inputPassword)){
+			if($ipskISEDB->authenticateInternalUser($sanitizedInput["inputUsername"], $inputPassword, $samlLogin)){
 								
 				$authorizedGroups = $ipskISEDB->getPortalAdminGroups();
 				
@@ -130,8 +151,8 @@
 					
 						$authorizedGroups = $ipskISEDB->getPortalAdminGroups();
 
-						$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"], $inputPassword);
-											
+						$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"], $inputPassword, $samlLogin);
+
 						if($validUser){
 							//LOG::Entry
 							$logData = $ipskISEDB->generateLogData(Array("authorizedGroups"=>$authorizedGroups), Array("ldapCreds"=>$ldapCreds), Array("sanitizedInput"=>$sanitizedInput));
