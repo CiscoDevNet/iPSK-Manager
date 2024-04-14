@@ -47,10 +47,31 @@
 	$inputPassword = (isset($_POST['inputPassword'])) ? $_POST['inputPassword'] : '';
 	unset($_POST["inputPassword"]);
 	//END-[DO NOT REMOVE] - REMOVES PASSWORD FROM $_POST
+
+	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
+	$samlLogin = (isset($samlSettings['enabled'])) ? $samlSettings['enabled'] : false;
+	$samlUsernameField = ($samlSettings['usernamefield'] != '') ? $samlSettings['usernamefield'] : 'REMOTE_USER';
+	
+	if ($samlLogin == true && $samlSettings['headers'] == true) {
+		$requestHeaders = getallheaders();
+		$samlUsername = (isset($requestHeaders[$samlUsernameField])) ? $requestHeaders[$samlUsernameField] : '';
+		$sanitizedInput["inputUsername"] = $samlUsername;
+		$inputPassword = 'bogus';
+	} elseif ($samlLogin == true) {
+		$samlUsername = (isset($_SERVER[$samlUsernameField])) ? $_SERVER[$samlUsernameField] : '';
+		$sanitizedInput["inputUsername"] = $samlUsername;
+		$inputPassword = 'bogus';
+	}
+
+	//if ($samlLogin == true && $samlSettings['ldap-source'] == true) {
+	//	$sanitizedInput['authDirectory'] = $samlSettings['ldap-source-directory'];
+	//} else {
+	//	$sanitizedInput['authDirectory'] = 0;
+	//}
 	
 	if($sanitizedInput["inputUsername"] != "" && $inputPassword != ""){
 		if($_SESSION['portalSettings']['authenticationDirectory'] == "0"){
-			if($ipskISEDB->authenticateInternalUser($sanitizedInput["inputUsername"],$inputPassword)){
+			if($ipskISEDB->authenticateInternalUser($sanitizedInput["inputUsername"],$inputPassword,$samlLogin)){
 				$authorizedGroups = $ipskISEDB->getPortalAuthGroups($_SESSION['portalSettings']['id']);
 				
 				//LOG::Entry
@@ -153,7 +174,7 @@
 					unset($ldapCreds['adPassword']);
 					//END-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds					
 					
-					$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"], $inputPassword);
+					$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"], $inputPassword, $samlLogin);
 					
 					$matchedGroupCount = 0;
 					

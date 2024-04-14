@@ -470,17 +470,13 @@ admin@ubuntu:~$ sudo service apache2 restart
 ```
 ## (Preview) SAML Authentication Support
 
-A preview of SAML authentication is now available for admin portal authentication.  iPSK-Manager does not act as a SAML SP and requires a external SP to interact with your SAML IDP (such as Apache module mod_shib) and after sucessful SAML Authentication Apache set either Apache Enviroment Variable or a Header.  By default Header is disabled and Enviroment Variable used is REMOTE_USER, but can be changed.  Settings for SAML are located in Platform Configuration. 
+A preview of SAML authentication is now available for authentication in both admin, sponsor, and captive portals. iPSK-Manager does not act as a SAML SP and requires an external SP to interact with your SAML IDP (such as the Apache module mod_shib), and after successful SAML Authentication, Apache sets either an Apache Environment Variable or a Header. By default, the Header option is disabled, and the Environment Variable used is REMOTE_USER, but it can be changed. Settings for SAML are located in Platform Configuration.
 
-Users authenticated with SAML still need to be in either the local database or a LDAP database and assigned to groups for Authorization.  For local database users the password does not matter and can be set to any value as users will not use a password.
+Users authenticated with SAML still need to be in either the internal database or an LDAP database and assigned to groups for Authorization. For internal database users, the password does not matter and can be set to any value as users will never use a password. The user store for captive and sponsor portals Authorization is based on the portal configuration. For admin portal Authorization, it defaults to the internal database. To use LDAP Authorization for the admin portal, enable the setting in Platform Settings and choose which LDAP directory to use; only one LDAP directory is supported for admin portal LDAP Authorization.
 
 Items to note:
 - There is no backdoor login support when SAML is enabled.  If you need to gain access to a system with broken SAML authentication edit the DB manually to disable SAML authentication. 
-- SAML only currently works for admin portal logins.
 - Use of headers for SAML authentication verification should be used with caution and protective measures should be made to make sure a user can not inject the header used for SAML authentication.
-
-
-
 
 ## Authors
 

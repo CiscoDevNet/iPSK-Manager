@@ -58,15 +58,12 @@ $alphabetArray = Array(1=>"abcdefghijkmnopqrstuvwxyz", 2=>"ABCDEFGHJKLMNPQRSTUVW
 		
 HTML;
 				
-
-
-
 				if($ipskISEDB->getLdapDirectoryCount() > 0){
 					$ldapListing = $ipskISEDB->getLdapDirectoryListing();
 					print <<< HTML
 					<div class="custom-control custom-checkbox">
 					<input type="checkbox" class="custom-control-input checkbox-update generaltab" base-value="1" value="{$samlSettings['ldap-source-value']}" id="samlLdapSource"{$samlSettings['ldap-source']}>
-					<label class="custom-control-label" for="samlLdapSource">Use LDAP as SAML User Source</label>
+					<label class="custom-control-label" for="samlLdapSource">Use LDAP as SAML User Source For Admin Portal (Other Portals Use Portal Settings)</label>
 					</div>
 					<br />
 					<div class="form-group font-weight-bold">
@@ -84,16 +81,10 @@ HTML;
 
 					</select>
 					</div>
-					HTML;
-					
-					
+					HTML;	
 				}
 						
-			
 	print <<< HTML
-		
-
-
 		<div class="custom-control custom-checkbox">
 			<input type="checkbox" class="custom-control-input checkbox-update generaltab" base-value="1" value="{$samlSettings['headers-value']}" id="samlHeaders"{$samlSettings['headers']}>
 			<label class="custom-control-label" for="samlHeaders">Use Headers Not Enviroment Variables For SAML</label>
