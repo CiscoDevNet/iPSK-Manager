@@ -116,7 +116,7 @@
 			}
 			
 		}
-		function authenticateUser($username, $password, $saml){
+		function authenticateUser($username, $password, $saml = false){
 
 			// TO DISABLE SERVER NAME IN SSL CERTIFICATE CHECK UNCOMMENT LINE BELOW
 			//ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);

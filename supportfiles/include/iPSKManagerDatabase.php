@@ -499,7 +499,7 @@
 			}
 		}
 		
-		function authenticateInternalUser($username,$password,$saml){
+		function authenticateInternalUser($username,$password,$saml = false){
 			
 			$authQuery = sprintf("SELECT password FROM `internalUsers` WHERE userName = '%s' LIMIT 1", $this->dbConnection->real_escape_string($username));
 			
