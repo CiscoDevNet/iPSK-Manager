@@ -40,7 +40,6 @@
 	$listCount = 0;
 
 	$endpointAssociationList = $ipskISEDB->getEndPointAssociationList($_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id'], $_SESSION['portalAuthorization']['viewall'], $_SESSION['portalAuthorization']['viewallDn']);
-	$pageEnd = $endpointAssociationList['count'];
 
 	if($endpointAssociationList){
 		$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr><th scope="col"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" base-value="1" value="0" id="allCheck"><label class="custom-control-label" for="allCheck">MAC Address</label></div></th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
@@ -125,8 +124,8 @@
 			
 		}
 	}
-		
-	for($assocId = $pageStart;$assocId < $pageEnd; $assocId++){
+	
+	for($assocId = $pageStart;$assocId < $listCount; $assocId++){
 		$pageData['endpointAssociationList'] .= '<tr>';
 		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['macAddress'].'</td>';
 		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['epGroupName'].'</td>';
