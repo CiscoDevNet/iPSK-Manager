@@ -62,12 +62,6 @@
 		$sanitizedInput["inputUsername"] = $samlUsername;
 		$inputPassword = 'bogus';
 	}
-
-	//if ($samlLogin == true && $samlSettings['ldap-source'] == true) {
-	//	$sanitizedInput['authDirectory'] = $samlSettings['ldap-source-directory'];
-	//} else {
-	//	$sanitizedInput['authDirectory'] = 0;
-	//}
 	
 	if($sanitizedInput["inputUsername"] != "" && $inputPassword != ""){
 		if($_SESSION['portalSettings']['authenticationDirectory'] == "0"){
