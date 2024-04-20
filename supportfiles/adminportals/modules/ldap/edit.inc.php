@@ -61,7 +61,7 @@ $htmlbody = <<<HTML
 				<div class="form-check">
 					<input type="checkbox" class="form-check-input checkbox-update" name="adSecure" base-value="1" value="{$ldapServer['adSecure']}" id="adSecure"{$ldapServer['adSecureCheck']}>
 					<label class="form-check-label" for="adSecure">Secure LDAP</label>
-					<small id="endpointGroupMembersBlock" class="form-text text-muted">Note: The server name used above must be in the certificate and the Root CA or Server Certificate must be Trusted by this Server for LDAPS.</small>
+					<small id="endpointGroupMembersBlock" class="form-text text-muted">Note: The server name used above must be in the certificate and the Root CA or Server Certificate must be Trusted by this Server for LDAPS unless SSL validation is disabled in platform configuration.</small>
 				</div>
 			</div>
 		</div>

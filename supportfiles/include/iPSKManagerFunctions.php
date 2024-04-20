@@ -356,6 +356,7 @@
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'samlLdapSourceDirectory' => FILTER_VALIDATE_INT,
+			'ldapSSLCheck' => FILTER_VALIDATE_BOOLEAN,
 		);
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);

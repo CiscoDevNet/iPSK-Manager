@@ -38,8 +38,9 @@
 		private $ldapBaseDN;
 		private $ldapsecure = true;
 		private $iPSKManagerClass;
+		private $sslDisableVerify;
 		
-		function __construct($ldapServer = null, $domainName = null, $username = null, $password = null, $baseDN = null, $ldaps = true, $ipskManagerClass = false) {		
+		function __construct($ldapServer = null, $domainName = null, $username = null, $password = null, $baseDN = null, $ldaps = true, $sslCheck = false, $ipskManagerClass = false) {		
 			$this->ldapHost = $ldapServer;
 			$this->ldapDomain = $domainName;
 			$this->ldapUsername = $username;
@@ -47,6 +48,7 @@
 			$this->ldapBaseDN = $baseDN;
 			$this->ldapsecure = $ldaps;
 			$this->iPSKManagerClass = $ipskManagerClass;
+			$this->sslDisableVerify = $sslCheck;
 		}
 		
 		function set_ldapHost($hostname) {
@@ -85,6 +87,10 @@
 			$this->ldapBaseDN = $basedn;
 		}
 		
+		function set_sslCheck($sslCheck) {
+			$this->sslDisableVerify = $sslCheck;
+		}
+
 		function get_baseDN(){
 			return $this->ldapBaseDN;
 		}
@@ -92,11 +98,16 @@
 		function get_LDAPSecure() {
 			return $this->ldapsecure;
 		}
+
+		function get_sslCheck() {
+			return $this->sslDisableVerify;
+		}
 		
 		function testLdapServer(){
 			
-			// TO DISABLE SERVER NAME IN SSL CERTIFICATE CHECK UNCOMMENT LINE BELOW AND IN FUNCTION BELOW
-			//ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
+			if ($this->sslDisableVerify) {
+				ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
+			}
 
 			if($this->ldapsecure){
 				$ldapConnection = ldap_connect("ldaps://".$this->ldapHost);
@@ -118,8 +129,9 @@
 		}
 		function authenticateUser($username, $password, $saml = false){
 
-			// TO DISABLE SERVER NAME IN SSL CERTIFICATE CHECK UNCOMMENT LINE BELOW
-			//ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
+			if ($this->sslDisableVerify) {
+				ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
+			}
 			
 			if($this->ldapsecure){
 				$ldapConnection = ldap_connect("ldaps://".$this->ldapHost);

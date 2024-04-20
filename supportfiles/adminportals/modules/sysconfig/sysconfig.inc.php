@@ -23,6 +23,7 @@
 	$hostnameOutput = "";
 	
 	$adminPortalSettings = $ipskISEDB->getGlobalClassSetting("admin-portal");
+	$ldapSettings = $ipskISEDB->getGlobalClassSetting("ldap-settings");
 	$iseERSSettings = $ipskISEDB->getGlobalClassSetting("ise-ers-credentials");
 	$iseMNTSettings = $ipskISEDB->getGlobalClassSetting("ise-mnt-credentials");
 	$smtpSettings = $ipskISEDB->getGlobalClassSetting("smtp-settings");
@@ -95,6 +96,19 @@
 	}else{
 		$adminPortalSettings['redirect-on-hostname-match'] = "";
 		$adminPortalSettings['redirect-on-hostname-match-value'] = "0";
+	}
+
+	if(isset($ldapSettings['ldap-ssl-check'])){
+		if($ldapSettings['ldap-ssl-check'] == 1){
+			$ldapSettings['ldap-ssl-check'] = " checked";
+			$ldapSettings['ldap-ssl-check-value'] = "1";
+		}else{
+			$ldapSettings['ldap-ssl-check'] = "";
+			$ldapSettings['ldap-ssl-check-value'] = "0";
+		}
+	}else{
+		$ldapSettings['ldap-ssl-check'] = "";
+		$ldapSettings['ldap-ssl-check-value'] = "0";
 	}
 
 	if(isset($samlSettings['ldap-source'])){
@@ -330,6 +344,7 @@
 				adminPortalHostname: $("#adminPortalHostname").val(),
 				'strict-hostname': $("#strictHostname").val(),
 				'redirect-hostname': $("#redirectOnHostname").val(),
+				'ldapSSLCheck': $("#ldapSSLCheck").val(),
 				'samlEnabled': $("#samlEnabled").val(),
 				'samlLdapSource': $("#samlLdapSource").val(),
 				'samlHeaders': $("#samlHeaders").val(),

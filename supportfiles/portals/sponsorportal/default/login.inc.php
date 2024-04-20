@@ -157,12 +157,13 @@
 			if(is_numeric($_SESSION['portalSettings']['id'])){
 	
 				$ldapCreds = $ipskISEDB->getLdapSettings($_SESSION['portalSettings']['authenticationDirectory']);
-				
+				$ldapSettings = $ipskISEDB->getGlobalClassSetting("ldap-settings");
+
 				if($ldapCreds){
 				
 					$authorizedGroups = $ipskISEDB->getPortalAuthGroups($_SESSION['portalSettings']['id']);
 					
-					$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ipskISEDB);
+					$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ipskISEDB);
 
 					//START-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
 					unset($ldapCreds['adPassword']);

@@ -142,9 +142,10 @@
 			if(is_numeric($sanitizedInput["authDirectory"])){
 				if($ipskISEDB->getLdapDirectoryCount() > 0){
 					$ldapCreds = $ipskISEDB->getLdapSettings($sanitizedInput["authDirectory"]);
-					
+					$ldapSettings = $ipskISEDB->getGlobalClassSetting("ldap-settings");
+
 					if($ldapCreds){
-						$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ipskISEDB);
+						$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ipskISEDB);
 						//START-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
 						unset($ldapCreds['adPassword']);
 						//END-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
