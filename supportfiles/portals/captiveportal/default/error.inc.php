@@ -100,7 +100,7 @@
 			<div class="mt-2 mb-4">
 				<img src="images/iPSK-Logo.svg" width="108" height="57" />
 			</div>
-			<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
+			<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
 			<div class="alert alert-danger shadow" role="alert"><h6>{$pageData['errorMessage']}</h6></div>
 			<a class="btn btn-primary shadow" href="$homeUrl" type="button">Login Page</a>
 		</div>

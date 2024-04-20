@@ -167,8 +167,8 @@
 				<div class="mt-2 mb-4">
 					<img src="images/iPSK-Logo.svg" width="108" height="57" />
 				</div>
-				<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
-				<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
+				<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
+				<h2 class="h6 mt-2 mb-3 fw-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
 				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
 					<div class="row">
 						<div class="col-3">				
@@ -186,21 +186,21 @@
 					</div>
 				</div>
 				
-				<div class="row text-left">
+				<div class="row text-start">
 					<div class="col-2"></div>
 					<div class="col-8 mb-3 mx-auto shadow p-2 bg-white border border-primary">
-						<div class="row m-auto text-left">
+						<div class="row m-auto text-start">
 							{$pageData['createComplete']}
 						</div>
 						<div class="row">
 							<div class="col{$pageData['hidePskFlag']}">
-								<div class="input-group input-group-sm mb-3 shadow copied-popover" data-animation="true" data-container="body" data-trigger="manual" data-toggle="popover" data-placement="top" data-content="Pre Shared Key has been Copied!">
+								<div class="input-group input-group-sm mb-3 shadow copied-popover" data-bs-animation="true" data-bs-container="body" data-bs-trigger="manual" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Pre Shared Key has been Copied!">
 									<div class="input-group-prepend">
-										<span class="input-group-text font-weight-bold shadow" id="basic-addon1">Pre-Shared Key</span>
+										<span class="input-group-text fw-bold shadow" id="basic-addon1">Pre-Shared Key</span>
 									</div>
 									<input type="text" id="presharedKey" class="form-control shadow" process-value="$randomPassword" value="$randomPassword" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true" readonly>
 									<div class="input-group-append">
-										<span class="input-group-text font-weight-bold shadow" id="basic-addon1"><a id="copyPassword" href="#" data-clipboard-target="#presharedKey"><span id="passwordfeather" data-feather="copy"></span></a></span>
+										<span class="input-group-text fw-bold shadow" id="basic-addon1"><a id="copyPassword" href="#" data-clipboard-target="#presharedKey"><span id="passwordfeather" data-feather="copy"></span></a></span>
 									</div>
 								</div>
 								Click on the copy button to copy the Pre Shared Key to your Clipboard.
@@ -228,7 +228,7 @@
   <script type="text/javascript" src="scripts/jquery.min.js"></script>
   <script type="text/javascript" src="scripts/feather.min.js"></script>
   <script type="text/javascript" src="scripts/popper.min.js"></script>
-  <script type="text/javascript" src="scripts/bootstrap.min.js"></script>
+  <script type="text/javascript" src="scripts/bootstrap.bundle.min.js"></script>
   <script type="text/javascript" src="scripts/clipboard.min.js"></script>
   <script type="text/javascript" src="scripts/ipsk-portal-v1.js"></script>
   <script type="text/javascript">

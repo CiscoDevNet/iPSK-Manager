@@ -136,8 +136,8 @@
 				<div class="mt-2 mb-4">
 					<img src="images/iPSK-Logo.svg" width="108" height="57" />
 				</div>
-				<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
-				<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
+				<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
+				<h2 class="h6 mt-2 mb-3 fw-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
 				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
 					<div class="row">
 						<div class="col">				
@@ -145,10 +145,10 @@
 						</div>
 					</div>
 				</div>
-				<div class="col mx-auto mt-2 shadow mx-auto p-2 bg-white border border-primary text-left">
+				<div class="col mx-auto mt-2 shadow mx-auto p-2 bg-white border border-primary text-start">
 							{$pageData['endpointGroupList']}
 							<div class="row">
-								<div class="col pr-0">
+								<div class="col pe-0">
 									<p><small>
 										Maximum access duration:&nbsp;<span id="duration" class="text-danger count">-</span>
 									</small></p>
@@ -159,32 +159,32 @@
 							</div>
 							{$pageData['wirelessSSIDList']}
 				</div>
-				<div class="col mt-2 shadow mx-auto p-2 bg-white border border-primary text-left">
+				<div class="col mt-2 shadow mx-auto p-2 bg-white border border-primary text-start">
 					<h6>Association Details:</h6>
 						<div class="row">
 							<div class="col">
-								<div class="form-group">
+								<div class="mb-3">
 									<label for="macAddress">Endpoint MAC Address</label>
 									<input type="text" class="form-control mt-2 mb-3 shadow user-input form-validation" validation-state="required" validation-minimum-length="17" validation-maximum-length="17" value="{$clientMac}" id="macAddress" name="macAddress" maxlength="17" readonly>
 									<div class="invalid-feedback">Please enter a valid MAC Address</div>
 								</div>
-								<div class="form-group">
+								<div class="mb-3">
 									<label for="endpointDescription">Endpoint Description</label>
 									<input type="text" class="form-control mt-2 mb-3 user-input shadow" value="" name="endpointDescription" placeholder="Device Description">
 								</div>
-								<div class="form-group">
+								<div class="mb-3">
 									<label for="fullName">Full Name</label>
 									<input type="text" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="{$sessionData['fullName']}" name="fullName" placeholder="">
 									<div class="invalid-feedback">Please enter your Full Name</div>
 								</div>
-								<div class="form-group">
+								<div class="mb-3">
 									<label for="emailAddress">Email address</label>
 									<input type="email" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="{$sessionData['emailAddress']}" name="emailAddress" placeholder="user@demo.local">
 									<div class="invalid-feedback">Please enter a valid email address</div>
 								</div> 
 							</div>
 						</div>
-						<div class="form-group text-center">
+						<div class="mb-3 text-center">
 							<button class="btn btn-primary shadow" id="submitbtn" type="button">Submit</button>
 						</div>
 				</div>

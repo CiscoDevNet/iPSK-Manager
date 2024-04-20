@@ -42,7 +42,7 @@
 	}
 	
 	if(is_array($_SESSION['authorizedEPGroups'])){
-		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-control mt-2 mb-3 shadow">';
+		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-select mt-2 mb-3 shadow">';
 				
 		for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++) {
 			if(!isset($trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']])){
@@ -86,7 +86,7 @@
 	}
 	
 	if(is_array($_SESSION['authorizedWirelessNetworks'])){
-		$pageData['wirelessSSIDList'] .= '<select name="wirelessSSID" class="form-control mt-2 mb-3 shadow">';
+		$pageData['wirelessSSIDList'] .= '<select name="wirelessSSID" class="form-select mt-2 mb-3 shadow">';
 	
 		for($count = 0; $count < $_SESSION['authorizedWirelessNetworks']['count']; $count++) {
 			if(!isset($trackSeenObjects[$_SESSION['authorizedWirelessNetworks'][$count]['wirelessSSIDId']])){
@@ -142,8 +142,8 @@
 				<div class="mt-2 mb-4">
 					<img src="images/iPSK-Logo.svg" width="108" height="57" />
 				</div>
-				<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
-				<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
+				<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
+				<h2 class="h6 mt-2 mb-3 fw-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
 				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
 					<div class="container">
 						<div class="row">
@@ -159,7 +159,7 @@
 					</div>
 				</div>
 				<div class="container-fluid">
-					<div class="row text-left">
+					<div class="row text-start">
 						<div class="col-sm"></div>
 						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
 									<h6>Association type:</h6>
@@ -181,21 +181,21 @@
 					</div>
 				</div>
 				<div class="container-fluid">
-					<div class="row text-left">
+					<div class="row text-start">
 						<div class="col-sm"></div>
 						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Association Details:</h6>
 							<div class="container">
 								<div class="row">
 									<div class="col-sm">
-										<div class="form-group">
+										<div class="mb-3">
 											<label for="macAddress">Endpoint MAC Address</label>
 											<input type="text" class="form-control mt-2 mb-3 shadow user-input form-validation" validation-state="required" validation-minimum-length="17" validation-maximum-length="17" value="" id="macAddress" name="macAddress" maxlength="17" placeholder="XX:XX:XX:XX:XX:XX">
 											<div class="invalid-feedback">Please enter a valid MAC Address</div>
 										</div>
 									</div>
 									<div class="col-sm">
-										<div class="form-group">
+										<div class="mb-3">
 											<label for="endpointDescription">Endpoint Description</label>
 											<input type="text" class="form-control mt-2 mb-3 user-input shadow" value="" name="endpointDescription" placeholder="Device Description">
 										</div>
@@ -205,14 +205,14 @@
 							<div class="container">
 								<div class="row">
 									<div class="col-sm">
-										<div class="form-group">
+										<div class="mb-3">
 											<label for="fullName">Full Name</label>
 											<input type="text" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="{$sessionData['fullName']}" name="fullName" placeholder="John Smith">
 											<div class="invalid-feedback">Please enter your Full Name</div>
 										</div>
 									</div>
 									<div class="col-sm">
-										<div class="form-group">
+										<div class="mb-3">
 											<label for="emailAddress">Email address</label>
 											<input type="email" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="{$sessionData['emailAddress']}" name="emailAddress" placeholder="john@company.com">
 											<div class="invalid-feedback">Please enter a valid email address</div>
@@ -220,7 +220,7 @@
 									</div>
 								</div>
 							</div>
-							<div class="form-group text-center">
+							<div class="mb-3 text-center">
 								<button class="btn btn-primary shadow" id="submitbtn" type="button">Submit</button>
 							</div>
 						</div>

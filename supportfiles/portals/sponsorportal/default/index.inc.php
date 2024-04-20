@@ -53,14 +53,14 @@
 			<div class="mt-2 mb-4">
 				<img src="images/iPSK-Logo.svg" width="108" height="57" />
 			</div>
-			<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
-			<h2 class="h6 mt-2 mb-3 font-weight-normal">Please Login</h2>
+			<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
+			<h2 class="h6 mt-2 mb-3 fw-normal">Please Login</h2>
 			<div class="col">
 				<div class="alert alert-danger shadow" role="alert">{$pageData['errorMessage']}</div>
 			</div>
-			<label for="inputEmail" class="sr-only">Username</label>
+			<label for="inputEmail" class="visually-hidden">Username</label>
 			<input type="text" name="inputUsername" id="inputUsername" class="form-control mt-2 mb-3 shadow" placeholder="Username" required autofocus>
-			<label for="inputPassword" class="sr-only">Password</label>
+			<label for="inputPassword" class="visually-hidden">Password</label>
 			<input type="password" name="inputPassword" id="inputPassword" class="form-control mt-2 mb-3 shadow" placeholder="Password" required>
 			<button class="btn btn-lg btn-primary btn-block mt-2 mb-3" type="submit">Sign in</button>
 		</form>
@@ -96,11 +96,11 @@ HTML;
 			<div class="mt-2 mb-4">
 				<img src="images/iPSK-Logo.svg" width="108" height="57" />
 			</div>
-			<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
-			<h2 class="h6 mt-2 mb-3 font-weight-normal">Please Login</h2>
-			<label for="inputUsername" class="sr-only">Username</label>
+			<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
+			<h2 class="h6 mt-2 mb-3 fw-normal">Please Login</h2>
+			<label for="inputUsername" class="visually-hidden">Username</label>
 			<input type="text" name="inputUsername" id="inputUsername" class="form-control mt-2 mb-3 shadow" placeholder="Username" required autofocus>
-			<label for="inputPassword" class="sr-only">Password</label>
+			<label for="inputPassword" class="visually-hidden">Password</label>
 			<input type="password" name="inputPassword" id="inputPassword" class="form-control mt-2 mb-3 shadow" placeholder="Password" required>
 			<button class="btn btn-lg btn-primary btn-block mt-2 mb-3 shadow" id="loginbtn" type="submit">Sign in</button>
 		</form>
