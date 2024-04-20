@@ -227,7 +227,7 @@
 		if($advancedSettings['enable-advanced-logging'] == 1){
 			$advancedSettings['enable-advanced-logging'] = " checked";
 			$advancedSettings['enable-advanced-logging-value'] = "1";
-			$logSettingsTab = '<a class="nav-item nav-link" id="nav-logging-tab" data-toggle="tab" href="#nav-logging" role="tab" aria-controls="nav-logging" aria-selected="false">Logging Settings</a>';
+			$logSettingsTab = '<a class="nav-item nav-link" id="nav-logging-tab" data-bs-toggle="tab" href="#nav-logging" role="tab" aria-controls="nav-logging" aria-selected="false">Logging Settings</a>';
 		}else{
 			$advancedSettings['enable-advanced-logging'] = "";
 			$advancedSettings['enable-advanced-logging-value'] = "0";
@@ -248,12 +248,12 @@
 </div>
 <nav>
 	<div class="nav nav-tabs" id="nav-tab" role="tablist">
-		<a class="nav-item nav-link active" id="nav-general-tab" data-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="true">General</a>
-		<a class="nav-item nav-link" id="nav-hostname-tab" data-toggle="tab" href="#nav-hostname" role="tab" aria-controls="nav-hostname" aria-selected="false">Portal Hostnames</a>
-		<a class="nav-item nav-link" id="nav-proto-tab" data-toggle="tab" href="#nav-proto" role="tab" aria-controls="nav-proto" aria-selected="false">Ports & Protocols</a>
-		<a class="nav-item nav-link" id="nav-ise-tab" data-toggle="tab" href="#nav-ise" role="tab" aria-controls="nav-ise" aria-selected="false">Cisco ISE Integration</a>
-		<a class="nav-item nav-link" id="nav-smtp-tab" data-toggle="tab" href="#nav-smtp" role="tab" aria-controls="nav-smtp" aria-selected="false">SMTP Configuration</a>
-		<a class="nav-item nav-link" id="nav-advanced-tab" data-toggle="tab" href="#nav-advanced" role="tab" aria-controls="nav-advanced" aria-selected="false">Advanced Settings</a>
+		<a class="nav-item nav-link active" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="true">General</a>
+		<a class="nav-item nav-link" id="nav-hostname-tab" data-bs-toggle="tab" href="#nav-hostname" role="tab" aria-controls="nav-hostname" aria-selected="false">Portal Hostnames</a>
+		<a class="nav-item nav-link" id="nav-proto-tab" data-bs-toggle="tab" href="#nav-proto" role="tab" aria-controls="nav-proto" aria-selected="false">Ports & Protocols</a>
+		<a class="nav-item nav-link" id="nav-ise-tab" data-bs-toggle="tab" href="#nav-ise" role="tab" aria-controls="nav-ise" aria-selected="false">Cisco ISE Integration</a>
+		<a class="nav-item nav-link" id="nav-smtp-tab" data-bs-toggle="tab" href="#nav-smtp" role="tab" aria-controls="nav-smtp" aria-selected="false">SMTP Configuration</a>
+		<a class="nav-item nav-link" id="nav-advanced-tab" data-bs-toggle="tab" href="#nav-advanced" role="tab" aria-controls="nav-advanced" aria-selected="false">Advanced Settings</a>
 		<?php print $logSettingsTab;?>
 	</div>
 </nav>

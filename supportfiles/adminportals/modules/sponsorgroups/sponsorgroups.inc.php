@@ -33,7 +33,7 @@
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-3"><a id="addPortalGroup" module="sponsorgroups" sub-module="add" class="btn btn-primary nav-link custom-link text-white" href="#" role="button">Add Portal Group</a></div>
+	<div class="col-3"><a id="addPortalGroup" module="sponsorgroups" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Portal Group</a></div>
 	<div class="col-10"></div>
 </div>
 <div class="row">

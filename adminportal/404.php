@@ -47,10 +47,10 @@
 			<div class="mt-2 mb-4">
 				<img src="images/iPSK-Logo.svg" width="108" height="57" />
 			</div>
-			<h1 class="h3 mt-2 mb-4 font-weight-normal">iPSK Manager for Cisco ISE</h1>
+			<h1 class="h3 mt-2 mb-4 fw-normal">iPSK Manager for Cisco ISE</h1>
 			
 			<div class="col">
-				<div class="alert alert-warning shadow" role="alert"><h2 class="h2 mt-2 mb-3 font-weight-bold">Error 404</h2><br>The requested page was not found.</div>
+				<div class="alert alert-warning shadow" role="alert"><h2 class="h2 mt-2 mb-3 fw-bold">Error 404</h2><br>The requested page was not found.</div>
 			</div>
 		<p class="mt-5 mb-0 text-muted">&copy; 2019 Cisco Systems, Inc.</p>
 	</div>

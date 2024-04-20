@@ -52,39 +52,39 @@ $htmlbody = <<<HTML
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Edit Endpoint Grouping</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="epGroupName">iPSK Endpoint Group Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="epGroupName">iPSK Endpoint Group Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow form-validation" validation-state="required" id="epGroupName" value="{$endPointGroup['groupName']}" validation-minimum-length="1" validation-maximum-length="25">
 			<div class="invalid-feedback">Please enter a Endpoint Group Name (Max: 25 Characters)</div>
 		</div>
-		<label class="font-weight-bold" for="epGroupDescription">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="epGroupDescription">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="epGroupDescription" value="{$endPointGroup['description']}">
 		</div>
-		<div class="form-row">
+		<div class="row">
 			<div class="col">
-				<div class="custom-control custom-checkbox">
-					<input type="checkbox" class="custom-control-input checkbox-update" base-value="1" value="{$endPointGroup['notificationPermission']}" id="notificationPermission"{$endPointGroup['notificationPermissionCheck']}>
-					<label class="custom-control-label" for="notificationPermission">Email Notifications</label>
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input checkbox-update" base-value="1" value="{$endPointGroup['notificationPermission']}" id="notificationPermission"{$endPointGroup['notificationPermissionCheck']}>
+					<label class="form-check-label" for="notificationPermission">Email Notifications</label>
 				</div>
 			</div>
 		</div>	
-		<label class="font-weight-bold" for="authzTemplate">Authorization Template:</label>
-		<div class="form-group input-group-sm font-weight-bold">
-			<select id="authzTemplate" class="form-control mt-2 mb-3 shadow">
+		<label class="fw-bold" for="authzTemplate">Authorization Template:</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<select id="authzTemplate" class="form-select mt-2 mb-3 shadow">
 				$authList
 			</select>
 		</div>
 	  </div>
       <div class="modal-footer">
 	  <input type="hidden" id="id" value="{$endPointGroup['id']}">
-	  <a id="update" href="#" module="epgroup" sub-module="update" role="button" class="btn btn-primary shadow" data-dismiss="modal">Update</a>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+	  <a id="update" href="#" module="epgroup" sub-module="update" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Update</a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -92,7 +92,7 @@ $htmlbody = <<<HTML
 <script>
 	var failure;
 	
-	$("#editepggroup").modal();
+	$("#editepggroup").modal('show');
 
 	$(function() {	
 		feather.replace()
@@ -107,9 +107,10 @@ $htmlbody = <<<HTML
 			return false;
 		}
 		
-		$("#viewepggroup").modal({show: false});
-		$('.modal-backdrop').remove();
-		
+		//$("#viewepggroup").modal({show: false});
+		//$('.modal-backdrop').remove();
+		//$("body").removeClass('modal-open');
+
 		$.ajax({
 			url: "ajax/getmodule.php",
 			

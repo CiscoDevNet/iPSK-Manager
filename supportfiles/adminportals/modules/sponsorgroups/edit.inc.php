@@ -139,11 +139,11 @@
 	
 	if($enablePskEdit){	
 		$pskEdit = <<< HTML
-							<div class="form-row text-center">
+							<div class="row text-center">
 								<div class="col">
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="1024" value="{$checkBoxPermissions[1024]['value']}" id="portalPskEditCheck"{$checkBoxPermissions[1024]['check']}>
-										<label class="custom-control-label text-danger" for="portalPskEditCheck"><strong>Allow Manual PSK Editing on Associations</strong></label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="1024" value="{$checkBoxPermissions[1024]['value']}" id="portalPskEditCheck"{$checkBoxPermissions[1024]['check']}>
+										<label class="form-check-label text-danger" for="portalPskEditCheck"><strong>Allow Manual PSK Editing on Associations</strong></label>
 									</div>						
 								</div>
 							</div>
@@ -160,46 +160,46 @@ $htmlbody = <<<HTML
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" id="exampleModalLongTitle">Edit Portal Group</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+						
 					</button>
 				</div>
 				<div class="modal-body">
-					<div class="form-row">
+					<div class="row">
 						<div class="col-4">
-							<div class="form-group input-group-sm font-weight-bold">
-								<label class="font-weight-bold" for="sponsorGroupName">Portal Group Name:</label>
+							<div class="mb-3 input-group-sm fw-bold">
+								<label class="fw-bold" for="sponsorGroupName">Portal Group Name:</label>
 								<input type="text" class="form-control shadow form-validation" validation-state="required" id="sponsorGroupName" value="{$sponsorGroups['sponsorGroupName']}" required>
 								<small id="sponsorGroupNameBlock" class="form-text text-muted">Group Name is Required</small>
 							</div>
 						</div>
 						<div class="col">
-							<div class="form-group input-group-sm font-weight-bold">
-								<label class="font-weight-bold" for="maxDevices">Max Devices:</label>
+							<div class="mb-3 input-group-sm fw-bold">
+								<label class="fw-bold" for="maxDevices">Max Devices:</label>
 								<input type="text" class="form-control shadow form-validation" validation-state="required" id="maxDevices" value="{$sponsorGroups['maxDevices']}" required>
 							</div>
 						</div>
 						<div class="col-6">
-							<div class="form-group input-group-sm font-weight-bold">
-								<label class="font-weight-bold" for="sponsorGroupAuthType">Group Authentication Type:</label>		
-								<select class="form-control shadow" id="sponsorGroupAuthType" data-command="getdata" data-set="internalgroups">
+							<div class="mb-3 input-group-sm fw-bold">
+								<label class="fw-bold" for="sponsorGroupAuthType">Group Authentication Type:</label>		
+								<select class="form-select shadow" id="sponsorGroupAuthType" data-command="getdata" data-set="internalgroups">
 									$pageSponsorGroupAuthType
 								</select>
 								<small id="sponsorGroupAuthTypeBlock" class="form-text text-muted">Choose Authentication Type</small>
 							</div>
 						</div>
 					</div>
-					<div class="form-row">
+					<div class="row">
 						<div class="col">
-							<div class="form-group">
-								<label class="font-weight-bold" for="sponsorGroupDescription">Description:</label>
+							<div class="mb-3">
+								<label class="fw-bold" for="sponsorGroupDescription">Description:</label>
 								<textarea class="form-control shadow" id="sponsorGroupDescription" rows="3">{$sponsorGroups['sponsorGroupDescription']}</textarea>
 							</div>
 						</div>
 						<div class="col">
-							<div class="form-group font-weight-bold">
-								<label class="font-weight-bold" for="authorizationGroups">Authorization Groups:</label>		
-								<select class="form-control shadow form-validation" validation-state="required" id="authorizationGroups" multiple>
+							<div class="mb-3 fw-bold">
+								<label class="fw-bold" for="authorizationGroups">Authorization Groups:</label>		
+								<select class="form-select shadow form-validation" validation-state="required" id="authorizationGroups" multiple>
 									$pageInternalGroups
 								</select>
 								<small id="authorizationGroupsBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
@@ -208,86 +208,86 @@ $htmlbody = <<<HTML
 					</div>
 					<div class="row">
 						<div class="col">
-							<div class="form-group input-group-sm font-weight-bold">
-								<label class="font-weight-bold" for="sponsorGroupType">Portal Group Type:</label>		
-								<select class="form-control shadow" id="sponsorGroupType" data-command="getdata" data-set="internalgroups">
+							<div class="mb-3 input-group-sm fw-bold">
+								<label class="fw-bold" for="sponsorGroupType">Portal Group Type:</label>		
+								<select class="form-select shadow" id="sponsorGroupType" data-command="getdata" data-set="internalgroups">
 									$pageGroupType
 								</select>
 								<small id="sponsorGroupTypeBlock" class="form-text text-muted">Choose Group Type</small>
 							</div>
 						</div>
 					</div>
-					<div class="form-row">
+					<div class="row">
 						<div class="col">
-							<div class="form-group font-weight-bold">
-								<label class="font-weight-bold" for="endpointGroupMembers">Endpoint Group Members:</label>	
-								<select class="form-control shadow form-validation" validation-state="required" id="endpointGroupMembers"$groupTypeMultiFlag>
+							<div class="mb-3 fw-bold">
+								<label class="fw-bold" for="endpointGroupMembers">Endpoint Group Members:</label>	
+								<select class="form-select shadow form-validation" validation-state="required" id="endpointGroupMembers"$groupTypeMultiFlag>
 									$endpointGroups
 								</select>
 								<small id="endpointGroupMembersBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
 							</div>
 						</div>
 						<div class="col">
-							<div class="form-group font-weight-bold">
-								<label class="font-weight-bold" for="wirelessNetworkMembers">Wireless Networks:</label>
-								<select class="form-control shadow form-validation" validation-state="required" id="wirelessNetworkMembers"$groupTypeMultiFlag>
+							<div class="mb-3 fw-bold">
+								<label class="fw-bold" for="wirelessNetworkMembers">Wireless Networks:</label>
+								<select class="form-select shadow form-validation" validation-state="required" id="wirelessNetworkMembers"$groupTypeMultiFlag>
 									$pageWirelessNetworks
 								</select>
 								<small id="wirelessNetworkMembersBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
 							</div>
 						</div>
 					</div>
-					<div class="form-row">
+					<div class="row">
 						<div class="col m-2 shadow p-2 bg-white border border-primary">
-							<div class="form-group font-weight-bold">
-								<label class="font-weight-bold" for="viewPermission">View Permissions:</label>		
-								<select class="form-control shadow" id="viewPermission">
+							<div class="mb-3 fw-bold">
+								<label class="fw-bold" for="viewPermission">View Permissions:</label>		
+								<select class="form-select shadow" id="viewPermission">
 									$viewPermissions
 								</select>
 								<small id="viewPermissionBlock" class="form-text text-muted">Choose View Permission Level</small>
 							</div>
-							<div class="custom-control custom-checkbox">
-								<input type="checkbox" class="custom-control-input checkbox-update" name="viewPassCheck" base-value="8" value="{$checkBoxPermissions[8]['value']}" id="viewPassCheck"{$checkBoxPermissions[8]['check']}>
-								<label class="custom-control-label" for="viewPassCheck">Allow Viewing of Pre-Shared Keys <strong>(Only applies to selection above)</strong></label>
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input checkbox-update" name="viewPassCheck" base-value="8" value="{$checkBoxPermissions[8]['value']}" id="viewPassCheck"{$checkBoxPermissions[8]['check']}>
+								<label class="form-check-label" for="viewPassCheck">Allow Viewing of Pre-Shared Keys <strong>(Only applies to selection above)</strong></label>
 							</div>
 						</div>
 					</div>
-					<div class="form-row">
+					<div class="row">
 						<div class="col m-2 shadow p-2 bg-white border border-primary">
 							<h5 class="text-center">Permissions for Selected Endpoint Groups</h5>
 							<hr />
 							$pskEdit
-							<div class="form-row">
+							<div class="row">
 								<div class="col">
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="512" value="{$checkBoxPermissions[512]['value']}" id="createCheck"{$checkBoxPermissions[512]['check']}>
-										<label class="custom-control-label" for="createCheck">Create Endpoint associations</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="512" value="{$checkBoxPermissions[512]['value']}" id="createCheck"{$checkBoxPermissions[512]['check']}>
+										<label class="form-check-label" for="createCheck">Create Endpoint associations</label>
 									</div>
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="2048" value="{$checkBoxPermissions[2048]['value']}" id="bulkCreateCheck"{$checkBoxPermissions[2048]['check']}>
-										<label class="custom-control-label" for="bulkCreateCheck">Bulk Create Endpoint associations</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="2048" value="{$checkBoxPermissions[2048]['value']}" id="bulkCreateCheck"{$checkBoxPermissions[2048]['check']}>
+										<label class="form-check-label" for="bulkCreateCheck">Bulk Create Endpoint associations</label>
 									</div>
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="256" value="{$checkBoxPermissions[256]['value']}" id="editCheck"{$checkBoxPermissions[256]['check']}>
-										<label class="custom-control-label" for="editCheck">Edit the associated iPSK Endpoint</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="256" value="{$checkBoxPermissions[256]['value']}" id="editCheck"{$checkBoxPermissions[256]['check']}>
+										<label class="form-check-label" for="editCheck">Edit the associated iPSK Endpoint</label>
 									</div>
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="64" value="{$checkBoxPermissions[64]['value']}" id="deleteCheck"{$checkBoxPermissions[64]['check']}>
-										<label class="custom-control-label" for="deleteCheck">Delete an associated iPSK Endpoint</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="64" value="{$checkBoxPermissions[64]['value']}" id="deleteCheck"{$checkBoxPermissions[64]['check']}>
+										<label class="form-check-label" for="deleteCheck">Delete an associated iPSK Endpoint</label>
 									</div>						
 								</div>
 								<div class="col">
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="128" value="{$checkBoxPermissions[128]['value']}" id="extendCheck"{$checkBoxPermissions[128]['check']}>
-										<label class="custom-control-label" for="extendCheck">Extend an associated Endpoints Expiration date</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="128" value="{$checkBoxPermissions[128]['value']}" id="extendCheck"{$checkBoxPermissions[128]['check']}>
+										<label class="form-check-label" for="extendCheck">Extend an associated Endpoints Expiration date</label>
 									</div>
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="32" value="{$checkBoxPermissions[32]['value']}" id="unsuspendCheck"{$checkBoxPermissions[32]['check']}>
-										<label class="custom-control-label" for="unsuspendCheck">Reinstate an associated iPSK Suspended Endpoint</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="32" value="{$checkBoxPermissions[32]['value']}" id="unsuspendCheck"{$checkBoxPermissions[32]['check']}>
+										<label class="form-check-label" for="unsuspendCheck">Reinstate an associated iPSK Suspended Endpoint</label>
 									</div>
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="16" value="{$checkBoxPermissions[16]['value']}" id="suspendCheck"{$checkBoxPermissions[16]['check']}>
-										<label class="custom-control-label" for="suspendCheck">Suspend an associated iPSK Endpoint's access</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="16" value="{$checkBoxPermissions[16]['value']}" id="suspendCheck"{$checkBoxPermissions[16]['check']}>
+										<label class="form-check-label" for="suspendCheck">Suspend an associated iPSK Endpoint's access</label>
 									</div>
 								</div>
 							</div>
@@ -296,8 +296,8 @@ $htmlbody = <<<HTML
 				</div>
 				<div class="modal-footer">
 					<input type="hidden" id="id" value="{$sponsorGroups['id']}">
-					<button id="update" module="sponsorgroups" sub-module="update" type="submit" class="btn btn-primary shadow">Update</button>
-					<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+					<button id="update" module="sponsorgroups" sub-module="update" type="submit" class="btn btn-primary shadow" data-bs-dismiss="modal">Update</button>
+					<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 				</div>
 				
 			</div>
@@ -307,7 +307,7 @@ $htmlbody = <<<HTML
 <script>
 	var failure;
 	
-	$("#editSponsorGroup").modal();
+	$("#editSponsorGroup").modal('show');
 
 	$(function() {	
 		feather.replace()
@@ -322,7 +322,8 @@ $htmlbody = <<<HTML
 			return false;
 		}		
 		
-		$('.modal-backdrop').remove();
+		//$('.modal-backdrop').remove();
+		//$("body").removeClass('modal-open');
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

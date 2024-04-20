@@ -91,65 +91,65 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" id="exampleModalLongTitle">Add Portal</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+						
 					</button>
 				</div>
 				<div class="modal-body">
 				<form class="needs-validation" novalidate>
-					<div class="form-group input-group-sm font-weight-bold">
-						<label class="font-weight-bold" for="portalName">Portal Name:</label>
+					<div class="mb-3 input-group-sm fw-bold">
+						<label class="fw-bold" for="portalName">Portal Name:</label>
 						<input type="text" class="form-control shadow form-validation" validation-state="required" id="portalName" value="" validation-minimum-length="1" validation-maximum-length="32">
 						<small id="endpointGroupMembersBlock" class="form-text text-muted">Portal Name is Required</small>
 						<div class="invalid-feedback">Please enter a Portal Name (Max: 32 Characters)</div>
 					</div>
-					<div class="form-group input-group-sm font-weight-bold">
-						<label class="font-weight-bold" for="description">Description:</label>
+					<div class="mb-3 input-group-sm fw-bold">
+						<label class="fw-bold" for="description">Description:</label>
 						<input type="text" class="form-control shadow" id="description" value="">
 					</div>
-					<div class="form-group input-group-sm font-weight-bold">
-						<label class="font-weight-bold" for="portalType">Portal Type:</label>
-						<select class="form-control shadow form-validation" validation-state="required" id="portalType">
+					<div class="mb-3 input-group-sm fw-bold">
+						<label class="fw-bold" for="portalType">Portal Type:</label>
+						<select class="form-select shadow form-validation" validation-state="required" id="portalType">
 							$portalTypes
 						</select>
 						<small id="endpointGroupMembersBlock" class="form-text text-muted">Select the Portal Type you wish to create</small>
 					</div>
 					<div class="row">
 						<div class="col-8">
-							<div class="form-group input-group-sm font-weight-bold">
-								<label class="font-weight-bold" for="hostname">Portal Hostname:</label>
-								<select class="form-control shadow" id="hostname">
+							<div class="mb-3 input-group-sm fw-bold">
+								<label class="fw-bold" for="hostname">Portal Hostname:</label>
+								<select class="form-select shadow" id="hostname">
 									$hostnameList
 								</select>
 							</div>
 						</div>
 						<div class="col-4">
-							<div class="form-group input-group-sm font-weight-bold">
-								<label class="font-weight-bold" for="tcpPort">Application Protocol (TCP Port):</label>
-								<select class="form-control shadow" id="tcpPort">
+							<div class="mb-3 input-group-sm fw-bold">
+								<label class="fw-bold" for="tcpPort">Application Protocol (TCP Port):</label>
+								<select class="form-select shadow" id="tcpPort">
 									$pageTcpPortList
 								</select>
 							</div>
 						</div>
 					</div>
-					<div class="form-group input-group-sm font-weight-bold">
-						<label class="font-weight-bold" for="authDirectory">Authentication Directory:</label>
-						<select class="form-control shadow form-validation" validation-state="required" id="authDirectory">
+					<div class="mb-3 input-group-sm fw-bold">
+						<label class="fw-bold" for="authDirectory">Authentication Directory:</label>
+						<select class="form-select shadow form-validation" validation-state="required" id="authDirectory">
 							<option value="0">Internal</option>
 							$ldapDirectoryList
 						</select>
 					</div>
-					<div class="form-group font-weight-bold">
-						<label class="font-weight-bold" for="sponsorGroups">Sponsor Group Members:</label>	
-						<select class="form-control shadow form-validation" validation-state="required" id="sponsorGroups" multiple>
+					<div class="mb-3 fw-bold">
+						<label class="fw-bold" for="sponsorGroups">Sponsor Group Members:</label>	
+						<select class="form-select shadow form-validation" validation-state="required" id="sponsorGroups" multiple>
 							$sponsorGroups
 						</select>
 						<small id="endpointGroupMembersBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button id="create" module="portals" sub-module="create" type="submit" class="btn btn-primary shadow">Create</button>
-					<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+					<button id="create" module="portals" sub-module="create" type="submit" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</button>
+					<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 				</div>
 				</form>
 			</div>
@@ -158,7 +158,7 @@
 	<script>
 		var failure;
 		
-		$("#addSponsorPortal").modal();
+		$("#addSponsorPortal").modal('show');
 
 		$(function() {	
 			feather.replace()
@@ -173,7 +173,8 @@
 				return false;
 			}
 			
-			$('.modal-backdrop').remove();
+			//$('.modal-backdrop').remove();
+			//$("body").removeClass('modal-open');
 			
 			$.ajax({
 				url: "ajax/getmodule.php",
@@ -242,16 +243,16 @@ HTML;
 			<div class="modal-dialog modal-dialog-centered" role="document">
 				<div class="modal-content">
 					<div class="modal-header shadow alert alert-danger">
-						<h5 class="modal-title font-weight-bold" id="modalLongTitle">Missing Dependencies</h5>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						  <span aria-hidden="true">&times;</span>
+						<h5 class="modal-title fw-bold" id="modalLongTitle">Missing Dependencies</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+						  
 						</button>
 					</div>
 					<div class="modal-body">
 						<p class="h6">Portal Group missing</p>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Ok</button>
+						<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Ok</button>
 					</div>
 				</div>
 			</div>

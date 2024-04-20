@@ -28,7 +28,7 @@
 	$wirelessNetworks = $ipskISEDB->getWirelessNetworks();
 	
 	if($endpointGroups){
-		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-control shadow form-validation">';
+		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-select shadow form-validation">';
 		
 		while($row = $endpointGroups->fetch_assoc()) {		
 			if($row["visible"] == true){
@@ -53,7 +53,7 @@
 	}
 	
 	if($wirelessNetworks){
-		$pageData['wirelessSSIDList'] .= '<select name="wirelessSSID" id="wirelessSSID" class="form-control shadow form-validation">';
+		$pageData['wirelessSSIDList'] .= '<select name="wirelessSSID" id="wirelessSSID" class="form-select shadow form-validation">';
 	
 		while($row = $wirelessNetworks->fetch_assoc()) {		
 
@@ -76,13 +76,13 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" id="exampleModalLongTitle">Bulk Endpoint Import</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+					
 				</button>
 			</div>
 			<div class="modal-body">
 				<form id="bulkAssociationform" class="needs-validation" novalidate>
-					<div class="form-row">
+					<div class="row">
 						<div class="col mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Association type:</h6>
 							{$pageData['endpointGroupList']}
@@ -100,13 +100,13 @@
 							{$pageData['wirelessSSIDList']}
 						</div>
 					</div>
-					<div class="form-row">
+					<div class="row">
 						<div class="col mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Bulk Import Type:</h6>
 							<div class="container-fluid">
 								<div class="row">
 									<div class="col-md">
-										<select name="bulkImportType" id="bulkImportType" class="form-control mt-2 mb-3 shadow"><option value="0">(Select an Import Option)</option>{$pageData['bulkOption']}</select>
+										<select name="bulkImportType" id="bulkImportType" class="form-select mt-2 mb-3 shadow"><option value="0">(Select an Import Option)</option>{$pageData['bulkOption']}</select>
 									</div>
 								</div>
 								<div id="sampleFileDownload" class="row d-none">
@@ -117,96 +117,96 @@
 							</div>
 						</div>
 					</div>
-					<div id="csvBulkImport" class="d-none form-row">
+					<div id="csvBulkImport" class="d-none row">
 						<div class="col mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Upload CSV File to Import:</h6>
 							<div class="row">
 								<div class="col">
-									<div class="form-group">
+									<div class="mb-3">
 									  <label for="csvFile">Choose CSV File:</label>
-									  <input type="file" accept=".csv" class="form-control-file" name="csvFile" id="csvFile">
+									  <input type="file" accept=".csv" class="form-control" name="csvFile" id="csvFile">
 									</div>
 									<input type="hidden" id="uploadkey" value="">
 								</div>
 							</div>
 							<div class="row mx-auto">
 								<div class="col-3"><button class="btn btn-primary shadow" id="uploadCsv" type="button" disabled>Upload</button></div>
-								<div class="col"><span id="uploadMessage" class="font-weight-bold text-success d-none"></span></div>
+								<div class="col"><span id="uploadMessage" class="fw-bold text-success d-none"></span></div>
 							</div>
 							<div class="row mx-auto">
-								<div class="col text-primary font-weight-bold text-center">CSV File Upload Details</div>
+								<div class="col text-primary fw-bold text-center">CSV File Upload Details</div>
 							</div>
 							<div class="row mx-auto">
 								<div class="col border border-secondary">
 									<p><small>
-										<span id="" class="h6 text-secondary">Total Entries in Upload:</span><span id="importCount" class="pl-2 h5 text-success count">-</span>
+										<span id="" class="h6 text-secondary">Total Entries in Upload:</span><span id="importCount" class="ps-2 h5 text-success count">-</span>
 									</small></p>
 								</div>
 								<div class="col border border-secondary">
 									<p><small>
-										<span id="" class="h6 text-secondary">Total Entries to be Imported:</span><span id="validCount" class="pl-2 h5 text-success count">-</span>
+										<span id="" class="h6 text-secondary">Total Entries to be Imported:</span><span id="validCount" class="ps-2 h5 text-success count">-</span>
 									</small></p>
 								</div>
 							</div>
 							<div class="row mx-auto">
 								<div class="col border border-secondary">
-									<h6 class="font-weight-bold text-center">Total Invalid Entries</h6>
+									<h6 class="fw-bold text-center">Total Invalid Entries</h6>
 									<div class="row">
 										<div class="col border border-secondary">
 											<p><small>
-												<span class="h6 text-secondary">Illegal Characters:</span><span id="invalidCharacters" class="pl-2 h5 text-danger count">-</span>
+												<span class="h6 text-secondary">Illegal Characters:</span><span id="invalidCharacters" class="ps-2 h5 text-danger count">-</span>
 											</small></p>
 										</div>
 										<div class="col border border-secondary">
 											<p><small>
-												<span class="h6 text-secondary">Entry Format:</span><span id="invalidItems" class="pl-2 h5 text-danger count">-</span>
+												<span class="h6 text-secondary">Entry Format:</span><span id="invalidItems" class="ps-2 h5 text-danger count">-</span>
 											</small></p>
 										</div>
 									</div>
 								</div>
 								<div class="col border border-secondary">
 									<p><small>
-										<span class="h6 text-secondary">Total Filtered Entries:</span><span id="filteredItems" class="pl-2 h5 text-danger count">-</span>
+										<span class="h6 text-secondary">Total Filtered Entries:</span><span id="filteredItems" class="ps-2 h5 text-danger count">-</span>
 									</small></p>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div id="iseBulkImport" class="d-none form-row text-left">
+					<div id="iseBulkImport" class="d-none row text-start">
 						<div class="col mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Select the Endpoint Identity Group you would like to import:</h6>
 							<div class="row">
 								<div class="col">
-									<div class="form-group">
-										<select name="groupUuid" id="groupUuid" class="form-control mt-2 mb-3 shadow"></select>
+									<div class="mb-3">
+										<select name="groupUuid" id="groupUuid" class="form-select mt-2 mb-3 shadow"></select>
 									</div>
 								</div>
 							</div>
 							<div class="container-fluid">
 								<div class="row">
-									<div class="col-md pr-0">
+									<div class="col-md pe-0">
 										<p><small>
 											Description:&nbsp;<span id="iseepgDescription" class="text-danger count">-</span>
 										</small></p>
 									</div>
-									<div class="col-md-4 pl-0">
+									<div class="col-md-4 ps-0">
 										<p><small>
 											Endpoint Count:&nbsp;<span id="iseepgCount" class="text-danger count">-</span>
 										</small></p>
 									</div>
-									<div class="col-md-2 pl-0">
+									<div class="col-md-2 ps-0">
 										<button class="btn btn-secondary shadow" id="getCount" type="button">Get Count</button>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div id="associationDetails" class="d-none form-row text-left">
+					<div id="associationDetails" class="d-none row text-start">
 						<div class="col mt-2 shadow mx-auto p-2 bg-white border border-primary">
 							<h6>Association Details:</h6>	
 							<div class="row associationrow">
 								<div class="col">
-									<div class="form-group">
+									<div class="mb-3">
 										<label for="endpointDescription">Endpoint Description</label>
 										<input type="text" class="form-control mt-2 mb-3 user-input shadow" value="" name="endpointDescription" id="endpointDescription" placeholder="Device Description">
 									</div>
@@ -214,7 +214,7 @@
 							</div>
 							<div class="row associationrow">
 								<div class="col">
-									<div class="form-group">
+									<div class="mb-3">
 										<label for="fullName">Full Name</label>
 										<input type="text" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="" id="fullName" placeholder="John Smith">
 										<div class="invalid-feedback">Please enter your Full Name</div>
@@ -223,7 +223,7 @@
 							</div>
 							<div class="row associationrow"> 
 								<div class="col">
-									<div class="form-group">
+									<div class="mb-3">
 										<label for="emailAddress">Email address</label>
 										<input type="email" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="" id="emailAddress" placeholder="john@company.com">
 										<div class="invalid-feedback">Please enter a valid email address</div>
@@ -235,8 +235,8 @@
 				</form>
 			</div>
 			<div class="modal-footer">
-				<button id="bulkimport" module="endpoints" sub-module="bulkimport" class="btn btn-primary shadow" data-dismiss="modal" disabled>Import</button>
-				<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+				<button id="bulkimport" module="endpoints" sub-module="bulkimport" class="btn btn-primary shadow" data-bs-dismiss="modal" disabled>Import</button>
+				<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
 	</div>
@@ -265,9 +265,9 @@
 			return false;
 		}
 		
-		$("#bulkAddEndpointDialog").modal('hide');
-		$('body').removeClass('modal-open');
-		$('.modal-backdrop').remove();
+		//$("#bulkAddEndpointDialog").modal('hide');
+		//$('body').removeClass('modal-open');
+		//$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

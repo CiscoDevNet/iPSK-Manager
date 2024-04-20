@@ -42,72 +42,72 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">View Log Entry</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
 	  	<div class="row">
 			<div class="col">
-				<label class="font-weight-bold" for="dateCreated">Log Entry Date:</label>
-				<div class="form-group input-group-sm font-weight-bold">
+				<label class="fw-bold" for="dateCreated">Log Entry Date:</label>
+				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" class="form-control shadow" id="dateCreated" value="{$logging['dateCreated']}" readonly>
 				</div>
 			</div>
 			<div class="col">
-				<label class="font-weight-bold" for="sessionID">Session ID:</label>
-				<div class="form-group input-group-sm font-weight-bold">
+				<label class="fw-bold" for="sessionID">Session ID:</label>
+				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" class="form-control shadow" id="sessionID" value="{$logging['sessionID']}" readonly>
 				</div>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col">
-				<label class="font-weight-bold" for="functionName">Function Name:</label>
-				<div class="form-group input-group-sm font-weight-bold">
+				<label class="fw-bold" for="functionName">Function Name:</label>
+				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" class="form-control shadow" id="functionName" value="{$logging['functionName']}" readonly>
 				</div>
 			</div>
 			<div class="col">
-				<label class="font-weight-bold" for="className">Class Name:</label>
-				<div class="form-group input-group-sm font-weight-bold">
+				<label class="fw-bold" for="className">Class Name:</label>
+				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" class="form-control shadow" id="className" value="{$logging['className']}" readonly>
 				</div>
 			</div>
 			<div class="col">
-				<label class="font-weight-bold" for="classMethodName">Class Method Name:</label>
-				<div class="form-group input-group-sm font-weight-bold">
+				<label class="fw-bold" for="classMethodName">Class Method Name:</label>
+				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" class="form-control shadow" id="classMethodName" value="{$logging['classMethodName']}" readonly>
 				</div>
 			</div>
 			<div class="col">
-				<label class="font-weight-bold" for="lineNumber">Line Number:</label>
-				<div class="form-group input-group-sm font-weight-bold">
+				<label class="fw-bold" for="lineNumber">Line Number:</label>
+				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" class="form-control shadow" id="lineNumber" value="{$logging['lineNumber']}" readonly>
 				</div>
 			</div>
 		</div>
-		<label class="font-weight-bold" for="fileName">File Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="fileName">File Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="fileName" value="{$logging['fileName']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="message">Log Entry Message:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="message">Log Entry Message:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<textarea id="message" rows="5" class="form-control shadow" readonly>{$logging['message']}</textarea>
 		</div>
-		<label class="font-weight-bold" for="createdBy">Log Entry Data DEBUG Payload:</label>
+		<label class="fw-bold" for="createdBy">Log Entry Data DEBUG Payload:</label>
 		
 			<pre style="height: 250px;" class="border overflow-auto border-primary shadow m-0">{$logging['logDataPayload']}</pre>
 		
 	  </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
 <script>
-	$("#viewlogentry").modal();
+	$("#viewlogentry").modal('show');
 
 	$(function() {	
 		feather.replace()

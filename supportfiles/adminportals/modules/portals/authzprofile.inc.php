@@ -86,36 +86,36 @@ HTML;
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" id="exampleModalLongTitle">Create Cisco ISE Authorization Profile</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+					
 				</button>
 			</div>
 			<div class="modal-body">
 			<form class="needs-validation" novalidate>
-				<div class="form-group input-group-sm font-weight-bold">
-					<label class="font-weight-bold" for="portalName">Portal Name:</label>
+				<div class="mb-3 input-group-sm fw-bold">
+					<label class="fw-bold" for="portalName">Portal Name:</label>
 					<input type="text" class="form-control shadow" id="portalName" value="{$portal['portalName']}" readonly>
 				</div>
-				<div class="form-group input-group-sm font-weight-bold">
-					<label class="font-weight-bold" for="portalUrl">Portal URL:</label>
+				<div class="mb-3 input-group-sm fw-bold">
+					<label class="fw-bold" for="portalUrl">Portal URL:</label>
 					<input type="text" class="form-control shadow" id="portalUrl" value="$portalURL" readonly>
 				</div>
-				<label class="font-weight-bold" for="authorizationProfileName">Cisco ISE Authorization Profile Name:</label>
+				<label class="fw-bold" for="authorizationProfileName">Cisco ISE Authorization Profile Name:</label>
 				<div class="input-group input-group-sm mb-3">
 					<input type="text" id="authorizationProfileName" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="5" validation-maximum-length="20">
 					<div class="input-group-append shadow">
-						<span class="input-group-text font-weight-bold" id="basic-addon1"><a id="checkauthzprofile" data-command="validate" data-set="authzprofile" href="#">Validate</a></span>
+						<span class="input-group-text fw-bold" id="basic-addon1"><a id="checkauthzprofile" data-command="validate" data-set="authzprofile" href="#">Validate</a></span>
 					</div>
 					<div class="invalid-feedback">Please enter a Authorization Profile Name (Minimum length of 5 characters)</div>
 				</div>
-				<div class="form-group input-group-sm font-weight-bold">
-					<label class="font-weight-bold" for="description">Cisco ISE Authorization Profile Description:</label>
+				<div class="mb-3 input-group-sm fw-bold">
+					<label class="fw-bold" for="description">Cisco ISE Authorization Profile Description:</label>
 					<input type="text" class="form-control shadow" id="description">
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button id="addauthzprofile" module="portals" sub-module="authzprofile" row-id="{$sanitizedInput['id']}" type="submit" class="btn btn-primary shadow">Create Authorization Profile</button>
-				<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+				<button id="addauthzprofile" module="portals" sub-module="authzprofile" row-id="{$sanitizedInput['id']}" type="submit" class="btn btn-primary shadow" data-bs-dismiss="modal">Create Authorization Profile</button>
+				<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 			</div>
 			</form>
 		</div>
@@ -124,7 +124,7 @@ HTML;
 <script>
 	var failure;
 	
-	$("#createISEAuthzProfile").modal();
+	$("#createISEAuthzProfile").modal('show');
 
 	$(function() {	
 		feather.replace()
@@ -169,7 +169,8 @@ HTML;
 			return false;
 		}
 		
-		$('.modal-backdrop').remove();
+		//$('.modal-backdrop').remove();
+		//$("body").removeClass('modal-open');
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

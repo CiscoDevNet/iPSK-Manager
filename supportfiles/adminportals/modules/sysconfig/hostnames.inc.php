@@ -25,9 +25,9 @@
 		<div class="row text-center text-primary">
 			<div class="col "><h5>Portal Hostnames</h5></div>
 		</div>
-		<div class="form-group font-weight-bold">
-			<label class="font-weight-bold" for="portalHostname">Portal Hostnames:</label>		
-			<select class="form-control shadow" id="portalHostname" multiple>
+		<div class="mb-3 fw-bold">
+			<label class="fw-bold" for="portalHostname">Portal Hostnames:</label>		
+			<select class="form-select shadow" id="portalHostname" multiple>
 				$hostnameOutput
 			</select>
 		</div>
@@ -37,8 +37,8 @@
 		</div>
 		<div class="row">
 			<div class="col p-3">
-			<label class="font-weight-bold" for="hostname">Hostname:</label>
-			<div class="form-group input-group-sm font-weight-bold">
+			<label class="fw-bold" for="hostname">Hostname:</label>
+			<div class="mb-3 input-group-sm fw-bold">
 				<input type="text" class="form-control shadow generaltab" id="hostname" placeholder="sample.domain.com">
 			</div>
 			</div>

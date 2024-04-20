@@ -143,7 +143,7 @@ HTML;
 			<form method="POST" action="./installer.php">
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left"><h4>PHP Validation Checks</h4> $platformDetails</div>
+					<div class="col text-start"><h4>PHP Validation Checks</h4> $platformDetails</div>
 					<div class="col-2"></div>
 				</div>
 				<div class="row m-2">
@@ -168,39 +168,39 @@ HTML;
 			<form method="POST" action="./installer.php">
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left"><h4>MySQL Database Parameters</h4></div>
+					<div class="col text-start"><h4>MySQL Database Parameters</h4></div>
 					<div class="col-2"></div>
 				</div>
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left">
-						<label class="font-weight-bold" for="dbhostname">MySQL Server IP/FQDN:</label>
-						<div class="form-group input-group-sm font-weight-bold">
+					<div class="col text-start">
+						<label class="fw-bold" for="dbhostname">MySQL Server IP/FQDN:</label>
+						<div class="mb-3 input-group-sm fw-bold">
 							<input type="text" my-field-state="required" class="form-control shadow my-form-field" id="dbhostname" name="dbhostname">
 							<div class="invalid-feedback">Please enter a valid Username</div>
 						</div>
-						<label class="font-weight-bold" for="dbusername">iPSK Database Username:</label>
-						<div class="form-group input-group-sm font-weight-bold">
+						<label class="fw-bold" for="dbusername">iPSK Database Username:</label>
+						<div class="mb-3 input-group-sm fw-bold">
 							<input type="text" my-field-state="required" class="form-control shadow my-form-field" id="dbusername" name="dbusername">
 							<div class="invalid-feedback">Please enter a Name</div>
 						</div>
-						<label class="font-weight-bold" for="iseusername">Cisco ISE ODBC Username:</label>
-						<div class="form-group input-group-sm font-weight-bold">
+						<label class="fw-bold" for="iseusername">Cisco ISE ODBC Username:</label>
+						<div class="mb-3 input-group-sm fw-bold">
 							<input type="text" my-field-state="required" class="form-control shadow my-form-field" id="iseusername" name="iseusername">
 							<div class="invalid-feedback">Please enter a Name</div>
-							<div class="font-weight-bold small" id="usernamefeedback"></div>
+							<div class="fw-bold small" id="usernamefeedback"></div>
 						</div>
-						<label class="font-weight-bold" for="databasename">iPSK Database Name:</label>
-						<div class="form-group input-group-sm font-weight-bold">
+						<label class="fw-bold" for="databasename">iPSK Database Name:</label>
+						<div class="mb-3 input-group-sm fw-bold">
 							<input type="text" my-field-state="required" class="form-control shadow my-form-field" id="databasename" name="databasename">
 							<div class="invalid-feedback">Please enter a Name</div>
 						</div>
-						<label class="font-weight-bold" for="rootusername">MySQL Admin/Root Username:</label>
-						<div class="form-group input-group-sm font-weight-bold">
+						<label class="fw-bold" for="rootusername">MySQL Admin/Root Username:</label>
+						<div class="mb-3 input-group-sm fw-bold">
 							<input type="text" class="form-control shadow" id="rootusername" name="rootusername">
 						</div>
-						<label class="font-weight-bold" for="rootpassword">MySQL Admin/Root Password:</label>
-						<div class="form-group input-group-sm font-weight-bold">
+						<label class="fw-bold" for="rootpassword">MySQL Admin/Root Password:</label>
+						<div class="mb-3 input-group-sm fw-bold">
 							<input type="password" my-field-state="required" class="form-control shadow my-form-field" id="rootpassword" name="rootpassword">
 							<div class="invalid-feedback">Please enter a password</div>
 						</div>
@@ -251,22 +251,22 @@ HTML;
 			<form method="POST" action="./installer.php">
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left"><h4>iPSK Manager's Administrator Password</h4></div>
+					<div class="col text-start"><h4>iPSK Manager's Administrator Password</h4></div>
 					<div class="col-2"></div>
 				</div>
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left">
-						<label class="font-weight-bold" for="password">Administrator Password:</label>
-						<div class="form-group input-group-sm font-weight-bold">
+					<div class="col text-start">
+						<label class="fw-bold" for="password">Administrator Password:</label>
+						<div class="mb-3 input-group-sm fw-bold">
 							<input type="password" class="form-control shadow" id="password" name="password" autocomplete="off">
 							<div class="invalid-feedback">Please enter a password</div>
 						</div>
-						<label class="font-weight-bold" for="confirmpassword">Confirm Administrator Password:</label>
-						<div class="form-group input-group-sm font-weight-bold">
+						<label class="fw-bold" for="confirmpassword">Confirm Administrator Password:</label>
+						<div class="mb-3 input-group-sm fw-bold">
 							<input type="password" class="form-control shadow" id="confirmpassword" autocomplete="off">
 							<div class="invalid-feedback">Please confirm your password</div>
-							<div class="font-weight-bold small" id="passwordfeedback"></div>
+							<div class="fw-bold small" id="passwordfeedback"></div>
 						</div>
 					</div>
 					<div class="col-2"></div>
@@ -315,27 +315,27 @@ HTML;
 				</div>
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left"><strong>MySQL Server IP/FQDN:</strong> {$_SESSION['dbhostname']}</div>
+					<div class="col text-start"><strong>MySQL Server IP/FQDN:</strong> {$_SESSION['dbhostname']}</div>
 					<div class="col-2"></div>
 				</div>
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left"><strong>iPSK Database Username:</strong> {$_SESSION['dbusername']}</div>
+					<div class="col text-start"><strong>iPSK Database Username:</strong> {$_SESSION['dbusername']}</div>
 					<div class="col-2"></div>
 				</div>
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left"><strong>Cisco ISE ODBC Username:</strong> {$_SESSION['iseusername']}</div>
+					<div class="col text-start"><strong>Cisco ISE ODBC Username:</strong> {$_SESSION['iseusername']}</div>
 					<div class="col-2"></div>
 				</div>
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left"><strong>iPSK Database Name:</strong> {$_SESSION['databasename']}</div>
+					<div class="col text-start"><strong>iPSK Database Name:</strong> {$_SESSION['databasename']}</div>
 					<div class="col-2"></div>
 				</div>
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left"><strong>MySQL Admin/Root Username:</strong> {$_SESSION['rootusername']}</div>
+					<div class="col text-start"><strong>MySQL Admin/Root Username:</strong> {$_SESSION['rootusername']}</div>
 					<div class="col-2"></div>
 				</div>
 				<div class="row m-2">
@@ -590,11 +590,11 @@ HTML;
 			<form method="POST" action="./installer.php">
 				<div class="row">
 					<div class="col-2"></div>
-					<div class="col float-rounded mx-auto shadow-lg p-2 bg-white text-left"
+					<div class="col float-rounded mx-auto shadow-lg p-2 bg-white text-start"
 						<strong>Installation Results:</strong>
 						<div class="row">
 							<div class="col-1"></div>
-							<div class="col border border-primary text-left">$installProgress</div>
+							<div class="col border border-primary text-start">$installProgress</div>
 							<div class="col-1"></div>
 						</div>
 					</div>
@@ -650,7 +650,7 @@ HTML;
 			<form method="POST" action="./installer.php">
 				<div class="row m-2">
 					<div class="col-2"></div>
-					<div class="col text-left"><p>Welcome to the installer for iPSK Manager.  The installer will perform the intial setup and database population as well as create the proper credentials for both iPSK Manager and Cisco ISE for the ODBC integration.<br /><br />
+					<div class="col text-start"><p>Welcome to the installer for iPSK Manager.  The installer will perform the intial setup and database population as well as create the proper credentials for both iPSK Manager and Cisco ISE for the ODBC integration.<br /><br />
 					The installer is assuming that the installation will take place on a single server with a local MySQL database, for a non-standard deployment, please refer to the Installation Directions in the README File.<br /><br />
 					The installer will setup the MySQL database and permissions required for proper operation.  It will also auto-generate the MySQL Database Passwords and Encryption Key for specific data stored within the Database.
 					</p></div>
@@ -700,7 +700,7 @@ HTML;
 		<div class="mt-2 mb-4">
 			<img src="images/iPSK-Logo.svg" width="108" height="57" />
 		</div>
-		<h1 class="h3 mt-2 mb-4 font-weight-normal">iPSK Manager Installer</h1>
+		<h1 class="h3 mt-2 mb-4 fw-normal">iPSK Manager Installer</h1>
 		<?php print $installerOutput;?>
 		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2019 Cisco and/or its affiliates.</p>
 	</div>

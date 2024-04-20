@@ -79,36 +79,36 @@ HTML;
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Extend Endpoint Association</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="macAddress">Endpoint MAC Address</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="macAddress">Endpoint MAC Address</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="macAddress" value="{$endpoint['macAddress']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="fullName">Full Name</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="fullName">Full Name</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="fullName" value="{$endpoint['fullName']}" readonly>
 		</div>
-		<div class="form-group input-group-sm font-weight-bold">
-			<label class="font-weight-bold" for="termLengthSeconds">Extend Association by (from today's date):</label>
-			<select id="termLengthSeconds" class="form-control mt-2 mb-3 shadow">
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="termLengthSeconds">Extend Association by (from today's date):</label>
+			<select id="termLengthSeconds" class="form-select mt-2 mb-3 shadow">
 				$pageTermLengthList
 			</select>
 		</div>
 	  </div>
       <div class="modal-footer">
 	    <input type="hidden" id="id" value="{$endpoint['endpointId']}">
- 		<a id="extend" href="#" module="endpoints" sub-module="extend" role="button" class="btn btn-primary shadow" data-dismiss="modal">Extend</a>
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+ 		<a id="extend" href="#" module="endpoints" sub-module="extend" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Extend</a>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
 <script>
-	$("#extendendpoint").modal();
+	$("#extendendpoint").modal('show');
 
 	$(function() {	
 		feather.replace()
@@ -123,8 +123,8 @@ HTML;
 			return false;
 		}
 		
-		$('.modal-backdrop').remove();
-		$("body").removeClass('modal-open');
+		//$('.modal-backdrop').remove();
+		//$("body").removeClass('modal-open');
 		
 		$.ajax({
 			url: "ajax/getmodule.php",
