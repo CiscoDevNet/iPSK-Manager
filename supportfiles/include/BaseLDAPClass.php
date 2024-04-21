@@ -127,7 +127,31 @@
 			}
 			
 		}
-		function authenticateUser($username, $password, $saml = false){
+
+		function getGroupsForMember($ldap_conn, $member_dn, $already_seen = []) {
+			$groups = [];
+		
+			// Search for groups that the member belongs to
+			$result = ldap_search($ldap_conn, $this->ldapBaseDN, '(member=' . $member_dn . ')', ['dn']);
+			$entries = ldap_get_entries($ldap_conn, $result);
+		
+			for ($i = 0; $i < $entries['count']; $i++) {
+				$groupName = $entries[$i]['dn'];
+				$groups[] = $groupName;
+		
+				// If the group has not been seen before, recursively fetch its members
+				if (!in_array($groupName, $already_seen)) {
+					$already_seen[] = $groupName;
+					$nestedGroups = $this->getGroupsForMember($ldap_conn, $entries[$i]['dn'], $already_seen);
+					$groups = array_merge($groups, $nestedGroups);
+				}
+			}
+		
+			return $groups;
+		}
+	
+
+		function authenticateUser($username, $password, $saml = false, $nestedGroup = false){
 
 			if ($this->sslDisableVerify) {
 				ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
@@ -176,7 +200,15 @@
 							$logMessage = "REQUEST:SUCCESS;ACTION:AUTHENTICATE-USER;USERNAME:".$username.";AUTHDIRECTORY:".$this->ldapDomain.";";
 							$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						}
-						$_SESSION['memberOf'] = $entries[0]['memberof'];
+
+						if ($nestedGroup) {
+							$memberOfGroups = $this->getGroupsForMember($ldapConnection, $userDN);
+							$memberOfGroups['count'] = count($memberOfGroups);
+							$_SESSION['memberOf'] = $memberOfGroups;
+						} else {
+							$_SESSION['memberOf'] = $entries[0]['memberof'];
+						}
+	
 						$_SESSION['sAMAccountName'] = $entries[0]['samaccountname'][0];
 						$_SESSION['userPrincipalName'] = $entries[0]['userprincipalname'][0];
 						$_SESSION['fullName'] = (isset($entries[0]['name'][0])) ? $entries[0]['name'][0] : '';

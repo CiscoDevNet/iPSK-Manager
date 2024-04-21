@@ -169,7 +169,7 @@
 					unset($ldapCreds['adPassword']);
 					//END-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds					
 					
-					$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"], $inputPassword, $samlLogin);
+					$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"], $inputPassword, $samlLogin, $ldapSettings['nested-groups']);
 					
 					$matchedGroupCount = 0;
 					

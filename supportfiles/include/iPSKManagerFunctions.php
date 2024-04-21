@@ -357,6 +357,7 @@
 								  ),
 			'samlLdapSourceDirectory' => FILTER_VALIDATE_INT,
 			'ldapSSLCheck' => FILTER_VALIDATE_BOOLEAN,
+			'nestedGroups' => FILTER_VALIDATE_BOOLEAN,
 		);
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);

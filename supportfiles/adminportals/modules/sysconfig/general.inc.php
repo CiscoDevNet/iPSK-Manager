@@ -49,6 +49,10 @@ $alphabetArray = Array(1=>"abcdefghijkmnopqrstuvwxyz", 2=>"ABCDEFGHJKLMNPQRSTUVW
 			<input type="checkbox" class="form-check-input checkbox-update generaltab" base-value="1" value="{$ldapSettings['ldap-ssl-check-value']}" id="ldapSSLCheck"{$ldapSettings['ldap-ssl-check']}>
 			<label class="form-check-label" for="ldapSSLCheck">Disable LDAP SSL Validation</label>
 		</div>
+		<div class="form-check">
+			<input type="checkbox" class="form-check-input checkbox-update generaltab" base-value="1" value="{$ldapSettings['nested-groups-value']}" id="nestedGroups"{$ldapSettings['nested-groups']}>
+			<label class="form-check-label" for="nestedGroups">Enable AD LDAP Nested Group Support</label>
+		</div>
 		<div class="row">
 			<div class="col text-center text-primary"><br /></div>
 		</div>

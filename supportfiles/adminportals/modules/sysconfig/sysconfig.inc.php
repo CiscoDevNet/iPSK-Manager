@@ -111,6 +111,19 @@
 		$ldapSettings['ldap-ssl-check-value'] = "0";
 	}
 
+	if(isset($ldapSettings['nested-groups'])){
+		if($ldapSettings['nested-groups'] == 1){
+			$ldapSettings['nested-groups'] = " checked";
+			$ldapSettings['nested-groups-value'] = "1";
+		}else{
+			$ldapSettings['nested-groups'] = "";
+			$ldapSettings['nested-groups-value'] = "0";
+		}
+	}else{
+		$ldapSettings['nested-groups'] = "";
+		$ldapSettings['nested-groups-value'] = "0";
+	}
+
 	if(isset($samlSettings['ldap-source'])){
 		if($samlSettings['ldap-source'] == 1){
 			$samlSettings['ldap-source'] = " checked";
@@ -345,6 +358,7 @@
 				'strict-hostname': $("#strictHostname").val(),
 				'redirect-hostname': $("#redirectOnHostname").val(),
 				'ldapSSLCheck': $("#ldapSSLCheck").val(),
+				'nestedGroups': $("#nestedGroups").val(),
 				'samlEnabled': $("#samlEnabled").val(),
 				'samlLdapSource': $("#samlLdapSource").val(),
 				'samlHeaders': $("#samlHeaders").val(),

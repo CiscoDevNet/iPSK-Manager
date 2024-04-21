@@ -336,4 +336,13 @@
 
 		var ctx6 = document.getElementById('chart6').getContext('2d');
     	var chart6 = new Chart(ctx6,addedEndpointsConfig);
+
+		window.addEventListener('resize', function() {
+      		chart1.resize();
+      		chart2.resize();
+      		chart3.resize();
+			chart4.resize();
+			chart5.resize();
+			chart6.resize();
+    	});
 </script>

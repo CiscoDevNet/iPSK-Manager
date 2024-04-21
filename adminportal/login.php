@@ -152,7 +152,7 @@
 					
 						$authorizedGroups = $ipskISEDB->getPortalAdminGroups();
 
-						$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"], $inputPassword, $samlLogin);
+						$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"], $inputPassword, $samlLogin, $ldapSettings['nested-groups']);
 
 						if($validUser){
 							//LOG::Entry
