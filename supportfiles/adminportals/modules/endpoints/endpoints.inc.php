@@ -194,6 +194,14 @@
             		target: 5,
             		visible: false
         		},
+				{
+            		target: 6,
+            		orderable: false
+        		},
+				{
+            		target: 7,
+            		orderable: false
+        		},
     		],
 			"paging": true,
 			"stateSave": true,

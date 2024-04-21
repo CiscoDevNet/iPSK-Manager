@@ -231,7 +231,7 @@
 			</div>
 		</div>
 		<div class="m-0 mx-auto p-2 bg-white text-center">
-			<p>Copyright &copy; 2019 Cisco and/or its affiliates.</p>
+			<p>Copyright &copy; 2024 Cisco and/or its affiliates.</p>
 		</div>
 	</div>
   <div id="popupcontent"></div>

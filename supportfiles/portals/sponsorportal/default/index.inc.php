@@ -64,7 +64,7 @@
 			<input type="password" name="inputPassword" id="inputPassword" class="form-control mt-2 mb-3 shadow" placeholder="Password" required>
 			<button class="btn btn-lg btn-primary btn-block mt-2 mb-3" type="submit">Sign in</button>
 		</form>
-		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2019 Cisco and/or its affiliates.</p>
+		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2024 Cisco and/or its affiliates.</p>
 	</div>
   </body>
 </html>
@@ -104,7 +104,7 @@ HTML;
 			<input type="password" name="inputPassword" id="inputPassword" class="form-control mt-2 mb-3 shadow" placeholder="Password" required>
 			<button class="btn btn-lg btn-primary btn-block mt-2 mb-3 shadow" id="loginbtn" type="submit">Sign in</button>
 		</form>
-		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2019 Cisco and/or its affiliates.</p>
+		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2024 Cisco and/or its affiliates.</p>
 	</div>
   </body>
   <script type="text/javascript" src="scripts/jquery.min.js"></script>

@@ -44,7 +44,7 @@ $(document).ready(function() {
 		$("#currentMenuItem").remove();
 		$("a.sideNav.active").removeClass("active");
 		$(this).addClass("active");
-		$(this).append("<span id=\"currentMenuItem\" class=\"sr-only\">(current)</span>");
+		//$(this).append("<span id=\"currentMenuItem\" class=\"sr-only\">(current)</span>");
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

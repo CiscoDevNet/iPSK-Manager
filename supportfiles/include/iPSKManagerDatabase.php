@@ -1723,6 +1723,76 @@
 			}
 		}
 		
+		function getSponsorLoginsLastSevenDays() {
+			$query = "SELECT COUNT(*) AS count, DATE(dateCreated) as date FROM `logging` WHERE `message` LIKE 'REQUEST:SUCCESS;ACTION:SPONSORAUTHN%' AND dateCreated >= date_sub(curdate(), interval 7 day) GROUP BY date;";
+			
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				if($queryResult->num_rows > 0){
+					return $queryResult;
+				} else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+
+		}
+
+		function getCaptiveLoginsLastSevenDays() {
+			$query = "SELECT COUNT(*) AS count, DATE(dateCreated) as date FROM `logging` WHERE `message` LIKE 'REQUEST:SUCCESS;ACTION:CAPTIVEAUTHN%' AND dateCreated >= date_sub(curdate(), interval 7 day) GROUP BY date;";
+			
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				if($queryResult->num_rows > 0){
+					return $queryResult;
+				} else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+
+		}
+
+		function getAdminLoginsLastSevenDays() {
+			$query = "SELECT COUNT(*) AS count, DATE(dateCreated) as date FROM `logging` WHERE `message` LIKE 'REQUEST:SUCCESS;ACTION:ADMINAUTHN%' AND dateCreated >= date_sub(curdate(), interval 7 day) GROUP BY date;";
+			
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				if($queryResult->num_rows > 0){
+					return $queryResult;
+				} else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+
+		}
+
+		function getAddedEndpointsLastSevenDays() {
+			$query = "SELECT COUNT(*) AS count, DATE(createdDate) as date FROM `endpoints` WHERE createdDate >= date_sub(curdate(), interval 7 day) GROUP BY date;";
+			
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				if($queryResult->num_rows > 0){
+					return $queryResult;
+				} else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+
+		}
+
+		
+
 		function getWirelessNetworkById($wirelessId){
 			$query = "SELECT * FROM wirelessNetworks WHERE id = '$wirelessId' LIMIT 1";
 			
