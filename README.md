@@ -1,5 +1,3 @@
-# DEVELOPMENT VERSION FOR SAML IMPLEMENTATION. MAY NOT WORK.
-
 # Identity PSK Manager for Cisco ISE
 
 *Identity Pre-Shared Key(PSK) Manager that simplifies the management and provisioning of unique PSK to devices within your environment.  This is a standalone application which integrates with Cisco ISE through an ODBC Connection and Cisco ISE's APIs.*
@@ -24,12 +22,19 @@ Identity PSK Manager enables the following features/functionality:
 - Cisco ISE ERS API Integration
 - Cisco ISE Monitoring API Integration
 - Internal iPSK Identity Store for Management of Administration & Portal Access
-- LDAP & Active Directory Authenication Capable
-- SAML Authentication Preview (admin portal only)
+- SAML & Active Directory Authenication Capable
 - Customizable Authorization Profiles (Unique or Random PSK on a per Device or User basis)
 - Customizable Endpoint Groups
 - Customizable Portal Groups
 - Customizable Sponsor & Captive Portals
+
+**What's New (April 2024)**
+- [SAML Authentication Support](#saml-authentication-support) (External SP Required)
+- Refreshed Dashboard
+- Endpoint Page Filtering Enhancements (Admin and Sponsor Portal)
+- [Active Directory Netsted Group Support](#active-directory-nested-group-support)
+- LDAP Disable SSL Certificate Verification Option
+- Updated Supporting Tool & Framework Versions
 
 ## Technologies & Frameworks Used
 
@@ -39,11 +44,12 @@ Identity PSK Manager enables the following features/functionality:
 
 **Tools & Frameworks:**
 
-- Bootstrap v4.3.1
-- jQuery v3.5.0
+- Bootstrap v5.3.3
+- jQuery v3.7.1
 - feathericon
-- Chart JS v3.3.0
-- ClipBoard Copy v2.0.4
+- Chart JS v4.4.2
+- ClipBoard Copy v2.0.11
+- DataTables v2.0.5
 
 **We would like to thank all the authors & contributers on the previously mentioned Tools & Frameworks!**
 
@@ -468,15 +474,22 @@ Lastly, restart apache service:
 ```
 admin@ubuntu:~$ sudo service apache2 restart
 ```
-## (Preview) SAML Authentication Support
+## SAML Authentication Support
 
-A preview of SAML authentication is now available for authentication in both admin, sponsor, and captive portals. iPSK-Manager does not act as a SAML SP and requires an external SP to interact with your SAML IDP (such as the Apache module mod_shib), and after successful SAML Authentication, Apache sets either an Apache Environment Variable or a Header. By default, the Header option is disabled, and the Environment Variable used is REMOTE_USER, but it can be changed. Settings for SAML are located in Platform Configuration.
+SAML authentication is available for authentication in admin, sponsor, and captive portals. iPSK-Manager does not act as a SAML SP and requires an external SP to interact with your SAML IDP (such as the Apache module mod_shib). After successful SAML Authentication, Apache sets either an Apache Environment Variable or a Header. By default, the Header option is disabled, and the Environment Variable used is REMOTE_USER, but it can be changed. Settings for SAML are located in Platform Configuration.
 
-Users authenticated with SAML still need to be in either the internal database or an LDAP database and assigned to groups for Authorization. For internal database users, the password does not matter and can be set to any value as users will never use a password. The user store for captive and sponsor portals Authorization is based on the portal configuration. For admin portal Authorization, it defaults to the internal database. To use LDAP Authorization for the admin portal, enable the setting in Platform Settings and choose which LDAP directory to use; only one LDAP directory is supported for admin portal LDAP Authorization.
+Users authenticated with SAML still need to be in either the internal database or an LDAP database and assigned to groups for Authorization. For internal database users, the password can be set to any value as users will never login with a password. The user store for captive and sponsor portals Authorization is based on the portal configuration. For admin portal Authorization, it defaults to the internal database. To use LDAP Authorization for the admin portal, enable the setting in Platform Settings and choose which LDAP directory to use; only one LDAP directory is supported for admin portal LDAP Authorization.
 
-Items to note:
+**NOTE:**
 - There is no backdoor login support when SAML is enabled.  If you need to gain access to a system with broken SAML authentication edit the DB manually to disable SAML authentication. 
 - Use of headers for SAML authentication verification should be used with caution and protective measures should be made to make sure a user can not inject the header used for SAML authentication.
+
+## Active Directory Nested Group Support
+
+Active Directory nested group support can be enabled in the Platform Configuraton menu.  Enabling support will enable it for all portals (admin, captive, and sponsor) as well as all configured LDAP directories in the system.
+
+**NOTE:**
+- To support nested groups, the LDAP process goes through each group assigned to a user and searches those groups to see if it is a member of another group. Depending on the number of groups assigned to a user and how many of those groups are nested groups, there could be a noticeable delay in logging in. The use of nested groups should be avoided if possible.
 
 ## Authors
 
