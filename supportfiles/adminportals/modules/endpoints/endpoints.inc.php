@@ -83,9 +83,11 @@
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-2"><a id="newEndpoint" module="endpoints" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Endpoint</a></div>
-	<div class="col-3"><a id="bulkEndpoint" module="endpoints" sub-module="bulk" class="btn btn-primary custom-link text-white" href="#" role="button">Add Bulk Endpoints</a></div>
-	<div class="col-7"></div>
+<div class="d-grid gap-2 d-md-block">
+	<a id="newEndpoint" module="endpoints" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Endpoint</a>
+	<a id="bulkEndpoint" module="endpoints" sub-module="bulk" class="btn btn-primary custom-link text-white" href="#" role="button">Add Bulk Endpoints</a>
+	
+</div>
 </div>
 <div class="row">
 	<div class="col">
@@ -97,7 +99,11 @@
 	<div class="col"><hr></div>
 </div>
 <div id="popupcontent"></div>
-
+<style>
+	button.buttons-colvis {
+    	background: #0d6efd !important;
+	}
+</style>
 <script>
 	$(function() {	
 		feather.replace()
@@ -203,7 +209,13 @@
             		orderable: false
         		},
     		],
+			layout: {
+        		bottomStart: {
+            		buttons: ['colvis']
+        		}
+    		},
 			"paging": true,
+			"responsive": true,
 			"stateSave": true,
 			"lengthMenu": [ [15, 30, 45, 60, -1], [15, 30, 45, 60, "All"] ],
 			"stateLoadParams": function(settings, data) {

@@ -174,7 +174,11 @@
     <!-- Custom styles for this template -->
     <link href="styles/sponsor.css" rel="stylesheet">
   </head>
-
+  <style>
+	button.buttons-colvis {
+    	background: #0d6efd !important;
+	}
+  </style>
   <body>
 	<div class="container">
 		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
@@ -382,6 +386,11 @@
 
 	$(document).ready( function makeDataTable() {
 		$("#endpoint-table").DataTable({
+			layout: {
+        		bottomStart: {
+            		buttons: ['colvis']
+        		}
+    		},
 			"paging": true,
 			"stateSave": true,
 			"lengthMenu": [ [15, 30, 45, 60, -1], [15, 30, 45, 60, "All"] ]
