@@ -126,7 +126,7 @@ HTML;
 		}
 		
 		if(is_array($_SESSION['authorizedEPGroups'])){
-			$pageData['endpointGroupList'] .= '<select id="associationGroup" class="form-control mt-2 mb-3 shadow" disabled>';
+			$pageData['endpointGroupList'] .= '<select id="associationGroup" class="form-select mt-2 mb-3 shadow" disabled>';
 			
 			for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++){
 				if(!isset($trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']])){
@@ -196,16 +196,16 @@ HTML;
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Edit Endpoint Association</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
 			<div class="row$editGroup">
 				<div class="col m-2 shadow p-2 bg-white border border-primary">
-					<div class="custom-control custom-checkbox">
-						<input type="checkbox" class="custom-control-input checkbox-update" base-value="1" value="0" id="editAssociation"$endpointGroupCheck>
-						<label class="custom-control-label" for="editAssociation">Edit Endpoint Grouping</label>
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update" base-value="1" value="0" id="editAssociation"$endpointGroupCheck>
+						<label class="form-check-label" for="editAssociation">Edit Endpoint Grouping</label>
 					</div>
 					<h6>Association type:</h6>
 					{$pageData['endpointGroupList']}
@@ -227,47 +227,47 @@ HTML;
 			</div>
 			<div class="row{$pageData['editPskValue']}">
 				<div class="col m-2 shadow p-2 bg-white border border-primary">
-					<div class="custom-control custom-checkbox">
-						<input type="checkbox" class="custom-control-input checkbox-update" base-value="1" value="0" id="editPSK">
-						<label class="custom-control-label" for="editPSK">Edit Pre-Shared Key (Random)</label>
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update" base-value="1" value="0" id="editPSK">
+						<label class="form-check-label" for="editPSK">Edit Pre-Shared Key (Random)</label>
 					</div>
-					<label class="font-weight-bold" for="ciscoAVPairPSK">Pre-Shared Key:</label>
-					<div class="input-group form-group input-group-sm font-weight-bold">
+					<label class="fw-bold" for="ciscoAVPairPSK">Pre-Shared Key:</label>
+					<div class="input-group mb-3 input-group-sm fw-bold">
 						<input type="password" id="ciscoAVPairPSK" class="form-control shadow" value="{$endpoint['pskValue']}" readonly disabled>
 						<div class="input-group-append shadow">
-							<span class="input-group-text font-weight-bold" id="basic-addon1"><a id="generatePSK" action="get_random_psk" href="#"><span id="passwordfeather" data-feather="refresh-cw"></span></a></span>
+							<span class="input-group-text fw-bold" id="basic-addon1"><a id="generatePSK" action="get_random_psk" href="#"><span id="passwordfeather" data-feather="refresh-cw"></span></a></span>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="form-group">
+			<div class="mb-3">
 				<label for="macAddress">Endpoint MAC Address</label>
 				<input type="text" class="form-control mt-2 mb-3 shadow" value="{$endpoint['macAddress']}" readonly>
 			</div>
-			<div class="form-group">
+			<div class="mb-3">
 				<label for="endpointDescription">Endpoint Description</label>
 				<input type="text" class="form-control mt-2 mb-3 user-input shadow" id="endpointDescription" value="{$endpoint['description']}">
 			</div>
-			<div class="form-group">
+			<div class="mb-3">
 				<label for="fullName">Full Name</label>
 				<input type="text" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" id="fullName" value="{$endpoint['fullName']}">
 				<div class="invalid-feedback">Please enter your Full Name</div>
 			</div>
-			<div class="form-group">
+			<div class="mb-3">
 				<label for="emailAddress">Email address</label>
 				<input type="email" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" id="emailAddress" value="{$endpoint['emailAddress']}">
 				<div class="invalid-feedback">Please enter a valid email address</div>
 			</div> 
 			<div class="modal-footer">
 				<input type="hidden" id="id" value="{$endpoint['id']}">
-				<a id="update" href="#" module="edit" role="button" class="btn btn-primary shadow" data-dismiss="modal">Update</a>
-				<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+				<a id="update" href="#" module="edit" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Update</a>
+				<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
 	</div>
 </div>
 <script>
-	$("#editEndpoint").modal();
+	$("#editEndpoint").modal('show');
 
 	$(function() {	
 		feather.replace()

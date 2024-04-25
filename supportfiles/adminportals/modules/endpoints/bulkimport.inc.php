@@ -213,25 +213,25 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" id="exampleModalLongTitle">Bulk Endpoint Import Results</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+					
 				</button>
 			</div>
 			<div class="modal-body">
-				<div class="form-row text-left">
+				<div class="row text-start">
 					<div class="col mx-auto shadow p-2 bg-white border border-primary">
-						<div class="row m-auto text-left">
+						<div class="row m-auto text-start">
 							{$pageData['createComplete']}
 						</div>
 						<div class="row">
 							<div class="col{$pageData['hidePskFlag']}">
-								<div class="input-group input-group-sm mb-3 shadow copied-popover" data-animation="true" data-container="body" data-trigger="manual" data-toggle="popover" data-placement="top" data-content="Pre Shared Key has been Copied!">
+								<div class="input-group input-group-sm mb-3 shadow copied-popover" data-bs-animation="true" data-bs-container="body" data-bs-trigger="manual" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Pre Shared Key has been Copied!">
 									<div class="input-group-prepend">
-										<span class="input-group-text font-weight-bold shadow" id="basic-addon1">Pre-Shared Key</span>
+										<span class="input-group-text fw-bold shadow" id="basic-addon1">Pre-Shared Key</span>
 									</div>
 									<input type="text" id="presharedKey" class="form-control shadow" process-value="$randomPassword" value="$randomPassword" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true" readonly>
 									<div class="input-group-append">
-										<span class="input-group-text font-weight-bold shadow" id="basic-addon1"><a id="copyPassword" href="#" data-clipboard-target="#presharedKey"><span id="passwordfeather" data-feather="copy"></span></a></span>
+										<span class="input-group-text fw-bold shadow" id="basic-addon1"><a id="copyPassword" href="#" data-clipboard-target="#presharedKey"><span id="passwordfeather" data-feather="copy"></span></a></span>
 									</div>
 								</div>
 								Click on the copy button to copy the Pre Shared Key to your Clipboard.
@@ -260,9 +260,9 @@
 	$("#closeButton").click(function(){
 		event.preventDefault();
 	
-		$("#bulkAddStatus").modal('hide');
-		$('body').removeClass('modal-open');
-		$('.modal-backdrop').remove();
+		//$("#bulkAddStatus").modal('hide');
+		//$('body').removeClass('modal-open');
+		//$('.modal-backdrop').remove();
 	
 		$.ajax({
 			url: "ajax/getmodule.php",

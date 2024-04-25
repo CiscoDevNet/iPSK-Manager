@@ -32,7 +32,7 @@
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-3"><a id="addAuthZTemp" module="authz" sub-module="add" class="btn btn-primary nav-link custom-link text-white" href="#" role="button">Add Authorization Template</a></div>
+	<div class="col-3"><a id="addAuthZTemp" module="authz" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Authorization Template</a></div>
 	<div class="col-9"></div>
 </div>
 <div class="row">

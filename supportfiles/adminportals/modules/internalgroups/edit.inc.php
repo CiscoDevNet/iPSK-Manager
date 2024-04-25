@@ -50,48 +50,48 @@ $htmlbody = <<<HTML
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Add Internal Group</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="groupName">Group Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="groupName">Group Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow form-validation" validation-state="required" id="groupName" name="groupName" placeholder="" value="{$internalGroup['groupName']}" required>
 			<div class="invalid-feedback">Please enter a valid Group Name</div>
 		</div>
-		<label class="font-weight-bold" for="description">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="description">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="description" name="description" placeholder="" value="{$internalGroup['description']}">
 		</div>
 		
-		<label class="font-weight-bold" for="groupType">Group Type:</label>
-		<div class="form-group input-group-sm font-weight-bold">
-			<select id="groupType" class="form-control mt-2 mb-3 shadow">
+		<label class="fw-bold" for="groupType">Group Type:</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<select id="groupType" class="form-select mt-2 mb-3 shadow">
 				$groupType
 			</select>
 		</div>
 		<div id="dnBlock" class="row$groupDn">
 			<div class="col">
-				<label class="font-weight-bold" for="groupDn">External Group Distinguished Name:</label>
-				<div class="form-group input-group-sm font-weight-bold">
+				<label class="fw-bold" for="groupDn">External Group Distinguished Name:</label>
+				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" validation-state="required"  class="form-control shadow" id="groupDn" value="{$internalGroup['groupDn']}">
 					<div class="invalid-feedback">Please enter a Distinguished Name</div>
 				</div>
 			</div>
 		</div>
-		<div class="form-row">
+		<div class="row">
 			<div class="col">
-				<div class="custom-control custom-checkbox">
-					<input type="checkbox" class="custom-control-input checkbox-update" name="permission" base-value="1" value="{$internalGroup['permissions']}" id="permission"{$internalGroup['permissionsCheck']}>
-					<label class="custom-control-label" for="permission">Admin Portal Access</label>
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input checkbox-update" name="permission" base-value="1" value="{$internalGroup['permissions']}" id="permission"{$internalGroup['permissionsCheck']}>
+					<label class="form-check-label" for="permission">Admin Portal Access</label>
 			</div>
 		</div>
 	  </div>
       <div class="modal-footer">
 		<input type="hidden" id="id" name="id" value="$id">
-		<a id="update" href="#" module="internalgroups" sub-module="update" role="button" class="btn btn-primary shadow" data-dismiss="modal">Update</a>
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+		<a id="update" href="#" module="internalgroups" sub-module="update" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Update</a>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -99,7 +99,7 @@ $htmlbody = <<<HTML
 <script>
 	var failure;
 	
-	$("#updateInternalGroup").modal({show: true, backdrop: true});
+	$("#updateInternalGroup").modal('show');
 	
 	$("#update").click(function(){
 		event.preventDefault();
@@ -110,7 +110,7 @@ $htmlbody = <<<HTML
 			return false;
 		}
 		
-		$('.modal-backdrop').remove();
+		//$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

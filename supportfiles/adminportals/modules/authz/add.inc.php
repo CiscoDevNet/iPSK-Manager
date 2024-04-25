@@ -26,23 +26,23 @@ $htmlbody = <<<HTML
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Add Authorization Template</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="authzPolicyName">Authorization Template Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="authzPolicyName">Authorization Template Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow form-validation" validation-state="required" id="authzPolicyName" value="">
 			<div class="invalid-feedback">Please enter a valid Template Name!</div>
 		</div>
-		<label class="font-weight-bold" for="authzPolicyDescription">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="authzPolicyDescription">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="authzPolicyDescription" value="">
 		</div>
-		<div class="form-group input-group-sm font-weight-bold">
-			<label class="font-weight-bold" for="termLengthSeconds">Access Term Length:</label>
-			<select id="termLengthSeconds" class="form-control mt-2 mb-3 shadow">
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="termLengthSeconds">Access Term Length:</label>
+			<select id="termLengthSeconds" class="form-select mt-2 mb-3 shadow">
 				<option value="0">No Expiration</option>
 				<option value="86400">1 Day</option>
 				<option value="172800">2 Days</option>
@@ -72,32 +72,32 @@ $htmlbody = <<<HTML
 				<option value="157680000">5 Years</option>
 			</select>
 		</div>
-		<label class="font-weight-bold" for="pskLength">Pre-Shared Key Length:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="pskLength">Pre-Shared Key Length:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="1" validation-maximum-length="2" id="pskLength" value="8">
 			<div class="invalid-feedback">Please enter a PSK length between 8 and 64</div>
 		</div>
-		<div class="form-group input-group-sm font-weight-bold">
-			<label class="font-weight-bold" for="keyType">Pre-Shared Key Type:</label>
-			<select id="keyType" class="form-control mt-2 mb-3 shadow">
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="keyType">Pre-Shared Key Type:</label>
+			<select id="keyType" class="form-select mt-2 mb-3 shadow">
 				<option value="0">Common PSK</option>
 				<option value="1">Random PSK</option>
 			</select>
 		</div>
-		<label class="font-weight-bold" for="ciscoAVPairPSK">Pre-Shared Key:</label>
+		<label class="fw-bold" for="ciscoAVPairPSK">Pre-Shared Key:</label>
 		<div class="input-group input-group-sm mb-3">
 			<div class="input-group-prepend shadow">
-				<span class="input-group-text font-weight-bold" id="basic-addon1">ASCII</span>
+				<span class="input-group-text fw-bold" id="basic-addon1">ASCII</span>
 			</div>
 			<input type="text" id="ciscoAVPairPSK" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="8" validation-maximum-length="64" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true">
 			<div class="input-group-append shadow">
-				<span class="input-group-text font-weight-bold" id="basic-addon1"><a id="generatepassword" data-command="generate" data-set="psk" href="#"><span id="passwordfeather" data-feather="shuffle"></span></a></span>
+				<span class="input-group-text fw-bold" id="basic-addon1"><a id="generatepassword" data-command="generate" data-set="psk" href="#"><span id="passwordfeather" data-feather="shuffle"></span></a></span>
 			</div>
 			<div class="invalid-feedback">Please enter a Valid Pre-Shared Key (Key Length must be betwee 8-64 Characters Long)</div>
 		</div>
-		<div class="form-group input-group-sm font-weight-bold">
-			<label class="font-weight-bold" for="pskType">Random iPSK Type:</label>
-			<select id="pskType" class="form-control mt-2 mb-3 shadow" disabled>
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="pskType">Random iPSK Type:</label>
+			<select id="pskType" class="form-select mt-2 mb-3 shadow" disabled>
 				<option value="0">Unique PSK per Device</option>
 				<option value="1">Unique PSK per User</option>
 			</select>
@@ -105,8 +105,8 @@ $htmlbody = <<<HTML
 	  </div>
 	  <input type="hidden" id="pskMode" value="0">
       <div class="modal-footer">
-		<a id="create" href="#" module="authz" sub-module="create" role="button" class="btn btn-primary shadow" data-dismiss="modal">Create</a>
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+		<a id="create" href="#" module="authz" sub-module="create" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</a>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -114,7 +114,7 @@ $htmlbody = <<<HTML
 <script>
 	var failure;
 
-	$("#addauthztemplate").modal();
+	$("#addauthztemplate").modal('show');
 
 	$(function() {	
 		feather.replace()
@@ -170,8 +170,8 @@ $htmlbody = <<<HTML
 			return false;
 		}
 		
-		$("#addauthztemplate").modal({show: false});
-		$('.modal-backdrop').remove();
+		//$("#addauthztemplate").modal({show: false});
+		//$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

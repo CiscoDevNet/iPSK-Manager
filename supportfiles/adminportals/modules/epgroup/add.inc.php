@@ -37,39 +37,38 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Add Endpoint Grouping</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="epGroupName">iPSK Endpoint Group Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="epGroupName">iPSK Endpoint Group Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow form-validation" validation-state="required" id="epGroupName" validation-minimum-length="1" validation-maximum-length="25">
 			<div class="invalid-feedback">Please enter a Endpoint Group Name (Max: 25 Characters)</div>
 		</div>
-		<label class="font-weight-bold" for="epGroupDescription">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="epGroupDescription">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="epGroupDescription">
 		</div>
-		<div class="form-row">
+		<div class="row">
 			<div class="col">
-				<div class="custom-control custom-checkbox">
-					<input type="checkbox" class="custom-control-input checkbox-update" base-value="1" value="0" id="notificationPermission">
-					<label class="custom-control-label" for="notificationPermission">Email Notifications</label>
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input checkbox-update" base-value="1" value="0" id="notificationPermission">
+					<label class="form-check-label" for="notificationPermission">Email Notifications</label>
 				</div>
 			</div>
 		</div>	
-		<label class="font-weight-bold" for="authzTemplate">Authorization Template:</label>
-		<div class="form-group input-group-sm font-weight-bold">
-			<select id="authzTemplate" class="form-control mt-2 mb-3 shadow">
+		<label class="fw-bold" for="authzTemplate">Authorization Template:</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<select id="authzTemplate" class="form-select mt-2 mb-3 shadow">
 				$authList
 			</select>
 		</div>
 	  </div>
       <div class="modal-footer">
-	  <a id="create" href="#" module="epgroup" sub-module="create" role="button" class="btn btn-primary shadow" data-dismiss="modal"
->Create</a>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+	  <a id="create" href="#" module="epgroup" sub-module="create" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -77,7 +76,7 @@
 <script>
 	var failure;
 	
-	$("#viewepggroup").modal();
+	$("#viewepggroup").modal('show');
 
 	$(function() {	
 		feather.replace()
@@ -104,8 +103,9 @@
 			return false;
 		}
 		
-		$("#viewepggroup").modal({show: false});
-		$('.modal-backdrop').remove();
+		//$("#viewepggroup").modal({show: false});
+		//$('.modal-backdrop').remove();
+		//$("body").removeClass('modal-open');
 		
 		$.ajax({
 			url: "ajax/getmodule.php",
@@ -149,16 +149,16 @@ HTML;
 			<div class="modal-dialog modal-dialog-centered" role="document">
 				<div class="modal-content">
 					<div class="modal-header shadow alert alert-danger">
-						<h5 class="modal-title font-weight-bold" id="modalLongTitle">Missing Dependencies</h5>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						  <span aria-hidden="true">&times;</span>
+						<h5 class="modal-title fw-bold" id="modalLongTitle">Missing Dependencies</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+						  
 						</button>
 					</div>
 					<div class="modal-body">
 						<p class="h6">Authorization Template missing</p>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Ok</button>
+						<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Ok</button>
 					</div>
 				</div>
 			</div>

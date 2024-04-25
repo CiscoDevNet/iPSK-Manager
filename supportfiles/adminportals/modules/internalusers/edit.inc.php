@@ -38,34 +38,34 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Edit Internal User</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="userName">Username:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="userName">Username:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation" id="userName" value="{$internalUser['userName']}">
 			<div class="invalid-feedback">Please enter a valid Username</div>
 		</div>
-		<label class="font-weight-bold" for="fullName">Full Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="fullName">Full Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation" id="fullName" value="{$internalUser['fullName']}">
 			<div class="invalid-feedback">Please enter a Name</div>
 		</div>
-		<label class="font-weight-bold" for="description">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="description">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="description" value="{$internalUser['description']}">
 		</div>
-		<label class="font-weight-bold" for="email">Email Address:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="email">Email Address:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="email" value="{$internalUser['email']}">
 		</div>
 	  </div>
       <div class="modal-footer">
 		<input type="hidden" id="id" value="{$internalUser['id']}">
-		<a id="update" href="#" module="internalusers" sub-module="update" role="button" class="btn btn-primary shadow" data-dismiss="modal">Update</a>
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+		<a id="update" href="#" module="internalusers" sub-module="update" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Update</a>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -73,7 +73,7 @@
 <script>
 	var failure;
 	
-	$("#updateInternalUser").modal({show: true, backdrop: true});
+	$("#updateInternalUser").modal('show');
 	
 	$("#update").click(function(){
 		event.preventDefault();

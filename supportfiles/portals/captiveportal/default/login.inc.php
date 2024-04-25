@@ -48,6 +48,21 @@
 	unset($_POST["inputPassword"]);
 	//END-[DO NOT REMOVE] - REMOVES PASSWORD FROM $_POST
 	
+	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
+	$samlLogin = (isset($samlSettings['enabled'])) ? $samlSettings['enabled'] : false;
+	$samlUsernameField = ($samlSettings['usernamefield'] != '') ? $samlSettings['usernamefield'] : 'REMOTE_USER';
+	
+	if ($samlLogin == true && $samlSettings['headers'] == true) {
+		$requestHeaders = getallheaders();
+		$samlUsername = (isset($requestHeaders[$samlUsernameField])) ? $requestHeaders[$samlUsernameField] : '';
+		$sanitizedInput["inputUsername"] = $samlUsername;
+		$inputPassword = 'bogus';
+	} elseif ($samlLogin == true) {
+		$samlUsername = (isset($_SERVER[$samlUsernameField])) ? $_SERVER[$samlUsernameField] : '';
+		$sanitizedInput["inputUsername"] = $samlUsername;
+		$inputPassword = 'bogus';
+	}
+
 	//LOG::Entry
 	$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
 	$logMessage = "REQUEST:SUCCESS;ACTION:CAPTIVELOGIN;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$_SESSION['portalSettings']['authenticationDirectory'].";";
@@ -55,7 +70,7 @@
 	
 	if($sanitizedInput["inputUsername"] != "" && $inputPassword != ""){
 		if($_SESSION['portalSettings']['authenticationDirectory'] == "0"){
-			if($ipskISEDB->authenticateInternalUser($sanitizedInput["inputUsername"], $inputPassword)){
+			if($ipskISEDB->authenticateInternalUser($sanitizedInput["inputUsername"], $inputPassword,$samlLogin)){
 				$authorizedGroups = $ipskISEDB->getPortalAuthGroups($_SESSION['portalSettings']['id']);
 				
 				//LOG::Entry
@@ -153,18 +168,19 @@
 			if(is_numeric($_SESSION['portalSettings']['id'])){
 	
 				$ldapCreds = $ipskISEDB->getLdapSettings($_SESSION['portalSettings']['authenticationDirectory']);
+				$ldapSettings = $ipskISEDB->getGlobalClassSetting("ldap-settings");
 							
 				if($ldapCreds){
 				
 					$authorizedGroups = $ipskISEDB->getPortalAuthGroups($_SESSION['portalSettings']['id']);
 					
-					$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ipskISEDB);
+					$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ipskISEDB);
 					
 					//START-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
 					unset($ldapCreds['adPassword']);
 					//END-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
 									
-					$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"],$inputPassword);
+					$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"],$inputPassword,$samlLogin,$ldapSettings['nested-groups']);
 					
 					$matchedGroupCount = 0;
 					

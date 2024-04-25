@@ -25,14 +25,14 @@
 		<div class="row">
 			<div class="col text-center text-primary"><h5>Advanced Platform Settings</h5></div>
 		</div>
-		<label class="font-weight-bold" for="adminPortalHostname">Advanced Settings:</label>
-		<div class="custom-control custom-checkbox">
-			<input type="checkbox" class="custom-control-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-portal-psk-edit-value']}" id="portalPskEditEnabled"{$advancedSettings['enable-portal-psk-edit']}>
-			<label class="custom-control-label text-danger" for="portalPskEditEnabled"><strong>Enable the "Manual PSK Editing" Portal Group Permission</strong></label>
+		<label class="fw-bold" for="adminPortalHostname">Advanced Settings:</label>
+		<div class="form-check">
+			<input type="checkbox" class="form-check-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-portal-psk-edit-value']}" id="portalPskEditEnabled"{$advancedSettings['enable-portal-psk-edit']}>
+			<label class="form-check-label text-danger" for="portalPskEditEnabled"><strong>Enable the "Manual PSK Editing" Portal Group Permission</strong></label>
 		</div>
-		<div class="custom-control custom-checkbox">
-			<input type="checkbox" class="custom-control-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-advanced-logging-value']}" id="advancedLoggingSettings"{$advancedSettings['enable-advanced-logging']}>
-			<label class="custom-control-label text-danger" for="advancedLoggingSettings"><strong>Enable Platform Logging Settings</strong></label>
+		<div class="form-check">
+			<input type="checkbox" class="form-check-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-advanced-logging-value']}" id="advancedLoggingSettings"{$advancedSettings['enable-advanced-logging']}>
+			<label class="form-check-label text-danger" for="advancedLoggingSettings"><strong>Enable Platform Logging Settings</strong></label>
 		</div>
 		<button id="updateadvanced" module="sysconfig" sub-module="update" module-action="advancedupdate" type="submit" class="btn btn-primary shadow" disabled>Update Settings</button>
 	</div>

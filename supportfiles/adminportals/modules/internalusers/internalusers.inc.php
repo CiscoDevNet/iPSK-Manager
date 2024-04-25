@@ -33,7 +33,7 @@
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-2"><a id="addGroup" module="internalusers" sub-module="add" class="btn btn-primary nav-link custom-link text-white" href="#" role="button">Add User</a></div>
+	<div class="col-2"><a id="addGroup" module="internalusers" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add User</a></div>
 	<div class="col"></div>
 </div>
 <div class="row">

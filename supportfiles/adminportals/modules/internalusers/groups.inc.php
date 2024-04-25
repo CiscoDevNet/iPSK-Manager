@@ -56,20 +56,20 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Manage Group Membership</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
 	  <form class="needs-validation" novalidate>
-			<label class="font-weight-bold" for="groupName">Username:</label>
-			<div class="form-group input-group-sm font-weight-bold">
+			<label class="fw-bold" for="groupName">Username:</label>
+			<div class="mb-3 input-group-sm fw-bold">
 				<input type="text" class="form-control shadow" id="userName" value="{$internalUser['userName']}" readonly>
 				<input type="hidden" validation-state="notempty" class="form-control shadow form-validation" id="userId" value="{$internalUser['id']}">
 			</div>
-			<label class="font-weight-bold" for="availablegroups">Available Internal Groups:</label>
-			<div class="form-group input-group font-weight-bold">
-				<select class="form-control shadow" id="availablegroups" multiple>
+			<label class="fw-bold" for="availablegroups">Available Internal Groups:</label>
+			<div class="mb-3 input-group fw-bold">
+				<select class="form-select shadow" id="availablegroups" multiple>
 					$availableGroups
 				</select>
 			</div>
@@ -84,17 +84,17 @@
 			</div>
 			<hr />
 			<div class="row"></div>
-			<label class="font-weight-bold" for="memberof">Member Of:</label>
-			<div class="form-group input-group font-weight-bold">
-				<select class="form-control shadow form-validation" validation-state="required" id="memberof" multiple>
+			<label class="fw-bold" for="memberof">Member Of:</label>
+			<div class="mb-3 input-group fw-bold">
+				<select class="form-select shadow form-validation" validation-state="required" id="memberof" multiple>
 					$memberGroups	
 				</select>
 			</div>
 		</form>
 	  </div>
       <div class="modal-footer">
-		<a id="updategroups" href="#" module="internalusers" sub-module="updategroups" role="button" class="btn btn-primary shadow" data-dismiss="modal">Update Membership</a>
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+		<a id="updategroups" href="#" module="internalusers" sub-module="updategroups" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Update Membership</a>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -102,7 +102,7 @@
 <script>
 	var failure;
 	
-	$("#manageGroupMembership").modal({show: true, backdrop: true});
+	$("#manageGroupMembership").modal('show');
 	
 	$("#addgroup").click(function(){
 		$("#availablegroups").find('option:selected').each(function( index ) {

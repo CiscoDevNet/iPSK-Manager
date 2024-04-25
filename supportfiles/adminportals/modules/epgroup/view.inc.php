@@ -68,76 +68,76 @@ $htmlbody = <<<HTML
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">View Endpoint Grouping</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="groupName">iPSK Endpoint Group Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="groupName">iPSK Endpoint Group Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="groupName" value="{$endPointGroups['groupName']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="description">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="description">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="description" value="{$endPointGroups['description']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="authzPolicyName">Authorization Template:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="authzPolicyName">Authorization Template:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="authzPolicyName" value="{$endPointGroups['authzPolicyName']}" readonly>
 		</div>
 		<div class="input-group input-group-sm mb-3">
 			<div class="input-group-prepend">
-				<span class="input-group-text font-weight-bold shadow" id="basic-addon1">Description</span>
+				<span class="input-group-text fw-bold shadow" id="basic-addon1">Description</span>
 			</div>
 			<input type="text" class="form-control shadow" value="{$endPointGroups['authzPolicyDescription']}" aria-label="text" aria-describedby="basic-addon1" readonly>
 		</div>
 		<div class="input-group input-group-sm mb-3 shadow">
 			<div class="input-group-prepend">
-				<span class="input-group-text font-weight-bold shadow" id="basic-addon1">Pre-Shared Key</span>
+				<span class="input-group-text fw-bold shadow" id="basic-addon1">Pre-Shared Key</span>
 			</div>
 			<input type="password" id="presharedKey" class="form-control shadow" value="{$endPointGroups['ciscoAVPairPSK']}" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true" readonly>
 			<div class="input-group-append">
-				<span class="input-group-text font-weight-bold shadow" id="basic-addon1"><a id="showpassword" href="#"><span id="passwordfeather" data-feather="eye"></span></a></span>
+				<span class="input-group-text fw-bold shadow" id="basic-addon1"><a id="showpassword" href="#"><span id="passwordfeather" data-feather="eye"></span></a></span>
 			</div>
 		</div>
 		<div class="input-group input-group-sm mb-3">
 			<div class="input-group-prepend">
-				<span class="input-group-text font-weight-bold shadow" id="basic-addon1">Access Term Length</span>
+				<span class="input-group-text fw-bold shadow" id="basic-addon1">Access Term Length</span>
 			</div>
 			<input type="text" class="form-control shadow" value="{$endPointGroups['termLengthSeconds']}" aria-label="term" aria-describedby="basic-addon1" readonly>
 		</div>
-		<div class="form-row">
+		<div class="row">
 			<div class="col">
-				<div class="custom-control custom-checkbox">
-					<input type="checkbox" class="custom-control-input checkbox-update" name="viewGroupEnabled" id="viewPassCheck" disabled{$endPointGroups['enabled']}>
-					<label class="custom-control-label" for="viewGroupEnabled">Enabled</label>
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input checkbox-update" name="viewGroupEnabled" id="viewPassCheck" disabled{$endPointGroups['enabled']}>
+					<label class="form-check-label" for="viewGroupEnabled">Enabled</label>
 				</div>					
 			</div>
 			<div class="col">
-				<div class="custom-control custom-checkbox">
-					<input type="checkbox" class="custom-control-input checkbox-update" id="viewNotifyPermissions" disabled{$endPointGroups['notificationPermission']}>
-					<label class="custom-control-label" for="viewNotifyPermissions">Email Notifications</label>
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input checkbox-update" id="viewNotifyPermissions" disabled{$endPointGroups['notificationPermission']}>
+					<label class="form-check-label" for="viewNotifyPermissions">Email Notifications</label>
 				</div>
 			</div>
 		</div>	
 		
-		<label class="font-weight-bold" for="createdDate">Date Created:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="createdDate">Date Created:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="createdDate" value="{$endPointGroups['createdDate']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="createdBy">Created By:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="createdBy">Created By:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="createdBy" value="{$endPointGroups['createdBy']}" readonly>
 		</div>
 	  </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
 <script>
-	$("#viewepggroup").modal();
+	$("#viewepggroup").modal('show');
 
 	$(function() {	
 		feather.replace()

@@ -27,59 +27,59 @@ $htmlbody = <<<HTML
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Add LDAP Server</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="adConnectionName">Connection Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="adConnectionName">Connection Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adConnectionName" value="">
 			<div class="invalid-feedback">Please enter a Connection Name</div>
 		</div>
-		<label class="font-weight-bold" for="adDomain">Domain:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="adDomain">Domain:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow " id="adDomain" value="">
 		</div>
-		<label class="font-weight-bold" for="adServer">Server:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="adServer">Server:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adServer" value="">
 			<div class="invalid-feedback">Please enter a valid server</div>
 		</div>
-		<div class="form-row">
+		<div class="row">
 			<div class="col">
-				<div class="custom-control custom-checkbox">
-					<input type="checkbox" class="custom-control-input checkbox-update" name="adSecure" base-value="1" value="0" id="adSecure">
-					<label class="custom-control-label" for="adSecure">Secure LDAP</label>
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input checkbox-update" name="adSecure" base-value="1" value="0" id="adSecure">
+					<label class="form-check-label" for="adSecure">Secure LDAP</label>
 					<small id="endpointGroupMembersBlock" class="form-text text-muted">Note: The server name used above must be in the certificate and the Root CA or Server Certificate must be Trusted by this Server for LDAPS.</small>
 				</div>
 			</div>
 		</div>
-		<label class="font-weight-bold" for="adBaseDN">Search Base DN:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="adBaseDN">Search Base DN:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adBaseDN" value="">
 			<div class="invalid-feedback">Please enter a valid search base</div>
 		</div>
-		<label class="font-weight-bold" for="adUsername">Username:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="adUsername">Username:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adUsername" value="">
 			<div class="invalid-feedback">Please enter a valid username, userPrincipalName is preffered.</div>
 		</div>
-		<label class="font-weight-bold" for="password">Password:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="password">Password:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="password" validation-state="required" class="form-control shadow form-validation my-password-field" id="password" value="">
 			<div class="invalid-feedback">Please enter a password</div>
 		</div>
-		<label class="font-weight-bold" for="confirmpassword">Confirm Password:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="confirmpassword">Confirm Password:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="password" validation-state="required" class="form-control shadow form-validation" id="confirmpassword" value="">
 			<div class="invalid-feedback">Please confirm your password</div>
-			<div class="font-weight-bold small" id="passwordfeedback"></div>
+			<div class="fw-bold small" id="passwordfeedback"></div>
 		</div>
 	  </div>
       <div class="modal-footer">
-		<a id="create" href="#" module="ldap" sub-module="create" role="button" class="btn btn-primary shadow" data-dismiss="modal">Create</a>
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+		<a id="create" href="#" module="ldap" sub-module="create" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</a>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -87,7 +87,7 @@ $htmlbody = <<<HTML
 <script>
 	var failure;
 	
-	$("#addLdap").modal({show: true, backdrop: true});
+	$("#addLdap").modal('show');
 	
 	$("#create").click(function(){
 		event.preventDefault();
@@ -98,7 +98,7 @@ $htmlbody = <<<HTML
 			return false;
 		}
 		
-		$('.modal-backdrop').remove();
+		//$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

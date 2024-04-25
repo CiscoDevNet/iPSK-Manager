@@ -28,7 +28,7 @@
 	$wirelessNetworks = $ipskISEDB->getWirelessNetworks();
 	
 	if($endpointGroups){
-		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-control shadow form-validation">';
+		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-select shadow form-validation">';
 		
 		while($row = $endpointGroups->fetch_assoc()) {		
 			if($row["visible"] == true){
@@ -53,7 +53,7 @@
 	}
 	
 	if($wirelessNetworks){
-		$pageData['wirelessSSIDList'] .= '<select name="wirelessSSID" id="wirelessSSID" class="form-control shadow form-validation">';
+		$pageData['wirelessSSIDList'] .= '<select name="wirelessSSID" id="wirelessSSID" class="form-select shadow form-validation">';
 	
 		while($row = $wirelessNetworks->fetch_assoc()) {		
 
@@ -70,19 +70,19 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" id="exampleModalLongTitle">Add Endpoint</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+					
 				</button>
 			</div>
 			<div class="modal-body">
 				<form class="needs-validation" novalidate>
-					<div class="form-row">
+					<div class="row">
 						<div class="col m-2 shadow p-2 bg-white border border-primary">
 							<h5 class="text-center">Endpoint Association Details</h5>
 							<hr />
 							
-							<div class="form-group">
-								<label class="font-weight-bold" for="associationGroup">Association Type:</label>
+							<div class="mb-3">
+								<label class="fw-bold" for="associationGroup">Association Type:</label>
 								{$pageData['endpointGroupList']}
 								<div class="invalid-feedback">Please enter a valid MAC Address</div>
 							</div>
@@ -97,40 +97,40 @@
 									</div>
 								</div>
 							</div>
-							<div class="form-group">
-								<label class="font-weight-bold" for="wirelessSSID">Wireless SSID:</label>
+							<div class="mb-3">
+								<label class="fw-bold" for="wirelessSSID">Wireless SSID:</label>
 								{$pageData['wirelessSSIDList']}
 								<div class="invalid-feedback">Please enter a valid MAC Address</div>
 							</div>
 						</div>
 					</div>
-					<div class="form-group">
-						<label class="font-weight-bold" for="macAddress">Endpoint MAC Address</label>
+					<div class="mb-3">
+						<label class="fw-bold" for="macAddress">Endpoint MAC Address</label>
 						<input type="text" class="form-control mt-2 mb-3 shadow user-input form-validation" validation-state="required" validation-minimum-length="17" validation-maximum-length="17" value="" id="macAddress" name="macAddress" maxlength="17" placeholder="XX:XX:XX:XX:XX:XX">
 						<div class="invalid-feedback">Please enter a valid MAC Address</div>
 					</div>
 
-					<div class="form-group">
-						<label class="font-weight-bold" for="endpointDescription">Endpoint Description</label>
+					<div class="mb-3">
+						<label class="fw-bold" for="endpointDescription">Endpoint Description</label>
 						<input type="text" class="form-control mt-2 mb-3 user-input shadow" value="" name="endpointDescription" id="endpointDescription" placeholder="Device Description">
 					</div>
 										
-					<div class="form-group">
-						<label class="font-weight-bold" for="fullName">Full Name</label>
+					<div class="mb-3">
+						<label class="fw-bold" for="fullName">Full Name</label>
 						<input type="text" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="" name="fullName" id="fullName" placeholder="John Smith">
 						<div class="invalid-feedback">Please enter your Full Name</div>
 					</div>
 					
-					<div class="form-group">
-						<label class="font-weight-bold" for="emailAddress">Email address</label>
+					<div class="mb-3">
+						<label class="fw-bold" for="emailAddress">Email address</label>
 						<input type="email" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="" name="emailAddress" id="emailAddress" placeholder="john@company.com">
 						<div class="invalid-feedback">Please enter a valid email address</div>
 					</div>
 
 				</div>
 				<div class="modal-footer">
-					<button id="create" module="endpoints" sub-module="create" class="btn btn-primary shadow" data-dismiss="modal">Create</button>
-					<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+					<button id="create" module="endpoints" sub-module="create" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</button>
+					<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 				</div>
 			</div>
 		</form>
@@ -156,9 +156,9 @@
 			return false;
 		}
 		
-		$("#addEndpointDialog").modal('hide');
-		$('body').removeClass('modal-open');
-		$('.modal-backdrop').remove();
+		//$("#addEndpointDialog").modal('hide');
+		//$('body').removeClass('modal-open');
+		//$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

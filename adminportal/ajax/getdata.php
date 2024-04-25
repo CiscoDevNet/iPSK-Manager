@@ -91,9 +91,10 @@
 			print $jsonData;
 		}else if($sanitizedInput['data-command'] == "test" && $sanitizedInput['data-set'] == "ldap"){
 			$ldapCreds = $ipskISEDB->getLdapSettings($sanitizedInput['id']);
-			
+			$ldapSettings = $ipskISEDB->getGlobalClassSetting("ldap-settings");
+
 			if($ldapCreds){
-				$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure']);
+				$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check']);
 				unset($ldapCreds['adPassword']);
 			
 				if($ldapClass->testLdapServer()){

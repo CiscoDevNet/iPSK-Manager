@@ -27,24 +27,24 @@ $htmlbody = <<<HTML
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Add Wireless Network</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="ssidName">Wireless Network SSID:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="ssidName">Wireless Network SSID:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow form-validation" validation-state="required" id="ssidName" name="ssidName" placeholder="" required>
 			<div class="invalid-feedback">Please enter a valid SSID Name</div>
 		</div>
-		<label class="font-weight-bold" for="ssidDescription">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="ssidDescription">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="ssidDescription" name="ssidDescription" placeholder="">
 		</div>
 	  </div>
       <div class="modal-footer">
-		<a id="create" href="#" module="wireless" sub-module="create" role="button" class="btn btn-primary shadow" data-dismiss="modal">Create</a>
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+		<a id="create" href="#" module="wireless" sub-module="create" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</a>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -52,7 +52,7 @@ $htmlbody = <<<HTML
 <script>
 	var failure;
 	
-	$("#addwireless").modal({show: true, backdrop: true});
+	$("#addwireless").modal('show');
 	
 	$("#create").click(function(){
 		event.preventDefault();
@@ -63,7 +63,7 @@ $htmlbody = <<<HTML
 			return false;
 		}
 		
-		$('.modal-backdrop').remove();
+		//$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

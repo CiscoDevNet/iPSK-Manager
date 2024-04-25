@@ -42,7 +42,7 @@
 	$endpointAssociationList = $ipskISEDB->getEndPointAssociationList($_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id'], $_SESSION['portalAuthorization']['viewall'], $_SESSION['portalAuthorization']['viewallDn']);
 
 	if($endpointAssociationList){
-		$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr><th scope="col"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" base-value="1" value="0" id="allCheck"><label class="custom-control-label" for="allCheck">MAC Address</label></div></th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
+		$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr><th scope="col"><div class="form-check"><input type="checkbox" class="form-check-input" base-value="1" value="0" id="allCheck"><label class="form-check-label" for="allCheck">MAC Address</label></div></th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
 		for($idxId = 0; $idxId < $endpointAssociationList['count']; $idxId++) {
 			$viewEnabled = false;
 			
@@ -107,14 +107,14 @@
 				}
 				
 				if($actionRowData != ""){
-					$actionRow = '<div class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#"><span data-feather="more-vertical"></span></a><div class="dropdown-menu" aria-labelledby="dropdownMenuButton">'.$actionRowData.'</div></div>';
+					$actionRow = '<div class="dropdown"><a class="dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#"><span data-feather="more-vertical"></span></a><div class="dropdown-menu" aria-labelledby="dropdownMenuButton">'.$actionRowData.'</div></div>';
 				}else{
 					$actionRow = '<div></div>';
 				}			
 				
 				$associationList[$listCount]['view'] = '<a class="action-tableicons" module="view" row-id="'.$endpointAssociationList[$idxId]['id'].'" href="#"><span data-feather="zoom-in"></span></a>';
 				$associationList[$listCount]['action'] = $actionRow;
-				$associationList[$listCount]['macAddress'] = '<div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input checkbox-update endpointCheckBox" name="multiEndpoint" base-value="'.$endpointAssociationList[$idxId]['id'].'" value="0" id="multiEndpoint-'.$endpointAssociationList[$idxId]['id'].'"><label class="custom-control-label" for="multiEndpoint-'.$endpointAssociationList[$idxId]['id'].'">'.$endpointAssociationList[$idxId]['macAddress'].'</label></div>';
+				$associationList[$listCount]['macAddress'] = '<div class="form-check"><input type="checkbox" class="form-check-input checkbox-update endpointCheckBox" name="multiEndpoint" base-value="'.$endpointAssociationList[$idxId]['id'].'" value="0" id="multiEndpoint-'.$endpointAssociationList[$idxId]['id'].'"><label class="form-check-label" for="multiEndpoint-'.$endpointAssociationList[$idxId]['id'].'">'.$endpointAssociationList[$idxId]['macAddress'].'</label></div>';
 				$associationList[$listCount]['epGroupName'] = $endpointAssociationList[$idxId]['groupName'];
 				$associationList[$listCount]['expiration'] = $expiration;
 				$associationList[$listCount]['id'] = $endpointAssociationList[$idxId]['id'];
@@ -174,7 +174,11 @@
     <!-- Custom styles for this template -->
     <link href="styles/sponsor.css" rel="stylesheet">
   </head>
-
+  <style>
+	button.buttons-colvis {
+    	background: #0d6efd !important;
+	}
+  </style>
   <body>
 	<div class="container">
 		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
@@ -182,8 +186,8 @@
 			<div class="mt-2 mb-4">
 				<img src="images/iPSK-Logo.svg" width="108" height="57" />
 			</div>
-			<h1 class="h3 mt-2 mb-4 font-weight-normal">{$portalSettings['portalName']}</h1>
-			<h2 class="h6 mt-2 mb-3 font-weight-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
+			<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
+			<h2 class="h6 mt-2 mb-3 fw-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
 			<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
 				<div class="container">
 					<div class="row">
@@ -198,14 +202,14 @@
 					</div>
 				</div>
 			</div>
-			<div class="row text-left">
+			<div class="row text-start">
 				<div class="col-sm"></div>
 				<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary text-center">
 					<h4 class="h4">Manage Endpoint Associations</h4>
 				</div>
 				<div class="col-sm"></div>
 			</div>
-			<div id="bulkOptions" class="row text-left d-none">
+			<div id="bulkOptions" class="row text-start d-none">
 				<div class="col-sm"></div>
 				<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary text-center">
 					<h5 class="h5 text-danger">Bulk Selected Options</h5>
@@ -217,7 +221,7 @@
 				</div>
 				<div class="col-sm"></div>
 			</div>
-			<div class="overflow-auto row text-left">
+			<div class="overflow-auto row text-start">
 				<div class="col-sm"></div>
 				<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
 					<div class="table-responsive">
@@ -231,18 +235,18 @@
 			</div>
 		</div>
 		<div class="m-0 mx-auto p-2 bg-white text-center">
-			<p>Copyright &copy; 2019 Cisco and/or its affiliates.</p>
+			<p>Copyright &copy; 2024 Cisco and/or its affiliates.</p>
 		</div>
 	</div>
   <div id="popupcontent"></div>
   </body>
   <!-- Javascript DataTables -->
   <script type="text/javascript" src="scripts/jquery.min.js"></script>
-  <link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
-  <script type="text/javascript" src="scripts/jquery.dataTables.min.js"></script>
+  <link href="styles/datatables.min.css" rel="stylesheet">
+  <script type="text/javascript" src="scripts/datatables.min.js"></script>
   <script type="text/javascript" src="scripts/feather.min.js"></script>
   <script type="text/javascript" src="scripts/popper.min.js"></script>
-  <script type="text/javascript" src="scripts/bootstrap.min.js"></script>
+  <script type="text/javascript" src="scripts/bootstrap.bundle.min.js"></script>
   <script type="text/javascript" src="scripts/ipsk-portal-v1.js"></script>
   <script type="text/javascript">
 	var formData;
@@ -382,6 +386,11 @@
 
 	$(document).ready( function makeDataTable() {
 		$("#endpoint-table").DataTable({
+			layout: {
+        		bottomStart: {
+            		buttons: ['colvis']
+        		}
+    		},
 			"paging": true,
 			"stateSave": true,
 			"lengthMenu": [ [15, 30, 45, 60, -1], [15, 30, 45, 60, "All"] ]

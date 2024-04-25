@@ -38,8 +38,9 @@
 		private $ldapBaseDN;
 		private $ldapsecure = true;
 		private $iPSKManagerClass;
+		private $sslDisableVerify;
 		
-		function __construct($ldapServer = null, $domainName = null, $username = null, $password = null, $baseDN = null, $ldaps = true, $ipskManagerClass = false) {		
+		function __construct($ldapServer = null, $domainName = null, $username = null, $password = null, $baseDN = null, $ldaps = true, $sslCheck = false, $ipskManagerClass = false) {		
 			$this->ldapHost = $ldapServer;
 			$this->ldapDomain = $domainName;
 			$this->ldapUsername = $username;
@@ -47,6 +48,7 @@
 			$this->ldapBaseDN = $baseDN;
 			$this->ldapsecure = $ldaps;
 			$this->iPSKManagerClass = $ipskManagerClass;
+			$this->sslDisableVerify = $sslCheck;
 		}
 		
 		function set_ldapHost($hostname) {
@@ -85,6 +87,10 @@
 			$this->ldapBaseDN = $basedn;
 		}
 		
+		function set_sslCheck($sslCheck) {
+			$this->sslDisableVerify = $sslCheck;
+		}
+
 		function get_baseDN(){
 			return $this->ldapBaseDN;
 		}
@@ -92,11 +98,16 @@
 		function get_LDAPSecure() {
 			return $this->ldapsecure;
 		}
+
+		function get_sslCheck() {
+			return $this->sslDisableVerify;
+		}
 		
 		function testLdapServer(){
 			
-			// TO DISABLE SERVER NAME IN SSL CERTIFICATE CHECK UNCOMMENT LINE BELOW AND IN FUNCTION BELOW
-			//ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
+			if ($this->sslDisableVerify) {
+				ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
+			}
 
 			if($this->ldapsecure){
 				$ldapConnection = ldap_connect("ldaps://".$this->ldapHost);
@@ -116,10 +127,35 @@
 			}
 			
 		}
-		function authenticateUser($username, $password){
 
-			// TO DISABLE SERVER NAME IN SSL CERTIFICATE CHECK UNCOMMENT LINE BELOW
-			//ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
+		function getGroupsForMember($ldap_conn, $member_dn, $already_seen = []) {
+			$groups = [];
+		
+			// Search for groups that the member belongs to
+			$result = ldap_search($ldap_conn, $this->ldapBaseDN, '(member=' . $member_dn . ')', ['dn']);
+			$entries = ldap_get_entries($ldap_conn, $result);
+		
+			for ($i = 0; $i < $entries['count']; $i++) {
+				$groupName = $entries[$i]['dn'];
+				$groups[] = $groupName;
+		
+				// If the group has not been seen before, recursively fetch its members
+				if (!in_array($groupName, $already_seen)) {
+					$already_seen[] = $groupName;
+					$nestedGroups = $this->getGroupsForMember($ldap_conn, $entries[$i]['dn'], $already_seen);
+					$groups = array_merge($groups, $nestedGroups);
+				}
+			}
+		
+			return $groups;
+		}
+	
+
+		function authenticateUser($username, $password, $saml = false, $nestedGroup = false){
+
+			if ($this->sslDisableVerify) {
+				ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
+			}
 			
 			if($this->ldapsecure){
 				$ldapConnection = ldap_connect("ldaps://".$this->ldapHost);
@@ -131,7 +167,7 @@
 			ldap_set_option($ldapConnection, LDAP_OPT_REFERRALS, 0);
 			
 			$ldapBind = @ldap_bind($ldapConnection, $this->ldapUsername, $this->ldapPassword);
-			
+
 			if($ldapBind){
 				
 				if(strpos($username,"@")){
@@ -147,11 +183,16 @@
 				$result = ldap_search($ldapConnection, $this->ldapBaseDN, $filter, $attributes);
 
 				$entries = ldap_get_entries($ldapConnection, $result);  
-						
+
 				if($entries['count'] == 1){
 					$userDN = $entries[0]['dn'];
-					$ldapBind = @ldap_bind($ldapConnection, $userDN, $password);
-					
+					if ($saml == false) {
+						$ldapBind = @ldap_bind($ldapConnection, $userDN, $password);
+					}
+					else {
+						$ldapBind == true;
+					}
+
 					if($ldapBind){
 						if($this->iPSKManagerClass){
 							//LOG::Entry
@@ -159,7 +200,15 @@
 							$logMessage = "REQUEST:SUCCESS;ACTION:AUTHENTICATE-USER;USERNAME:".$username.";AUTHDIRECTORY:".$this->ldapDomain.";";
 							$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						}
-						$_SESSION['memberOf'] = $entries[0]['memberof'];
+
+						if ($nestedGroup) {
+							$memberOfGroups = $this->getGroupsForMember($ldapConnection, $userDN);
+							$memberOfGroups['count'] = count($memberOfGroups);
+							$_SESSION['memberOf'] = $memberOfGroups;
+						} else {
+							$_SESSION['memberOf'] = $entries[0]['memberof'];
+						}
+	
 						$_SESSION['sAMAccountName'] = $entries[0]['samaccountname'][0];
 						$_SESSION['userPrincipalName'] = $entries[0]['userprincipalname'][0];
 						$_SESSION['fullName'] = (isset($entries[0]['name'][0])) ? $entries[0]['name'][0] : '';

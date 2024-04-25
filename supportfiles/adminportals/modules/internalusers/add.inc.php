@@ -27,44 +27,44 @@ $htmlbody = <<<HTML
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Add Internal User</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="groupName">Username:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="groupName">Username:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation" id="userName" value="">
 			<div class="invalid-feedback">Please enter a valid Username</div>
 		</div>
-		<label class="font-weight-bold" for="fullName">Full Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="fullName">Full Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation" id="fullName" value="">
 			<div class="invalid-feedback">Please enter a Name</div>
 		</div>
-		<label class="font-weight-bold" for="description">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="description">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="description" value="">
 		</div>
-		<label class="font-weight-bold" for="email">Email Address:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="email">Email Address:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="email" value="">
 		</div>
-		<label class="font-weight-bold" for="password">Password:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="password">Password:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="password" validation-state="required" validation-minimum-length="6" class="form-control shadow form-validation my-password-field" id="password" value="">
 			<div class="invalid-feedback">Please enter a password</div>
 		</div>
-		<label class="font-weight-bold" for="confirmpassword">Confirm Password:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="confirmpassword">Confirm Password:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="password" validation-state="required" validation-minimum-length="6" class="form-control shadow form-validation" id="confirmpassword" value="">
 			<div class="invalid-feedback">Please confirm your password</div>
-			<div class="font-weight-bold small" id="passwordfeedback"></div>
+			<div class="fw-bold small" id="passwordfeedback"></div>
 		</div>
 	  </div>
       <div class="modal-footer">
-		<a id="create" href="#" module="internalusers" sub-module="create" role="button" class="btn btn-primary shadow" data-dismiss="modal">Create</a>
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+		<a id="create" href="#" module="internalusers" sub-module="create" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</a>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -72,7 +72,7 @@ $htmlbody = <<<HTML
 <script>
 	var failure;
 	
-	$("#addInternalUser").modal({show: true, backdrop: true});
+	$("#addInternalUser").modal('show');
 	
 	$("#create").click(function(){
 		event.preventDefault();

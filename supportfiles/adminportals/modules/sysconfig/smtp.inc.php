@@ -25,29 +25,29 @@
 		<div class="row">
 			<div class="col text-center text-primary"><h5>SMTP Settings</h5></div>
 		</div>
-		<label class="font-weight-bold" for="smtpHost">SMTP Hostname/IP:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="smtpHost">SMTP Hostname/IP:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow smtpupdate" id="smtpHost" value="{$smtpSettings['smtp-hostname']}" placeholder="smtp.demo.local">
 		</div>
-		<label class="font-weight-bold" for="smtpPort">SMTP Port:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="smtpPort">SMTP Port:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow smtpupdate" id="smtpPort" value="{$smtpSettings['smtp-port']}" placeholder="e.g. 25">
 		</div>
-		<label class="font-weight-bold" for="smtpUsername">SMTP Username:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="smtpUsername">SMTP Username:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow smtpupdate" id="smtpUsername" value="{$smtpSettings['smtp-username']}">
 		</div>
-		<label class="font-weight-bold" for="smtpFromAddress">From Address:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="smtpFromAddress">From Address:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow smtpupdate" id="smtpFromAddress" value="{$smtpSettings['smtp-fromaddress']}">
 		</div>
-		<label class="font-weight-bold" for="smtpPassword">SMTP Pasword:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="smtpPassword">SMTP Pasword:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="password" class="form-control shadow" id="smtpPassword">
 		</div>
-		<div class="custom-control custom-checkbox">
-			<input type="checkbox" class="custom-control-input checkbox-update smtpupdate" base-value="1" value="{$smtpSettings['enabled']}" id="smtpEnabled"{$smtpSettings['enabled-check']}>
-			<label class="custom-control-label" for="smtpEnabled">SMTP Email Enabled</label>
+		<div class="form-check">
+			<input type="checkbox" class="form-check-input checkbox-update smtpupdate" base-value="1" value="{$smtpSettings['enabled']}" id="smtpEnabled"{$smtpSettings['enabled-check']}>
+			<label class="form-check-label" for="smtpEnabled">SMTP Email Enabled</label>
 		</div>
 		<button id="updatesmtp" module="sysconfig" sub-module="update" module-action="smtpupdate" type="submit" class="btn btn-primary shadow" disabled>Update Settings</button>
 		<button id="setsmtppass" module="sysconfig" sub-module="update" module-action="smtppass" type="submit" class="btn btn-primary shadow" disabled>Set Password</button>

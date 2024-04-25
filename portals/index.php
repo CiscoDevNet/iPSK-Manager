@@ -56,6 +56,8 @@
 	$sanitizedInput = sanitizeGetModuleInput($subModuleRegEx);
 		
 	$ersCreds = $ipskISEDB->getISEERSSettings();
+
+	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
 	
 	if($ersCreds['enabled']){
 				
@@ -85,6 +87,7 @@
 	
 	$getPortalId = isset($_GET['portalId']) ?  $_GET['portalId'] : '';
 	$getPortal = isset($_GET['portal']) ?  $_GET['portal'] : '';
+	$getError = isset($_GET['error']) ?  $_GET['error'] : '';
 	
 	if(isset($_GET['client_mac'])){
 		$_SESSION['portalGET']['client_mac'] = $_GET['client_mac'];
@@ -98,10 +101,14 @@
 		$_SESSION['portalGET']['sessionId'] = $_GET['sessionId'];
 	}	
 
-	if($getPortal == ""){
+	if($getPortal == "" && $samlSettings['enabled'] == true && $getError == ""){
+		$getPortal = "login.php";
+	} elseif ($getPortal == "") {
 		$getPortal = "index.php";
 	}
-	
+	// fix/test when getportal something other then blank or index.php
+	//echo $getPortal;
+	//die();
 	$sessionData = $_SESSION;
 	
 	if($getPortalId != "" && $getPortal != ""){

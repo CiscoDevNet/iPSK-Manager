@@ -87,16 +87,16 @@ HTML;
 			<div class="modal-dialog modal-dialog-centered" role="document">
 				<div class="modal-content">
 					<div class="modal-header shadow alert alert-danger">
-						<h5 class="modal-title font-weight-bold" id="modalLongTitle">Database Update Required</h5>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						  <span aria-hidden="true">&times;</span>
+						<h5 class="modal-title fw-bold" id="modalLongTitle">Database Update Required</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+						  
 						</button>
 					</div>
 					<div class="modal-body">
 						<p class="h5" style="text-decoration: underline;">Database Schema Update Required:</p><br /><p class="h6">Updates to Stored Procedures:<br /><br />Please review Database Change Log @ </p><p><a href="https://github.com/CiscoSE/iPSK-Manager/blob/master/DB_CHANGELOG.md">(GitHub) /CiscoSE/iPSK-Manager/blob/master/DB_CHANGELOG.md</a></p>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Ok</button>
+						<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Ok</button>
 					</div>
 				</div>
 			</div>
@@ -124,10 +124,12 @@ HTML;
 	<body>
 	<?php print $persistantAlert;?>
     <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-		<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">
-			<img src="images/iPSK-Logo.svg" width="61" height="32" />
-			<span class="pl-2">iPSK Management Portal</span>
-		</a>
+		<div class="container-fluid">
+			<a class="navbar-brand col-sm-3 col-md-2 me-0" href="#">
+				<img src="images/iPSK-Logo.svg" width="61" height="32" />
+				<span class="ps-2">Management Portal</span>
+			</a>
+		</div>
 	  <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
 	  <ul class="navbar-nav px-3">
 		<li class="nav-item text-nowrap">
@@ -152,7 +154,7 @@ HTML;
 						print "<li class=\"nav-item\">\n";
 							if($menuRow == 0){
 								print "<a id=\"".$adminMenu[$menuRow]['id']."\" module=\"".$adminMenu[$menuRow]['module']."\" class=\"sideNav nav-link active\" href=\"#\">\n";
-								print "<span data-feather=\"".$adminMenu[$menuRow]['data-feather']."\"></span>".$adminMenu[$menuRow]['menuText']."<span id=\"currentMenuItem\" class=\"sr-only\">(current)</span>\n";
+								print "<span data-feather=\"".$adminMenu[$menuRow]['data-feather']."\"></span>".$adminMenu[$menuRow]['menuText']."\n";
 							}else{
 								print "<a id=\"".$adminMenu[$menuRow]['id']."\" module=\"".$adminMenu[$menuRow]['module']."\" class=\"sideNav nav-link\" href=\"#\">\n";
 								print "<span data-feather=\"".$adminMenu[$menuRow]['data-feather']."\"></span>".$adminMenu[$menuRow]['menuText']."\n";
@@ -198,7 +200,7 @@ HTML;
 				</div>
 			</nav>
 
-			<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+			<main role="main" class="col-md-9 ms-sm-auto col-lg-10 px-4">
 				<div id="mainContent" class="float-rounded mx-auto shadow-lg p-2 bg-white">
 				
 				</div>
@@ -210,14 +212,14 @@ HTML;
 	</div>
 </body>
 	<script type="text/javascript" src="scripts/jquery.min.js"></script>
-	<script type="text/javascript" src="scripts/popper.min.js"></script>
-	<script type="text/javascript" src="scripts/bootstrap.min.js"></script>
+	<!--<script type="text/javascript" src="scripts/popper.min.js"></script>-->
+	<script type="text/javascript" src="scripts/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="scripts/feather.min.js"></script>
     <script type="text/javascript" src="scripts/chart.min.js"></script>
 	<script type="text/javascript" src="scripts/clipboard.min.js"></script>
 	<script type="text/javascript" src="scripts/ipsk-adminportal-v1.js"></script>
-	<link href="//cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
-	<script type="text/javascript" src="/scripts/jquery.dataTables.min.js"></script>
+	<link href="styles/datatables.min.css" rel="stylesheet">
+	<script type="text/javascript" src="scripts/datatables.min.js"></script>
 	<script>
     $(document).ready(function () {
 		// Clear Datatable Filters On Reload Or Page Change

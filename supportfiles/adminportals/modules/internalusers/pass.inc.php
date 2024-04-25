@@ -34,32 +34,32 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Reset User Password</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="groupName">Username:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="groupName">Username:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation" id="userName" value="{$internalUser['userName']}" readonly>
 			<div class="invalid-feedback">Please enter a valid Username</div>
 		</div>
-		<label class="font-weight-bold" for="password">Password:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="password">Password:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="password" validation-state="required" class="form-control shadow form-validation my-password-field" id="password" value="">
 			<div class="invalid-feedback">Please enter a password</div>
 		</div>
-		<label class="font-weight-bold" for="confirmpassword">Confirm Password:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="confirmpassword">Confirm Password:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="password" validation-state="required" class="form-control shadow form-validation" id="confirmpassword" value="">
 			<div class="invalid-feedback">Please confirm your password</div>
-			<div class="font-weight-bold small" id="passwordfeedback"></div>
+			<div class="fw-bold small" id="passwordfeedback"></div>
 		</div>
 	  </div>
       <div class="modal-footer">
 		<input type="hidden" id="id" value="{$internalUser['id']}">
-		<a id="updatepass" href="#" module="internalusers" sub-module="updatepass" role="button" class="btn btn-primary shadow" data-dismiss="modal">Reset Password</a>
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+		<a id="updatepass" href="#" module="internalusers" sub-module="updatepass" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Reset Password</a>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -67,7 +67,7 @@
 <script>
 	var failure;
 	
-	$("#addInternalUser").modal({show: true, backdrop: true});
+	$("#addInternalUser").modal('show');
 	
 	$("#updatepass").click(function(){
 		event.preventDefault();

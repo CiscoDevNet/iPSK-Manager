@@ -27,7 +27,7 @@
 		$internalGroup = $ipskISEDB->getInternalGroupById($id);
 
 		if($internalGroup['groupType'] == 1){
-			$groupDn = '<label class="font-weight-bold" for="groupDn">External Group Distinguished Name:</label><div class="form-group input-group-sm font-weight-bold"><input type="text" class="form-control shadow" id="groupDn" value="'.$internalGroup['groupDn'].'" readonly></div>';	
+			$groupDn = '<label class="fw-bold" for="groupDn">External Group Distinguished Name:</label><div class="mb-3 input-group-sm fw-bold"><input type="text" class="form-control shadow" id="groupDn" value="'.$internalGroup['groupDn'].'" readonly></div>';	
 		}else{
 			$groupDn = "";
 		}
@@ -49,46 +49,46 @@ $htmlbody = <<<HTML
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">View Group</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="groupName">Group Name:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="groupName">Group Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="groupName" value="{$internalGroup['groupName']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="description">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="description">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="description" value="{$internalGroup['description']}" readonly>
 		</div>
 		$groupDn
-		<label class="font-weight-bold">Permissions:</label>
-		<div class="form-row">
+		<label class="fw-bold">Permissions:</label>
+		<div class="row">
 			<div class="col">
-				<div class="custom-control custom-checkbox">
-					<input type="checkbox" class="custom-control-input checkbox-update" id="adminAccess" disabled{$internalGroup['permissions']}>
-					<label class="custom-control-label" for="adminAccess">Admin Portal Access</label>
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input checkbox-update" id="adminAccess" disabled{$internalGroup['permissions']}>
+					<label class="form-check-label" for="adminAccess">Admin Portal Access</label>
 				</div>
 			</div>
 		</div>
-		<label class="font-weight-bold" for="createdBy">Date Created:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="createdBy">Date Created:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="createdBy" value="{$internalGroup['createdDate']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="createdBy">Created By:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="createdBy">Created By:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="createdBy" value="{$internalGroup['createdBy']}" readonly>
 		</div>
 	  </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
 <script>
-	$("#viewInternalGroup").modal();
+	$("#viewInternalGroup").modal('show');
 
 	$(function() {	
 		feather.replace()

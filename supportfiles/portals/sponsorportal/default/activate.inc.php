@@ -54,28 +54,28 @@ HTML;
 	<div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header shadow alert alert-danger">
-				<h5 class="modal-title font-weight-bold" id="modalLongTitle">Activate Endpoint's Access?</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				  <span aria-hidden="true">&times;</span>
+				<h5 class="modal-title fw-bold" id="modalLongTitle">Activate Endpoint's Access?</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+				  
 				</button>
 			</div>
 			<div class="modal-body">
 				<p class="h5">Are you sure you want to Activate the Endpoint?</p>
 			</div>
 			<div class="modal-footer">
-				<button type="button" module="endpoints" id="activateBtn" class="btn btn-danger font-weight-bold shadow">Yes</button>
-				<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">No</button>
+				<button type="button" module="endpoints" id="activateBtn" class="btn btn-danger fw-bold shadow" data-bs-dismiss="modal">Yes</button>
+				<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">No</button>
 			</div>
 		</div>
 	</div>
 </div>
 <script>
-	$("#endpointactivate").modal({keyboard: false,backdrop: 'static',show: true});
+	$("#endpointactivate").modal('show');
 
 	$("#activateBtn").click(function(){
 		event.preventDefault();
 		
-		$('.modal-backdrop').remove();
+		//$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "/activate.php?portalId=$portalId",

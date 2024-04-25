@@ -52,6 +52,7 @@
 	$idxID = 0;
 	
 	$adminPortalSettings = $ipskISEDB->getGlobalClassSetting("admin-portal");
+	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
 	
 	//LOG::Entry
 	$logData = $ipskISEDB->generateLogData(Array("adminPortalSettings"=>$adminPortalSettings));
@@ -99,7 +100,10 @@
 		}
 	}
 	
-    if(isset($_GET['error'])){
+    if (!isset($_GET['error']) && $samlSettings['enabled'] == true) {
+		header("Location: /login.php");
+		die();
+	} elseif(isset($_GET['error'])) {
 ?><!doctype html>
 <html lang="en">
   <head>
@@ -124,21 +128,21 @@
 			<div class="mt-2 mb-4">
 				<img src="images/iPSK-Logo.svg" width="108" height="57" />
 			</div>
-			<h1 class="h3 mt-2 mb-4 font-weight-normal">iPSK Manager for Cisco ISE</h1>
-			<h2 class="h6 mt-2 mb-3 font-weight-normal">Please Login</h2>
+			<h1 class="h3 mt-2 mb-4 fw-normal">iPSK Manager for Cisco ISE</h1>
+			<h2 class="h6 mt-2 mb-3 fw-normal">Please Login</h2>
 			<div class="col">
 				<div class="alert alert-danger shadow" role="alert">Authentication Failed</div>
 			</div>
-			<label for="inputEmail" class="sr-only">Username</label>
+			<label for="inputEmail" class="visually-hidden">Username</label>
 			<input type="text" name="inputUsername" id="inputUsername" class="form-control mt-2 mb-3 shadow" placeholder="Username" required autofocus>
-			<label for="inputPassword" class="sr-only">Password</label>
+			<label for="inputPassword" class="visually-hidden">Password</label>
 			<input type="password" name="inputPassword" id="inputPassword" class="form-control mt-2 mb-3 shadow" placeholder="Password" required>
 			<?php 
 			
 				if($ipskISEDB->getLdapDirectoryCount() > 0){
 					$ldapListing = $ipskISEDB->getLdapDirectoryListing();
 					print "Please select an Authentication Source:";
-					print '<select name="authDirectory" class="form-control mt-2 mb-3 shadow">';
+					print '<select name="authDirectory" class="form-select mt-2 mb-3 shadow">';
 					print "<option value=\"0\">Internal</option>";
 						
 					while($row = $ldapListing->fetch_assoc()){
@@ -157,7 +161,7 @@
 			?>
 			<button class="btn btn-lg btn-primary btn-block mt-2 mb-3 shadow" id="loginbtn" type="submit">Sign in</button>
 		</form>
-		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2019 Cisco and/or its affiliates.</p>
+		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2024 Cisco and/or its affiliates.</p>
 	</div>
   </body>
 </html>
@@ -189,17 +193,17 @@
 			<div class="mt-2 mb-4">
 				<img src="images/iPSK-Logo.svg" width="108" height="57" />
 			</div>
-			<h1 class="h3 mt-2 mb-4 font-weight-normal">iPSK Manager for Cisco ISE</h1>
-			<h2 class="h6 mt-2 mb-3 font-weight-normal">Please Login</h2>
-			<label for="inputUsername" class="sr-only">Username</label>
+			<h1 class="h3 mt-2 mb-4 fw-normal">iPSK Manager for Cisco ISE</h1>
+			<h2 class="h6 mt-2 mb-3 fw-normal">Please Login</h2>
+			<label for="inputUsername" class="visually-hidden">Username</label>
 			<input type="text" name="inputUsername" id="inputUsername" class="form-control mt-2 mb-3 shadow" placeholder="Username" required autofocus>
-			<label for="inputPassword" class="sr-only">Password</label>
+			<label for="inputPassword" class="visually-hidden">Password</label>
 			<input type="password" name="inputPassword" id="inputPassword" class="form-control mt-2 mb-3 shadow" placeholder="Password" required>
 			<?php 
 				if($ipskISEDB->getLdapDirectoryCount() > 0){
 					$ldapListing = $ipskISEDB->getLdapDirectoryListing();
 					print "Please select an Authentication Source:";
-					print '<select name="authDirectory" class="form-control mt-2 mb-3 shadow">';
+					print '<select name="authDirectory" class="form-select mt-2 mb-3 shadow">';
 					print "<option value=\"0\">Internal</option>";
 						
 					while($row = $ldapListing->fetch_assoc()){
@@ -217,7 +221,7 @@
 			?>
 			<button class="btn btn-lg btn-primary btn-block mt-2 mb-3 shadow" id="loginbtn" type="submit">Sign in</button>
 		</form>
-		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2019 Cisco and/or its affiliates.</p>
+		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2024 Cisco and/or its affiliates.</p>
 	</div>
   </body>
   <script type="text/javascript" src="scripts/jquery.min.js"></script>

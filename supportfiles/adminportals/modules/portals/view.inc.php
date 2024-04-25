@@ -30,31 +30,31 @@
 	if($portalGroups){
 		if($portalGroups->num_rows != 0){
 			while($row = $portalGroups->fetch_assoc()){
-				$portalGroupMembers .= '<span class="badge badge-primary m-1 p-2 font-weight-bold shadow text-large"><h6 class="mb-0">'.$row['sponsorGroupName'].'</h6></span>';
+				$portalGroupMembers .= '<span class="badge text-bg-primary m-1 p-2 fw-bold shadow text-large"><h6 class="mb-0">'.$row['sponsorGroupName'].'</h6></span>';
 			}
 		}else{
-			$portalGroupMembers = '<span class="badge badge-danger m-1 p-2 font-weight-bold shadow text-large"><h6 class="mb-0">(None)</h6></span>';
+			$portalGroupMembers = '<span class="badge text-bg-danger m-1 p-2 fw-bold shadow text-large"><h6 class="mb-0">(None)</h6></span>';
 		}
 	}else{
-		$portalGroupMembers = '<span class="badge badge-danger m-1 p-2 font-weight-bold shadow text-large"><h6 class="mb-0">(None)</h6></span>';
+		$portalGroupMembers = '<span class="badge text-bg-danger m-1 p-2 fw-bold shadow text-large"><h6 class="mb-0">(None)</h6></span>';
 	}
 	
 	if($portalEPGroups){
 		if($portalEPGroups->num_rows != 0){
 			while($row = $portalEPGroups->fetch_assoc()){
-				$portalEPGroupMembers .= '<span class="badge badge-success m-1 p-2 font-weight-bold shadow text-large"><h6 class="mb-0">'.$row['groupName'].'</h6></span>';
+				$portalEPGroupMembers .= '<span class="badge text-bg-success m-1 p-2 fw-bold shadow text-large"><h6 class="mb-0">'.$row['groupName'].'</h6></span>';
 			}
 		}else{
-			$portalEPGroupMembers = '<span class="badge badge-danger m-1 p-2 font-weight-bold shadow text-large"><h6 class="mb-0">(None)</h6></span>';
+			$portalEPGroupMembers = '<span class="badge text-bg-danger m-1 p-2 fw-bold shadow text-large"><h6 class="mb-0">(None)</h6></span>';
 		}
 	}else{
-		$portalEPGroupMembers = '<span class="badge badge-danger m-1 p-2 font-weight-bold shadow text-large"><h6 class="mb-0">(None)</h6></span>';
+		$portalEPGroupMembers = '<span class="badge text-bg-danger m-1 p-2 fw-bold shadow text-large"><h6 class="mb-0">(None)</h6></span>';
 	}
 	
 	$portal['createAuthzButton'] = "";
 	
 	if($portal['portalType'] == 2 && $iseERSIntegrationAvailable){
-		$portal['createAuthzButton'] = '<button type="button" module="portals" sub-module="authzprofile" id="createauthzprofile" row-id="'.$sanitizedInput['id'].'" class="btn btn-primary shadow">Create Cisco ISE Authorization Profile</button>';
+		$portal['createAuthzButton'] = '<button type="button" module="portals" sub-module="authzprofile" id="createauthzprofile" row-id="'.$sanitizedInput['id'].'" class="btn btn-primary shadow" data-bs-dismiss="modal">Create Cisco ISE Authorization Profile</button>';
 	}
 	
 	$portalSecure = ($portal['portalSecure'] == 1) ? 'HTTPS' : 'HTTP';
@@ -74,80 +74,80 @@ $htmlbody = <<<HTML
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="ModalLongTitle">View Portal</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<div class="form-group input-group-sm font-weight-bold">
-			<label class="font-weight-bold" for="name">Portal Name:</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="name">Portal Name:</label>
 			<input type="text" class="form-control shadow" id="name" value="{$portal['portalName']}" readonly>
 		</div>
-		<div class="form-group input-group-sm font-weight-bold">
-			<label class="font-weight-bold" for="description">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="description">Description:</label>
 			<input type="text" class="form-control shadow" id="description" value="{$portal['description']}" readonly>
 		</div>
 		<div class="row">
 			<div class="col-8">
-				<div class="form-group input-group-sm font-weight-bold">
-					<label class="font-weight-bold" for="hostname">Portal Hostname:</label>
+				<div class="mb-3 input-group-sm fw-bold">
+					<label class="fw-bold" for="hostname">Portal Hostname:</label>
 					<input type="text" class="form-control shadow" id="hostname" value="{$portal['portalHostname']}" readonly>
 				</div>
 			</div>
 			<div class="col-4">
-				<div class="form-group input-group-sm font-weight-bold">
-					<label class="font-weight-bold" for="hostname">App/TCP Port:</label>
+				<div class="mb-3 input-group-sm fw-bold">
+					<label class="fw-bold" for="hostname">App/TCP Port:</label>
 					<input type="text" class="form-control shadow" id="tcpPort" value="$pageTcpPortEntry" readonly>
 				</div>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-8">
-				<div class="form-group input-group-sm font-weight-bold">
-					<label class="font-weight-bold" for="authdirectory">Authentication Directory:</label>
+				<div class="mb-3 input-group-sm fw-bold">
+					<label class="fw-bold" for="authdirectory">Authentication Directory:</label>
 					<input type="text" class="form-control shadow" id="authdirectory" value="{$directoryNames[$portal['authenticationDirectory']]}" readonly>
 				</div>
 			</div>
 			<div class="col-4">
-				<div class="form-group input-group-sm font-weight-bold">
-					<label class="font-weight-bold" for="hostname">Portal Type:</label>
+				<div class="mb-3 input-group-sm fw-bold">
+					<label class="fw-bold" for="hostname">Portal Type:</label>
 					<input type="text" class="form-control shadow" value="{$portal['portalTypeName']}" readonly>
 				</div>
 			</div>
 		</div>
-		<div class="form-group input-group-sm font-weight-bold">
-			<label class="font-weight-bold" for="portalid">Portal ID:</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="portalid">Portal ID:</label>
 			<input type="text" class="form-control shadow" id="portalid" value="{$portal['portalId']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="portalurl">Portal URL:</label>
-		<div class="input-group input-group-sm mb-3 shadow copied-popover" data-animation="true" data-container="body" data-trigger="manual" data-toggle="popover" data-placement="top" data-content="URL has been Successfully Copied!">
+		<label class="fw-bold" for="portalurl">Portal URL:</label>
+		<div class="input-group input-group-sm mb-3 shadow copied-popover" data-bs-animation="true" data-bs-container="body" data-bs-trigger="manual" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="URL has been Successfully Copied!">
 			<input type="text" id="portalurl" class="form-control shadow" process-value="$portalURL" value="$portalURL" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true">
 			<div class="input-group-append">
-				<span class="input-group-text font-weight-bold shadow" id="basic-addon1"><a id="copyPortalUrl" href="#" data-clipboard-target="#portalurl"><span id="urlfeather" data-feather="copy"></span></a></span>
+				<span class="input-group-text fw-bold shadow" id="basic-addon1"><a id="copyPortalUrl" href="#" data-clipboard-target="#portalurl"><span id="urlfeather" data-feather="copy"></span></a></span>
 			</div>
 		</div>
-		<label class="font-weight-bold" for="sponsorGroups">Sponsor Group Members:</label>
+		<label class="fw-bold" for="sponsorGroups">Sponsor Group Members:</label>
 		<div class="module-box shadow border border-primary p-2">
-			<div class="form-group font-weight-bold mb-0">		
+			<div class="mb-3 fw-bold mb-0">		
 				$portalGroupMembers
 			</div>
 		</div>
-		<label class="font-weight-bold" for="endpointGroups">Endpoint Group Members:</label>
+		<label class="fw-bold" for="endpointGroups">Endpoint Group Members:</label>
 		<div class="module-box shadow border border-primary p-2">
-			<div class="form-group font-weight-bold mb-0">		
+			<div class="mb-3 fw-bold mb-0">		
 				$portalEPGroupMembers
 			</div>
 		</div>
 		<div class="row">
 			<div class="col">
-				<label class="font-weight-bold" for="Max">Date Created:</label>
-				<div class="form-group input-group-sm font-weight-bold">
+				<label class="fw-bold" for="Max">Date Created:</label>
+				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" class="form-control shadow" id="createdDate" value="{$portal['createdDate']}" readonly>
 				</div>
 			</div>
 			<div class="col">
-				<label class="font-weight-bold" for="createdBy">Created By:</label>
-				<div class="form-group input-group-sm font-weight-bold">
+				<label class="fw-bold" for="createdBy">Created By:</label>
+				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" class="form-control shadow" id="createdBy" value="{$portal['createdBy']}" readonly>
 				</div>		
 			</div>
@@ -156,13 +156,13 @@ $htmlbody = <<<HTML
 	  </div>
       <div class="modal-footer">
 	  {$portal['createAuthzButton']}
-		<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+		<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
 <script>
-	$("#viewSponsorPortal").modal();
+	$("#viewSponsorPortal").modal('show');
 
 	$(function() {	
 		feather.replace()
@@ -185,7 +185,10 @@ $htmlbody = <<<HTML
 	}
 	
 	$("#createauthzprofile").click(function(event) {	
-		$('.modal-backdrop').remove();
+		//$('.modal-backdrop').remove();
+		//$("body").removeStyle();
+		//$("body").removeClass('modal-open');
+		
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

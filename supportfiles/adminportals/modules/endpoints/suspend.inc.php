@@ -49,33 +49,33 @@ HTML;
 }else{
 	print <<<HTML
 <!-- Modal -->
-<div class="modal fade" id="endpointsuspend" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle" aria-hidden="true">
+<div class="modal fade" id="endpointsuspend" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-header shadow alert alert-danger">
-				<h5 class="modal-title font-weight-bold" id="modalLongTitle">Suspend Endpoint's Access?</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				  <span aria-hidden="true">&times;</span>
+				<h5 class="modal-title fw-bold" id="modalLongTitle">Suspend Endpoint's Access?</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+				  
 				</button>
 			</div>
 			<div class="modal-body">
 				<p class="h5">Are you sure you want to Suspend the Endpoint?</p>
 			</div>
 			<div class="modal-footer">
-				<button type="button" module="endpoints" sub-module="suspend" id="suspendBtn" class="btn btn-danger font-weight-bold shadow">Yes</button>
-				<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">No</button>
+				<button type="button" module="endpoints" sub-module="suspend" id="suspendBtn" class="btn btn-danger fw-bold shadow" data-bs-dismiss="modal">Yes</button>
+				<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">No</button>
 			</div>
 		</div>
 	</div>
 </div>
 <script>
-	$("#endpointsuspend").modal({keyboard: false,backdrop: 'static',show: true});
+	$("#endpointsuspend").modal('show');
 
 	$("#suspendBtn").click(function(){
 		event.preventDefault();
 		
-		$('.modal-backdrop').remove();
-		$("body").removeClass('modal-open');
+		//$('.modal-backdrop').remove();
+		//$("body").removeClass('modal-open');
 		
 		$.ajax({
 			url: "/ajax/getmodule.php",

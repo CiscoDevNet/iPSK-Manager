@@ -24,9 +24,9 @@
 		<div class="row text-center text-primary">
 			<div class="col "><h5>Portal Protocols & Port Settings</h5></div>
 		</div>
-		<div class="form-group font-weight-bold">
-			<label class="font-weight-bold" for="protocolPorts">Available Portal Protocols (Port):</label>		
-			<select class="form-control shadow" id="protocolPorts" multiple>
+		<div class="mb-3 fw-bold">
+			<label class="fw-bold" for="protocolPorts">Available Portal Protocols (Port):</label>		
+			<select class="form-select shadow" id="protocolPorts" multiple>
 				$portsAndProtocolsOutput
 			</select>
 		</div>
@@ -36,17 +36,17 @@
 		</div>
 		<div class="row">
 			<div class="col p-3">
-				<div class="form-group font-weight-bold">
-					<label class="font-weight-bold" for="protocol">Select Protocol:</label>		
-					<select class="form-control shadow" id="protocol">
+				<div class="mb-3 fw-bold">
+					<label class="fw-bold" for="protocol">Select Protocol:</label>		
+					<select class="form-select shadow" id="protocol">
 						<option value="0">HTTP</option>
 						<option value="1" selected>HTTPS</option>
 					</select>
 				</div>
 			</div>
 			<div class="col p-3">
-				<div class="form-group input-group-sm font-weight-bold">
-					<label class="font-weight-bold" for="portalPort">TCP Port:</label>
+				<div class="mb-3 input-group-sm fw-bold">
+					<label class="fw-bold" for="portalPort">TCP Port:</label>
 					<input type="text" class="form-control shadow generaltab" id="portalPort" placeholder="e.g. 8443">
 				</div>
 			</div>

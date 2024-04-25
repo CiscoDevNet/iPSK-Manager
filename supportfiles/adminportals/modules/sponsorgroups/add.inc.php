@@ -55,11 +55,11 @@
 
 	if($enablePskEdit){
 		$pskEdit = <<< HTML
-							<div class="form-row text-center">
+							<div class="row text-center">
 								<div class="col">
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="1024" value="" id="portalPskEditCheck">
-										<label class="custom-control-label text-danger" for="portalPskEditCheck"><strong>Allow Manual PSK Editing on Associations</strong></label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="1024" value="" id="portalPskEditCheck">
+										<label class="form-check-label text-danger" for="portalPskEditCheck"><strong>Allow Manual PSK Editing on Associations</strong></label>
 									</div>						
 								</div>
 							</div>
@@ -79,29 +79,29 @@ HTML;
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title" id="exampleModalLongTitle">Add Portal Group</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+						
 					</button>
 				</div>
 				<div class="modal-body">
-					<div class="form-row">
+					<div class="row">
 						<div class="col-4">
-							<div class="form-group input-group-sm font-weight-bold">
-								<label class="font-weight-bold" for="sponsorGroupName">Portal Group Name:</label>
+							<div class="mb-3 input-group-sm fw-bold">
+								<label class="fw-bold" for="sponsorGroupName">Portal Group Name:</label>
 								<input type="text" class="form-control shadow form-validation" validation-state="required" id="sponsorGroupName" value="" required>
 								<small id="sponsorGroupNameBlock" class="form-text text-muted">Group Name is Required</small>
 							</div>
 						</div>
 						<div class="col">
-							<div class="form-group input-group-sm font-weight-bold">
-								<label class="font-weight-bold" for="maxDevices">Max Devices:</label>
+							<div class="mb-3 input-group-sm fw-bold">
+								<label class="fw-bold" for="maxDevices">Max Devices:</label>
 								<input type="text" class="form-control shadow form-validation" validation-state="required" id="maxDevices" value="5" required>
 							</div>
 						</div>
 						<div class="col-6">
-							<div class="form-group input-group-sm font-weight-bold">
-								<label class="font-weight-bold" for="sponsorGroupAuthType">Group Authentication Type:</label>		
-								<select class="form-control shadow" id="sponsorGroupAuthType" data-command="getdata" data-set="internalgroups">
+							<div class="mb-3 input-group-sm fw-bold">
+								<label class="fw-bold" for="sponsorGroupAuthType">Group Authentication Type:</label>		
+								<select class="form-select shadow" id="sponsorGroupAuthType" data-command="getdata" data-set="internalgroups">
 									<option value="0">Internal Authentication</option>
 									<option value="1" selected>External Authentication</option>
 								</select>
@@ -109,17 +109,17 @@ HTML;
 							</div>
 						</div>
 					</div>
-					<div class="form-row">
+					<div class="row">
 						<div class="col">
-							<div class="form-group">
-								<label class="font-weight-bold" for="sponsorGroupDescription">Description:</label>
+							<div class="mb-3">
+								<label class="fw-bold" for="sponsorGroupDescription">Description:</label>
 								<textarea class="form-control shadow" id="sponsorGroupDescription" rows="3"></textarea>
 							</div>
 						</div>
 						<div class="col">
-							<div class="form-group font-weight-bold">
-								<label class="font-weight-bold" for="authorizationGroups">Authorization Groups:</label>		
-								<select class="form-control shadow form-validation" validation-state="required" id="authorizationGroups" multiple>
+							<div class="mb-3 fw-bold">
+								<label class="fw-bold" for="authorizationGroups">Authorization Groups:</label>		
+								<select class="form-select shadow form-validation" validation-state="required" id="authorizationGroups" multiple>
 									$authZGroups
 								</select>
 								<small id="authorizationGroupsBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
@@ -128,9 +128,9 @@ HTML;
 					</div>
 					<div class="row">
 						<div class="col">
-							<div class="form-group input-group-sm font-weight-bold">
-								<label class="font-weight-bold" for="sponsorGroupType">Sponsor Group Type:</label>		
-								<select class="form-control shadow" id="sponsorGroupType" data-command="getdata" data-set="internalgroups">
+							<div class="mb-3 input-group-sm fw-bold">
+								<label class="fw-bold" for="sponsorGroupType">Sponsor Group Type:</label>		
+								<select class="form-select shadow" id="sponsorGroupType" data-command="getdata" data-set="internalgroups">
 									<option value="0" selected>Sponsor Group</option>
 									<option value="1">Non-Sponsor Group</option>
 								</select>
@@ -138,79 +138,79 @@ HTML;
 							</div>
 						</div>
 					</div>
-					<div class="form-row">
+					<div class="row">
 						<div class="col">
-							<div class="form-group font-weight-bold">
-								<label class="font-weight-bold" for="endpointGroupMembers">Endpoint Group Members:</label>	
-								<select class="form-control shadow form-validation" validation-state="required" id="endpointGroupMembers" multiple>
+							<div class="mb-3 fw-bold">
+								<label class="fw-bold" for="endpointGroupMembers">Endpoint Group Members:</label>	
+								<select class="form-select shadow form-validation" validation-state="required" id="endpointGroupMembers" multiple>
 									$endpointGroups
 								</select>
 								<small id="endpointGroupMembersBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
 							</div>
 						</div>
 						<div class="col">
-							<div class="form-group font-weight-bold">
-								<label class="font-weight-bold" for="wirelessNetworkMembers">Wireless Networks:</label>
-								<select class="form-control shadow form-validation" validation-state="required" id="wirelessNetworkMembers" multiple>
+							<div class="mb-3 fw-bold">
+								<label class="fw-bold" for="wirelessNetworkMembers">Wireless Networks:</label>
+								<select class="form-select shadow form-validation" validation-state="required" id="wirelessNetworkMembers" multiple>
 									$wirelessNetworks
 								</select>
 								<small id="wirelessNetworkMembersBlock" class="form-text text-muted">Minimum of 1 Group must be selected.</small>
 							</div>
 						</div>
 					</div>
-					<div class="form-row">
+					<div class="row">
 						<div class="col m-2 shadow p-2 bg-white border border-primary">
-							<div class="form-group font-weight-bold">
-								<label class="font-weight-bold" for="viewPermission">View Permissions:</label>		
-								<select class="form-control shadow" id="viewPermission">
+							<div class="mb-3 fw-bold">
+								<label class="fw-bold" for="viewPermission">View Permissions:</label>		
+								<select class="form-select shadow" id="viewPermission">
 									<option value="1">Only Endpoints owned by the user</option>
 									<option value="2">Only Members of the Endpoint group</option>
 									<option value="4">All Endpoint Associations</option>
 								</select>
 								<small id="viewPermissionBlock" class="form-text text-muted">Choose View Permission Level</small>
 							</div>
-							<div class="custom-control custom-checkbox">
-								<input type="checkbox" class="custom-control-input checkbox-update" name="viewPassCheck" base-value="8" value="8" id="viewPassCheck" checked>
-								<label class="custom-control-label" for="viewPassCheck">Allow Viewing of Pre-Shared Keys <strong>(Only applies to selection above)</strong></label>
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input checkbox-update" name="viewPassCheck" base-value="8" value="8" id="viewPassCheck" checked>
+								<label class="form-check-label" for="viewPassCheck">Allow Viewing of Pre-Shared Keys <strong>(Only applies to selection above)</strong></label>
 							</div>
 						</div>
 					</div>
-					<div class="form-row">
+					<div class="row">
 						<div class="col m-2 shadow p-2 bg-white border border-primary">
 							<h5 class="text-center">Permissions for Selected Endpoint Groups</h5>
 							<hr />
 							$pskEdit
-							<div class="form-row">
+							<div class="row">
 								<div class="col">
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="512" value="512" id="createCheck" checked>
-										<label class="custom-control-label" for="createCheck">Create Endpoint associations</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="512" value="512" id="createCheck" checked>
+										<label class="form-check-label" for="createCheck">Create Endpoint associations</label>
 									</div>
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="2048" value="" id="bulkCreateCheck">
-										<label class="custom-control-label" for="bulkCreateCheck">Bulk Create Endpoint associations</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="2048" value="" id="bulkCreateCheck">
+										<label class="form-check-label" for="bulkCreateCheck">Bulk Create Endpoint associations</label>
 									</div>
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="256" value="256" id="editCheck" checked>
-										<label class="custom-control-label" for="editCheck">Edit the associated iPSK Endpoint</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="256" value="256" id="editCheck" checked>
+										<label class="form-check-label" for="editCheck">Edit the associated iPSK Endpoint</label>
 									</div>
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="64" value="64" id="deleteCheck" checked>
-										<label class="custom-control-label" for="deleteCheck">Delete an associated iPSK Endpoint</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="64" value="64" id="deleteCheck" checked>
+										<label class="form-check-label" for="deleteCheck">Delete an associated iPSK Endpoint</label>
 									</div>							
 								</div>
 								<div class="col">
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="128" value="" id="extendCheck">
-										<label class="custom-control-label" for="extendCheck">Extend an associated Endpoints Expiration date</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="128" value="" id="extendCheck">
+										<label class="form-check-label" for="extendCheck">Extend an associated Endpoints Expiration date</label>
 									</div>
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="32" value="" id="unsuspendCheck">
-										<label class="custom-control-label" for="unsuspendCheck">Reinstate an associated iPSK Suspended Endpoint</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="32" value="" id="unsuspendCheck">
+										<label class="form-check-label" for="unsuspendCheck">Reinstate an associated iPSK Suspended Endpoint</label>
 									</div>
-									<div class="custom-control custom-checkbox">
-										<input type="checkbox" class="custom-control-input checkbox-update" base-value="16" value="" id="suspendCheck">
-										<label class="custom-control-label" for="suspendCheck">Suspend an associated iPSK Endpoint's access</label>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input checkbox-update" base-value="16" value="" id="suspendCheck">
+										<label class="form-check-label" for="suspendCheck">Suspend an associated iPSK Endpoint's access</label>
 									</div>
 								</div>
 							</div>
@@ -218,8 +218,8 @@ HTML;
 					</div>	
 				</div>
 				<div class="modal-footer">
-					<button id="create" module="sponsorgroups" sub-module="create" type="submit" class="btn btn-primary shadow">Create</button>
-					<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+					<button id="create" module="sponsorgroups" sub-module="create" type="submit" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</button>
+					<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 				</div>
 				
 			</div>
@@ -229,7 +229,7 @@ HTML;
 <script>
 	var failure;
 	
-	$("#addSponsorGroup").modal();
+	$("#addSponsorGroup").modal('show');
 
 	$(function() {	
 		feather.replace()
@@ -244,9 +244,9 @@ HTML;
 			return false;
 		}		
 		
-		$("#addSponsorGroup").modal('hide');
-		$('body').removeClass('modal-open');
-		$('.modal-backdrop').remove();
+		//$("#addSponsorGroup").modal('hide');
+		//$('body').removeClass('modal-open');
+		//$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "ajax/getmodule.php",
@@ -336,16 +336,16 @@ HTML;
 			<div class="modal-dialog modal-dialog-centered" role="document">
 				<div class="modal-content">
 					<div class="modal-header shadow alert alert-danger">
-						<h5 class="modal-title font-weight-bold" id="modalLongTitle">Missing Dependencies</h5>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						  <span aria-hidden="true">&times;</span>
+						<h5 class="modal-title fw-bold" id="modalLongTitle">Missing Dependencies</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+						  
 						</button>
 					</div>
 					<div class="modal-body">
 						<p class="h6">$userMessage</p>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Ok</button>
+						<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Ok</button>
 					</div>
 				</div>
 			</div>

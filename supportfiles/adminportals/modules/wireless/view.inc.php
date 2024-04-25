@@ -39,36 +39,36 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">View Wireless Network</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          
         </button>
       </div>
       <div class="modal-body">
-		<label class="font-weight-bold" for="ssidName">Wireless Network SSID:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="ssidName">Wireless Network SSID:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="ssidName" value="{$wirelessNetwork['ssidName']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="ssidDescription">Description:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="ssidDescription">Description:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="ssidDescription" value="{$wirelessNetwork['ssidDescription']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="createdBy">Date Created:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="createdBy">Date Created:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="createdBy" value="{$wirelessNetwork['createdDate']}" readonly>
 		</div>
-		<label class="font-weight-bold" for="createdBy">Created By:</label>
-		<div class="form-group input-group-sm font-weight-bold">
+		<label class="fw-bold" for="createdBy">Created By:</label>
+		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="createdBy" value="{$wirelessNetwork['createdBy']}" readonly>
 		</div>
 	  </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary shadow" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
 </div>
 <script>
-	$("#viewepggroup").modal();
+	$("#viewepggroup").modal('show');
 
 	$(function() {	
 		feather.replace()

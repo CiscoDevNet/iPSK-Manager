@@ -23,10 +23,12 @@
 	$hostnameOutput = "";
 	
 	$adminPortalSettings = $ipskISEDB->getGlobalClassSetting("admin-portal");
+	$ldapSettings = $ipskISEDB->getGlobalClassSetting("ldap-settings");
 	$iseERSSettings = $ipskISEDB->getGlobalClassSetting("ise-ers-credentials");
 	$iseMNTSettings = $ipskISEDB->getGlobalClassSetting("ise-mnt-credentials");
 	$smtpSettings = $ipskISEDB->getGlobalClassSetting("smtp-settings");
 	$advancedSettings = $ipskISEDB->getGlobalClassSetting("advanced-settings");
+	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
 	$hostnameListing = $ipskISEDB->getHostnameList();	
 	$portsAndProtocols = $ipskISEDB->getTcpPortList();
 	
@@ -95,7 +97,72 @@
 		$adminPortalSettings['redirect-on-hostname-match'] = "";
 		$adminPortalSettings['redirect-on-hostname-match-value'] = "0";
 	}
-	
+
+	if(isset($ldapSettings['ldap-ssl-check'])){
+		if($ldapSettings['ldap-ssl-check'] == 1){
+			$ldapSettings['ldap-ssl-check'] = " checked";
+			$ldapSettings['ldap-ssl-check-value'] = "1";
+		}else{
+			$ldapSettings['ldap-ssl-check'] = "";
+			$ldapSettings['ldap-ssl-check-value'] = "0";
+		}
+	}else{
+		$ldapSettings['ldap-ssl-check'] = "";
+		$ldapSettings['ldap-ssl-check-value'] = "0";
+	}
+
+	if(isset($ldapSettings['nested-groups'])){
+		if($ldapSettings['nested-groups'] == 1){
+			$ldapSettings['nested-groups'] = " checked";
+			$ldapSettings['nested-groups-value'] = "1";
+		}else{
+			$ldapSettings['nested-groups'] = "";
+			$ldapSettings['nested-groups-value'] = "0";
+		}
+	}else{
+		$ldapSettings['nested-groups'] = "";
+		$ldapSettings['nested-groups-value'] = "0";
+	}
+
+	if(isset($samlSettings['ldap-source'])){
+		if($samlSettings['ldap-source'] == 1){
+			$samlSettings['ldap-source'] = " checked";
+			$samlSettings['ldap-source-value'] = "1";
+		}else{
+			$samlSettings['ldap-source'] = "";
+			$samlSettings['ldap-source-value'] = "0";
+		}
+	}else{
+		$samlSettings['ldap-source'] = "";
+		$samlSettings['ldap-source-value'] = "0";
+	}
+
+	if(isset($samlSettings['enabled'])){
+		if($samlSettings['enabled'] == 1){
+			$samlSettings['enabled'] = " checked";
+			$samlSettings['enabled-value'] = "1";
+		}else{
+			$samlSettings['enabled'] = "";
+			$samlSettings['enabled-value'] = "0";
+		}
+	}else{
+		$samlSettings['enabled'] = "";
+		$samlSettings['enabled-value'] = "0";
+	}
+
+	if(isset($samlSettings['headers'])){
+		if($samlSettings['headers'] == 1){
+			$samlSettings['headers'] = " checked";
+			$samlSettings['headers-value'] = "1";
+		}else{
+			$samlSettings['headers'] = "";
+			$samlSettings['headers-value'] = "0";
+		}
+	}else{
+		$samlSettings['headers'] = "";
+		$samlSettings['headers-value'] = "0";
+	}
+
 	if(isset($iseERSSettings['enabled'])){
 		if($iseERSSettings['enabled'] == 1){
 			$iseERSSettings['enabled-check'] = " checked";
@@ -187,7 +254,7 @@
 		if($advancedSettings['enable-advanced-logging'] == 1){
 			$advancedSettings['enable-advanced-logging'] = " checked";
 			$advancedSettings['enable-advanced-logging-value'] = "1";
-			$logSettingsTab = '<a class="nav-item nav-link" id="nav-logging-tab" data-toggle="tab" href="#nav-logging" role="tab" aria-controls="nav-logging" aria-selected="false">Logging Settings</a>';
+			$logSettingsTab = '<a class="nav-item nav-link" id="nav-logging-tab" data-bs-toggle="tab" href="#nav-logging" role="tab" aria-controls="nav-logging" aria-selected="false">Logging Settings</a>';
 		}else{
 			$advancedSettings['enable-advanced-logging'] = "";
 			$advancedSettings['enable-advanced-logging-value'] = "0";
@@ -208,12 +275,12 @@
 </div>
 <nav>
 	<div class="nav nav-tabs" id="nav-tab" role="tablist">
-		<a class="nav-item nav-link active" id="nav-general-tab" data-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="true">General</a>
-		<a class="nav-item nav-link" id="nav-hostname-tab" data-toggle="tab" href="#nav-hostname" role="tab" aria-controls="nav-hostname" aria-selected="false">Portal Hostnames</a>
-		<a class="nav-item nav-link" id="nav-proto-tab" data-toggle="tab" href="#nav-proto" role="tab" aria-controls="nav-proto" aria-selected="false">Ports & Protocols</a>
-		<a class="nav-item nav-link" id="nav-ise-tab" data-toggle="tab" href="#nav-ise" role="tab" aria-controls="nav-ise" aria-selected="false">Cisco ISE Integration</a>
-		<a class="nav-item nav-link" id="nav-smtp-tab" data-toggle="tab" href="#nav-smtp" role="tab" aria-controls="nav-smtp" aria-selected="false">SMTP Configuration</a>
-		<a class="nav-item nav-link" id="nav-advanced-tab" data-toggle="tab" href="#nav-advanced" role="tab" aria-controls="nav-advanced" aria-selected="false">Advanced Settings</a>
+		<a class="nav-item nav-link active" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="true">General</a>
+		<a class="nav-item nav-link" id="nav-hostname-tab" data-bs-toggle="tab" href="#nav-hostname" role="tab" aria-controls="nav-hostname" aria-selected="false">Portal Hostnames</a>
+		<a class="nav-item nav-link" id="nav-proto-tab" data-bs-toggle="tab" href="#nav-proto" role="tab" aria-controls="nav-proto" aria-selected="false">Ports & Protocols</a>
+		<a class="nav-item nav-link" id="nav-ise-tab" data-bs-toggle="tab" href="#nav-ise" role="tab" aria-controls="nav-ise" aria-selected="false">Cisco ISE Integration</a>
+		<a class="nav-item nav-link" id="nav-smtp-tab" data-bs-toggle="tab" href="#nav-smtp" role="tab" aria-controls="nav-smtp" aria-selected="false">SMTP Configuration</a>
+		<a class="nav-item nav-link" id="nav-advanced-tab" data-bs-toggle="tab" href="#nav-advanced" role="tab" aria-controls="nav-advanced" aria-selected="false">Advanced Settings</a>
 		<?php print $logSettingsTab;?>
 	</div>
 </nav>
@@ -289,7 +356,14 @@
 				'module-action': $(this).attr('module-action'),
 				adminPortalHostname: $("#adminPortalHostname").val(),
 				'strict-hostname': $("#strictHostname").val(),
-				'redirect-hostname': $("#redirectOnHostname").val()				
+				'redirect-hostname': $("#redirectOnHostname").val(),
+				'ldapSSLCheck': $("#ldapSSLCheck").val(),
+				'nestedGroups': $("#nestedGroups").val(),
+				'samlEnabled': $("#samlEnabled").val(),
+				'samlLdapSource': $("#samlLdapSource").val(),
+				'samlHeaders': $("#samlHeaders").val(),
+				'samlUsernameVariable': $("#samlUsernameVariable").val(),
+				'samlLdapSourceDirectory': $('#samlLdapSourceDirectory').val()
 			},
 			type: "POST",
 			dataType: "text",

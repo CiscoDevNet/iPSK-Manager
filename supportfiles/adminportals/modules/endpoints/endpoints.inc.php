@@ -48,9 +48,9 @@
 				$pageData['endpointAssociationList'] .= '<td>'.$associationList[$idxId]['macAddress'].'</td>';
 				$pageData['endpointAssociationList'] .= '<td>'.$associationList[$idxId]['groupName'].'</td>';
 				$pageData['endpointAssociationList'] .= '<td>'.$expiration.'</td>';
-				$pageData['endpointAssociationList'] .= '<td style="display:none;">'.$associationList[$idxId]['fullName'].'</td>';
-				$pageData['endpointAssociationList'] .= '<td style="display:none;">'.$associationList[$idxId]['email'].'</td>';
-				$pageData['endpointAssociationList'] .= '<td style="display:none;">'.$associationList[$idxId]['description'].'</td>';
+				$pageData['endpointAssociationList'] .= '<td>'.$associationList[$idxId]['fullName'].'</td>';
+				$pageData['endpointAssociationList'] .= '<td>'.$associationList[$idxId]['email'].'</td>';
+				$pageData['endpointAssociationList'] .= '<td>'.$associationList[$idxId]['description'].'</td>';
 				$pageData['endpointAssociationList'] .= '<td><a class="epg-tableicons" module="endpoints" sub-module="view" row-id="'.$associationList[$idxId]['id'].'" href="#"><span data-feather="zoom-in"></span></a></td>';
 
 				
@@ -60,7 +60,7 @@
 				$actionRowData .= '<a class="dropdown-item action-tableicons" module="endpoints" sub-module="edit" row-id="'.$associationList[$idxId]['id'].'" href="#">Edit</a>';
 				$actionRowData .= '<a class="dropdown-item action-tableicons" module="endpoints" sub-module="delete" row-id="'.$associationList[$idxId]['id'].'" href="#">Delete</a>';
 				
-				$pageData['endpointAssociationList'] .= '<td><div class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#"><span data-feather="more-vertical"></span></a><div class="dropdown-menu" aria-labelledby="dropdownMenuButton">'.$actionRowData.'</div></div></td>';	
+				$pageData['endpointAssociationList'] .= '<td><div class="dropdown"><a class="dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#"><span data-feather="more-vertical"></span></a><div class="dropdown-menu" aria-labelledby="dropdownMenuButton">'.$actionRowData.'</div></div></td>';	
 				
 				$actionRowData = "";
 				
@@ -83,9 +83,11 @@
 	<div class="col"><hr></div>
 </div>
 <div class="row menubar">
-	<div class="col-2"><a id="newEndpoint" module="endpoints" sub-module="add" class="btn btn-primary nav-link custom-link text-white" href="#" role="button">Add Endpoint</a></div>
-	<div class="col-3"><a id="bulkEndpoint" module="endpoints" sub-module="bulk" class="btn btn-primary nav-link custom-link text-white" href="#" role="button">Add Bulk Endpoints</a></div>
-	<div class="col-7"></div>
+<div class="d-grid gap-2 d-md-block">
+	<a id="newEndpoint" module="endpoints" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Endpoint</a>
+	<a id="bulkEndpoint" module="endpoints" sub-module="bulk" class="btn btn-primary custom-link text-white" href="#" role="button">Add Bulk Endpoints</a>
+	
+</div>
 </div>
 <div class="row">
 	<div class="col">
@@ -97,7 +99,11 @@
 	<div class="col"><hr></div>
 </div>
 <div id="popupcontent"></div>
-
+<style>
+	button.buttons-colvis {
+    	background: #0d6efd !important;
+	}
+</style>
 <script>
 	$(function() {	
 		feather.replace()
@@ -181,7 +187,35 @@
     	});
 		
 		$("#endpoint-table").DataTable({
+			"columnDefs": [
+        		{
+            		target: 3,
+            		visible: false,
+        		},
+        		{
+            		target: 4,
+            		visible: false
+        		},
+				{
+            		target: 5,
+            		visible: false
+        		},
+				{
+            		target: 6,
+            		orderable: false
+        		},
+				{
+            		target: 7,
+            		orderable: false
+        		},
+    		],
+			layout: {
+        		bottomStart: {
+            		buttons: ['colvis']
+        		}
+    		},
 			"paging": true,
+			"responsive": true,
 			"stateSave": true,
 			"lengthMenu": [ [15, 30, 45, 60, -1], [15, 30, 45, 60, "All"] ],
 			"stateLoadParams": function(settings, data) {
