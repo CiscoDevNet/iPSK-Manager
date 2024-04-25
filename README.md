@@ -70,7 +70,7 @@ The Documentation and Guides available from these tools, contained the details n
 
 ## Installation
 
-#### Ubuntu 18.04.x LTS
+#### Ubuntu 22.04.x LTS
 
 1. After installing Ubuntu OS, make sure the system is up-to-date:
 ```
@@ -123,7 +123,7 @@ owners.
 
 Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
-mysql> CREATE USER 'install'@'%' IDENTIFIED BY '{SOME PASSWORD}'
+mysql> CREATE USER 'install'@'%' IDENTIFIED BY '{SOME PASSWORD}';
 mysql> GRANT ALL PRIVILEGES ON *.* TO 'install'@'%' WITH GRANT OPTION;
 mysql> FLUSH PRIVILEGES;
 mysql> exit
@@ -230,9 +230,9 @@ SSLOptions +StdEnvVars
 </IfModule>
 ```
 
-12. (Recommended) Once SSL is enabled restart apache. This time you will be asked to enter password to access the private key file: 
+12. (Recommended) Once SSL is enabled restart apache. This time you will be asked to enter password to access the private key file if your private key is encrypted: 
 ```
-admin@ubuntu:~$ sudo service apache2 restart
+admin@ubuntu:~$ sudo systemctl restart apache2
 Enter passphrase for SSL/TLS keys for 127.0.1.1:443 (RSA): *********
 admin@ubuntu:~$ 
 ```
@@ -315,17 +315,25 @@ iPSK_AuthMACPlainNonExpired
 iPSK_FetchPasswordForMACNonExpired
 iPSK_MACLookupNonExpired
 ```
-Note: Keep this file safe in case iPSK Manager needs to be restored or new ISE / iPSK Manager integration is needed
+_Note: Keep this file safe in case iPSK Manager needs to be restored or new ISE / iPSK Manager integration is needed_
 
 20. You should be redirected to the iPSK Manager login page where you can enter the credential (default GUI admin username is "**administrator**") created during the setup to login to proceed with iPSK Manager configuration
 
-21. Allow SQL connection from other hosts, by editing the '**/etc/mysql/mysql.conf.d/mysqld.cnf**' file. Find the line '**bind-address = 127.0.0.1**' and add '**#**' at the front to remark it
+21. Allow SQL connection from other hosts, by editing the '**/etc/mysql/mysql.conf.d/mysqld.cnf**' file. Find the line '**bind-address = 127.0.0.1**' and add '**#**' at the front to remark it. Also, add the following line '**default_authentication_plugin=mysql_native_password**' to enable mysql native passwords so ISE can connect to MySQL 8.x.  
 
-Note: Please make sure to utilize MySQL security best practices such as FW rules and limiting mySQL user to specific hosts as above allows SQL access from all hosts
+_Note: Please make sure to utilize MySQL security best practices such as firewall rules and limiting MySQL user to specific hosts as above bind address change allows SQL access from all hosts._
 
-22. Restart MySQL service by running "**sudo service mysql restart**"
+22. Restart MySQL service by running "**sudo systemctl restart mysql**"
 
-23. (Optional) If temporary MySQL account was created in previous step, run the following to remove the 'install' account
+23. Reset the ISE MySQL credential with mysql_native_password to make it compatibe with ISE
+
+```
+admin@ubuntu:~$ sudo mysql -p
+mysql> ALTER USER 'ipsk-ise-user'@'%' IDENTIFIED WITH mysql_native_password BY '{PASSWORD}';
+mysql> FLUSH PRIVILEGES;
+```
+
+24. (Optional) If temporary MySQL account was created in previous step, run the following to remove the 'install' account
 ```
 admin@ubuntu:~$ sudo mysql -p
 Enter password: 
@@ -361,23 +369,6 @@ admin@ubuntu:~$ cd /var/www/iPSK-Manager
 3. Pull repository
 ```
 admin@ubuntu:~$ sudo git pull
-```
-## Notes about Ubuntu 20.04 LTS based installation
-Perform the following steps after the IPSK Manager setup:
-
-Update the MySQL Configuration located in ‘/etc/mysql/mysql.conf.d/mysqld.cnf’ and add the following line below.
-
-**default_authentication_plugin=mysql_native_password**
-
-Then restart the MySQL Service or Reboot the system.
-```
-admin@ubuntu:~$ sudo service mysql restart
-```
-Then update the ISE MySQL credential with mysql_native_password to make it compatibe with ISE
-```
-admin@ubuntu:~$ sudo mysql -p
-mysql> ALTER USER 'ipsk-ise-user'@'%' IDENTIFIED WITH mysql_native_password BY '{PASSWORD}';
-mysql> FLUSH PRIVILEGES;
 ```
 
 ## (Experimental) GUI Logging
@@ -472,7 +463,7 @@ Note: Within iPSK manager admin portal, go to Portals and make sure the end user
  
 Lastly, restart apache service: 
 ```
-admin@ubuntu:~$ sudo service apache2 restart
+admin@ubuntu:~$ sudo systemctl restart apache2
 ```
 ## SAML Authentication Support
 
@@ -483,6 +474,23 @@ Users authenticated with SAML still need to be in either the internal database o
 **NOTE:**
 - There is no backdoor login support when SAML is enabled.  If you need to gain access to a system with broken SAML authentication edit the DB manually to disable SAML authentication. 
 - Use of headers for SAML authentication verification should be used with caution and protective measures should be made to make sure a user can not inject the header used for SAML authentication.
+
+### Using Shibboleth (mod_shib) as Service Provider (SP) ###
+Install mod_shib from Ubuntu package repository.  Note, as of this writing there is a bug where a bogus message about using a Apache 1.3 module will appear in the logs.  This bug is documented at [https://bugs.launchpad.net/ubuntu/+source/shibboleth-sp/+bug/1984194]
+
+```
+admin@ubuntu:~$ sudo apt-get install libapache2-mod-shib
+```
+
+Configure the Shibboleth SP to your environment based on Shibboleth documentation. The user attribute should only contain the username for iPSK-Manager to work properly with SAML authentication.
+
+After configuring Shibboleth SP add the following lines to .htaccess files in iPSK-Manager/adminportal and iPSK-Manager/portals.  Then enable SAML in Platform Configuration and iPSK-Manager will use the authenticated SAML username as the login user.
+
+```
+AuthType shibboleth
+ShibRequestSetting requireSession 1
+Require valid-user
+```
 
 ## Active Directory Nested Group Support
 
@@ -503,7 +511,7 @@ This project is licensed to you under the terms of the [Apache License, Version 
 
 ---
 
-Copyright 2021 Cisco Systems, Inc. or its affiliates
+Copyright 2024 Cisco Systems, Inc. or its affiliates
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
