@@ -42,7 +42,7 @@
 	$endpointAssociationList = $ipskISEDB->getEndPointAssociationList($_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id'], $_SESSION['portalAuthorization']['viewall'], $_SESSION['portalAuthorization']['viewallDn']);
 
 	if($endpointAssociationList){
-		$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr><th scope="col"><div class="form-check"><input type="checkbox" class="form-check-input" base-value="1" value="0" id="allCheck"><label class="form-check-label" for="allCheck">MAC Address</label></div></th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
+		$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr id="endpoint-table-filter"><th scope="col" data-dt-order="disable"><div class="form-check"><input type="checkbox" class="form-check-input" base-value="1" value="0" id="allCheck"><label class="form-check-label" for="allCheck">MAC Address</label></div></th><th scope="col" data-dt-order="disable">Endpoint Group</th><th scope="col" data-dt-order="disable">Expiration Date</th><th scope="col" data-dt-order="disable">Full Name</th><th scope="col" data-dt-order="disable">Email</th><th scope="col" data-dt-order="disable">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr><tr id="endpoint-table-header"><th scope="col"><div class="form-check"><input type="checkbox" class="form-check-input" base-value="1" value="0" id="allCheck"><label class="form-check-label" for="allCheck">MAC Address</label></div></th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">Full Name</th><th scope="col">Email</th><th scope="col">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
 		for($idxId = 0; $idxId < $endpointAssociationList['count']; $idxId++) {
 			$viewEnabled = false;
 			
@@ -117,6 +117,9 @@
 				$associationList[$listCount]['macAddress'] = '<div class="form-check"><input type="checkbox" class="form-check-input checkbox-update endpointCheckBox" name="multiEndpoint" base-value="'.$endpointAssociationList[$idxId]['id'].'" value="0" id="multiEndpoint-'.$endpointAssociationList[$idxId]['id'].'"><label class="form-check-label" for="multiEndpoint-'.$endpointAssociationList[$idxId]['id'].'">'.$endpointAssociationList[$idxId]['macAddress'].'</label></div>';
 				$associationList[$listCount]['epGroupName'] = $endpointAssociationList[$idxId]['groupName'];
 				$associationList[$listCount]['expiration'] = $expiration;
+				$associationList[$listCount]['fullName'] = $endpointAssociationList[$idxId]['fullName'];
+				$associationList[$listCount]['emailAddress'] = $endpointAssociationList[$idxId]['emailAddress'];
+				$associationList[$listCount]['description'] = $endpointAssociationList[$idxId]['description'];
 				$associationList[$listCount]['id'] = $endpointAssociationList[$idxId]['id'];
 
 				$listCount++;
@@ -130,6 +133,9 @@
 		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['macAddress'].'</td>';
 		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['epGroupName'].'</td>';
 		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['expiration'].'</td>';
+		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['fullName'].'</td>';
+		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['emailAddress'].'</td>';
+		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['description'].'</td>';
 		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['view'].'</td>';
 		$pageData['endpointAssociationList'] .= '<td>'.$associationList[$assocId]['action'].'</td>';
 		$pageData['endpointAssociationList'] .= '</tr>';
@@ -385,7 +391,42 @@
 	});
 
 	$(document).ready( function makeDataTable() {
+		$('#endpoint-table thead #endpoint-table-filter th').each( function () {
+        var title = $('#endpoint-table thead #endpoint-table-header th').eq( $(this).index() ).text();
+		if (/^(View|Actions)$/.test(title)) {
+			$(this).html('&nbsp;');
+		} else {
+			$(this).html('<input type="text" placeholder="Filter '+title+'" />');
+		}
+    	} );
+
+		$("input[placeholder]").each(function () {
+        	$(this).attr('size', $(this).attr('placeholder').length);
+    	});
+
 		$("#endpoint-table").DataTable({
+			"columnDefs": [
+        		{
+            		target: 3,
+            		visible: false,
+        		},
+        		{
+            		target: 4,
+            		visible: false
+        		},
+				{
+            		target: 5,
+            		visible: false
+        		},
+				{
+            		target: 6,
+            		orderable: false
+        		},
+				{
+            		target: 7,
+            		orderable: false
+        		},
+    		],
 			layout: {
         		bottomStart: {
             		buttons: ['colvis']
@@ -393,9 +434,38 @@
     		},
 			"paging": true,
 			"stateSave": true,
-			"lengthMenu": [ [15, 30, 45, 60, -1], [15, 30, 45, 60, "All"] ]
+			"lengthMenu": [ [15, 30, 45, 60, -1], [15, 30, 45, 60, "All"] ],
+			"stateLoadParams": function(settings, data) {
+  				for (i = 0; i < data.columns["length"]; i++) {
+    				var col_search_val = data.columns[i].search.search;
+    				if (col_search_val != "") {
+      					$("input", $("#endpoint-table thead #endpoint-table-filter th")[i]).val(col_search_val);
+    				}
+  				}
+			}
 		});
+
+		var table = $("#endpoint-table").DataTable();
+		$("#endpoint-table thead #endpoint-table-filter input").on( 'keyup change', function () {
+        table
+            .column( $(this).parent().index()+':visible' )
+            .search( this.value )
+            .draw();
+    	} );
 	} );
+
+	$(document).ready(function () {
+		// Clear Datatable Filters On Reload Or Page Change
+    	$('.nav-link').click(function () {
+			var table = $('#endpoint-table').DataTable();
+			table.state.clear();
+    	});
+		$(window).on('beforeunload', function() {
+			var table = $('#endpoint-table').DataTable();
+			table.state.clear();
+    	});
+    });
+	
 
 	</script>
 </html>

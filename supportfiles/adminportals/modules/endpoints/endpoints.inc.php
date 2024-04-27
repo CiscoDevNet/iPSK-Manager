@@ -28,7 +28,7 @@
 	if($associationList){
 		if($associationList['count'] > 0){
 
-			$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr id="endpoint-table-filter"><th scope="col">MAC Address</th><th scope="col">iPSK Endpoint Grouping</th><th scope="col">Expiration Date</th><th style="display:none;">Full Name</th><th style="display:none;">Email</th><th style="display:none;">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr><tr id="endpoint-table-header"><th scope="col">MAC Address</th><th scope="col">iPSK Endpoint Grouping</th><th scope="col">Expiration Date</th><th style="display:none;">Full Name</th><th style="display:none;">Email</th><th style="display:none;">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
+			$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr id="endpoint-table-filter"><th scope="col" data-dt-order="disable">MAC Address</th><th scope="col" data-dt-order="disable">iPSK Endpoint Grouping</th><th scope="col" data-dt-order="disable">Expiration Date</th><th scope="col" data-dt-order="disable">Full Name</th><th scope="col" data-dt-order="disable">Email</th><th scope="col" data-dt-order="disable">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr><tr id="endpoint-table-header"><th scope="col">MAC Address</th><th scope="col">iPSK Endpoint Grouping</th><th scope="col">Expiration Date</th><th scope="col">Full Name</th><th scope="col">Email</th><th scope="col">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
 			
 			for($idxId = $pageStart; $idxId < $pageEnd; $idxId++) {
 							
