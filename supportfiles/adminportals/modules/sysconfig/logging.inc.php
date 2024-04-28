@@ -80,43 +80,48 @@
 	}
 	
 	print <<< HTML
-<div class="row">
-	<div class="col m-3 shadow border border-secondary p-2">
-		<div class="row">
-			<div class="col text-center text-primary"><h5>Platform Logging Settings</h5></div>
+<div class="container-fluid">
+	<div class="row row-cols-1 row-cols-md-2 g-4">
+		<div class="col">
+			<div class="card h-100">
+          		<div class="card-header bg-primary text-white">Platform Logging Settings</div>
+          		<div class="card-body">
+				  <p class="card-text fst-italic text-danger">Note: Change logging settings with caution. Most options are for debugging issues.</p>
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="1" value="{$loggingSettings['sqlLogging']}" id="sqlLogging"{$loggingSettings['sqlLogging-check']}>
+						<label class="form-check-label" for="sqlLogging">Enable Logging to SQL</label>
+					</div>
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="4" value="{$loggingSettings['payloadLogging']}" id="payloadLogging"{$loggingSettings['payloadLogging-check']}>
+						<label class="form-check-label" for="payloadLogging">Enable Logging of Debug Payload to SQL</label>
+					</div>
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="16" value="{$loggingSettings['debugLogging']}" id="debugLogging"{$loggingSettings['debugLogging-check']}>
+						<label class="form-check-label" for="debugLogging">Enable Logging of Debug Variables to SQL</label>
+					</div>
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="32" value="{$loggingSettings['getLogging']}" id="getLogging"{$loggingSettings['getLogging-check']}>
+						<label class="form-check-label" for="getLogging">Log PHP '_GET' Variable to Debug Payload</label>
+					</div>
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="64" value="{$loggingSettings['postLogging']}" id="postLogging"{$loggingSettings['postLogging-check']}>
+						<label class="form-check-label" for="postLogging">Log PHP '_POST' Variable to Debug Payload</label>
+					</div>
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="128" value="{$loggingSettings['sessionLogging']}" id="sessionLogging"{$loggingSettings['sessionLogging-check']}>
+						<label class="form-check-label" for="sessionLogging">Log PHP '_SESSION' Variable to Debug Payload</label>
+					</div>
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="256" value="{$loggingSettings['serverLogging']}" id="serverLogging"{$loggingSettings['serverLogging-check']}>
+						<label class="form-check-label" for="serverLogging">Log PHP '_SERVER' Variable to Debug Payload</label>
+					</div>	
+				</div>
+				<div class="card-footer">
+					<button id="updatelogging" module="sysconfig" sub-module="update" module-action="loggingupdate" type="submit" class="btn btn-primary btn-sm shadow" disabled>Update Settings</button>
+				</div>
+			</div>
 		</div>
-		<label class="fw-bold" for="adminPortalHostname">Logging Settings:</label>
-		<div class="form-check">
-			<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="1" value="{$loggingSettings['sqlLogging']}" id="sqlLogging"{$loggingSettings['sqlLogging-check']}>
-			<label class="form-check-label text-danger" for="sqlLogging">Enable Logging to SQL</label>
-		</div>
-		<div class="form-check">
-			<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="4" value="{$loggingSettings['payloadLogging']}" id="payloadLogging"{$loggingSettings['payloadLogging-check']}>
-			<label class="form-check-label text-danger" for="payloadLogging">Enable Logging of Debug Payload to SQL</label>
-		</div>
-		<div class="form-check">
-			<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="16" value="{$loggingSettings['debugLogging']}" id="debugLogging"{$loggingSettings['debugLogging-check']}>
-			<label class="form-check-label text-danger" for="debugLogging">Enable Logging of Debug Variables to SQL</label>
-		</div>
-		<div class="form-check">
-			<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="32" value="{$loggingSettings['getLogging']}" id="getLogging"{$loggingSettings['getLogging-check']}>
-			<label class="form-check-label text-danger" for="getLogging">Log PHP '_GET' Variable to Debug Payload</label>
-		</div>
-		<div class="form-check">
-			<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="64" value="{$loggingSettings['postLogging']}" id="postLogging"{$loggingSettings['postLogging-check']}>
-			<label class="form-check-label text-danger" for="postLogging">Log PHP '_POST' Variable to Debug Payload</label>
-		</div>
-		<div class="form-check">
-			<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="128" value="{$loggingSettings['sessionLogging']}" id="sessionLogging"{$loggingSettings['sessionLogging-check']}>
-			<label class="form-check-label text-danger" for="sessionLogging">Log PHP '_SESSION' Variable to Debug Payload</label>
-		</div>
-		<div class="form-check">
-			<input type="checkbox" class="form-check-input checkbox-update loggingtab" base-value="256" value="{$loggingSettings['serverLogging']}" id="serverLogging"{$loggingSettings['serverLogging-check']}>
-			<label class="form-check-label text-danger" for="serverLogging">Log PHP '_SERVER' Variable to Debug Payload</label>
-		</div>
-		<button id="updatelogging" module="sysconfig" sub-module="update" module-action="loggingupdate" type="submit" class="btn btn-primary shadow" disabled>Update Settings</button>
 	</div>
 </div>
 HTML;
-
 ?>

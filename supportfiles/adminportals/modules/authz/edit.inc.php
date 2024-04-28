@@ -55,7 +55,7 @@
 		$password = $authorizationTemplate['ciscoAVPairPSK'];
 		$readonlyFlag = "";
 		$minLength = '8';
-		$passwordFeather = "shuffle";
+		$passwordFeather = "refresh-cw";
 		$iPSKTypeFlag = " disabled";
 		$pskModeFlag = "0";
 		$keyType = '<option value="0" selected>Common PSK</option><option value="1">Random PSK</option>';
@@ -165,7 +165,7 @@ $htmlbody = <<<HTML
 			$("#ciscoAVPairPSK").attr('validation-minimum-length','8');
 			$("#pskType").attr('disabled','true');
 			$("#pskMode").val('0');
-			$("#passwordfeather").attr('data-feather','shuffle');
+			$("#passwordfeather").attr('data-feather','refresh-cw');
 			feather.replace();
 		}else if($("#ciscoAVPairPSK").val() != "Random"){
 			$("#ciscoAVPairPSK").val('Random');

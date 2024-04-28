@@ -23,37 +23,27 @@
 	$ldapServers = $ipskISEDB->getLdapDirectories();
 ?>
 
-<div class="row">
-	<div class="col-12"><h1 class="text-center">LDAP Servers</h1></div>
-</div>
-<div class="row">
-	<div class="col-12"><h6 class="text-center">Manage LDAP Authentication Servers</h6></div>
-</div>
-<div class="row">
-	<div class="col"><hr></div>
-</div>
-<div class="row menubar">
-	<div class="col-2"><a id="addLdapServer" module="ldap" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add LDAP Server</a></div>
-	<div class="col-11"></div>
-</div>
-<div class="row">
-	<div class="col">
-		<br />
+<div class="card">
+	<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">LDAP Identity Servers</h4>
+	<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 fst-italic">Manage LDAP authentication and authorization servers</h6>
+	<div class="card-header">
+		<a id="addLdapServer" module="ldap" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add LDAP Server</a>
 	</div>
-</div>
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th scope="col">Connection Name</th>
-      <th scope="col">Domain Name</th>
-	  <th scope="col">Server</th>
-	  <th scope="col">Test</th>
-	  <th scope="col">View</th>
-	  <th scope="col">Edit</th>
-	  <th scope="col">Delete</th>
-    </tr>
-  </thead>
-  <tbody>
+	<div class="card-body">
+    	<div class="tab-content" id="nav-tabContent">
+			<table class="table table-hover">
+  				<thead>
+    				<tr>
+      					<th scope="col">Connection Name</th>
+      					<th scope="col">Domain Name</th>
+	  					<th scope="col">Server</th>
+	  					<th scope="col">Test</th>
+		  				<th scope="col">View</th>
+	  					<th scope="col">Edit</th>
+	  					<th scope="col">Delete</th>
+    				</tr>
+  				</thead>
+  				<tbody>
     <?php
 		if($ldapServers){
 			while($row = $ldapServers->fetch_assoc()) {			
@@ -69,9 +59,12 @@
 			}
 		}
 	?>
-  </tbody>
-</table>
-<div id="popupcontent"></div>
+  				</tbody>
+			</table>
+			<div id="popupcontent"></div>
+    	</div>
+	</div>
+</div>
 <script>
 	$(function() {	
 		feather.replace()

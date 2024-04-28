@@ -73,32 +73,33 @@
 
 ?>
 
-<div class="row">
-	<div class="col-12"><h1 class="text-center">Managed iPSK Endpoints</h1></div>
-</div>
-<div class="row">
-	<div class="col-12"><h6 class="text-center">Manage iPSK Endpoints to Add, View, Edit, and/or Delete</h6></div>
-</div>
-<div class="row">
-	<div class="col"><hr></div>
-</div>
-<div class="row menubar">
-<div class="d-grid gap-2 d-md-block">
-	<a id="newEndpoint" module="endpoints" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Endpoint</a>
-	<a id="bulkEndpoint" module="endpoints" sub-module="bulk" class="btn btn-primary custom-link text-white" href="#" role="button">Add Bulk Endpoints</a>
-	
-</div>
-</div>
-<div class="row">
-	<div class="col">
-		<hr>
+<div class="card">
+	<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">Managed iPSK Endpoints</h4>
+	<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 fst-italic">Manage iPSK Endpoints to Add, View, Edit, and/or Delete</h6>
+	<div class="card-header">
+		<a id="newEndpoint" module="endpoints" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Endpoint</a>
+		<a id="bulkEndpoint" module="endpoints" sub-module="bulk" class="btn btn-primary custom-link text-white" href="#" role="button">Add Bulk Endpoints</a>
+	</div>
+	<div class="card-body">
+		<table class="table table-hover">
+  			<thead>
+    			<tr>
+					<th scope="col">Portal Name</th>
+      				<th scope="col">Description</th>
+  				    <th scope="col">Portal Hostname</th>
+					<th scope="col">Authentication Directory</th>
+					<th scope="col">View</th>
+					<th scope="col">Edit</th>
+					<th scope="col">Delete</th>
+    			</tr>
+  			</thead>
+  			<tbody>
+			  <?php print $pageData['endpointAssociationList'];?>
+  			</tbody>
+		</table>
+		<div id="popupcontent"></div>
 	</div>
 </div>
-<div class="overflow-auto"><?php print $pageData['endpointAssociationList'];?></div>
-<div class="row">
-	<div class="col"><hr></div>
-</div>
-<div id="popupcontent"></div>
 <style>
 	button.buttons-colvis {
     	background: #0d6efd !important;
@@ -208,6 +209,8 @@
             		target: 7,
             		orderable: false
         		},
+				{ responsivePriority: 1, targets: -1 },
+        		{ responsivePriority: 2, targets: -2 },
     		],
 			layout: {
         		bottomStart: {

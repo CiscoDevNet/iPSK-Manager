@@ -20,39 +20,26 @@
 
 	$authorizationTemplates = $ipskISEDB->getAuthorizationTemplates();
 ?>
-
-<div class="row">
-	<div class="col-12"><h1 class="text-center">Authorization Templates</h1></div>
-</div>
-<div class="row">
-	<div class="col-12"><h5 class="h5 text-center">Manage iPSK Authorization Profiles to Add, View, Edit, and/or Delete</h5><div class="text-center">Authorization Templates are applied to an Endpoint when they are added to the iPSK Management Database.  These settings do not reflect the Policies created within Cisco ISE by the Administrator.</div></div>
-</div>
-</div>
-<div class="row">
-	<div class="col"><hr></div>
-</div>
-<div class="row menubar">
-	<div class="col-3"><a id="addAuthZTemp" module="authz" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Authorization Template</a></div>
-	<div class="col-9"></div>
-</div>
-<div class="row">
-	<div class="col">
-		<br />
+<div class="card">
+	<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">Authorization Templates</h4>
+	<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 fst-italic">Manage authorization templates that are applied to an endpoint when enrolled</h6>
+	<div class="card-header">
+		<a id="addAuthZTemp" module="authz" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Authorization Template</a>
 	</div>
-</div>
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th scope="col">Profile Name</th>
-      <th scope="col">Description</th>
-      <th scope="col">iPSK Type</th>
-	  <th scope="col">View</th>
-	  <th scope="col">Edit</th>
-	  <th scope="col">Delete</th>
-    </tr>
-  </thead>
-  <tbody>
-    <?php
+	<div class="card-body">
+		<table class="table table-hover">
+  			<thead>
+    			<tr>
+					<th scope="col">Profile Name</th>
+    				<th scope="col">Description</th>
+    				<th scope="col">iPSK Type</th>
+					<th scope="col">View</th>
+					<th scope="col">Edit</th>
+					<th scope="col">Delete</th>
+    			</tr>
+  			</thead>
+  			<tbody>
+	<?php
 		if($authorizationTemplates){
 			while($row = $authorizationTemplates->fetch_assoc()) {
 				if($row['ciscoAVPairPSKMode'] == "ascii"){
@@ -80,9 +67,11 @@
 			}
 		}
 	?>
-  </tbody>
-</table>
-<div id="popupcontent"></div>
+  			</tbody>
+		</table>
+		<div id="popupcontent"></div>
+	</div>
+</div>
 <script>
 	$(function() {	
 		feather.replace()

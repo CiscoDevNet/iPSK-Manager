@@ -22,37 +22,26 @@
 
 	$wirelessNetworks = $ipskISEDB->getWirelessNetworks();
 ?>
-
-<div class="row">
-	<div class="col-12"><h1 class="text-center">Wireless Networks</h1></div>
-</div>
-<div class="row">
-	<div class="col-12"><h6 class="text-center">Manage iPSK Wireless SSIDs to Add, View, Edit, and/or Delete</h6><div class="text-center">Wireless SSIDs are used in email communications when an endpoint is Enrolled in the iPSK Management Database.</div></div>
-</div>
-<div class="row">
-	<div class="col"><hr></div>
-</div>
-<div class="row menubar">
-	<div class="col-3"><a id="addWirelessNetwork" module="wireless" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Wireless Network</a></div>
-	<div class="col-10"></div>
-</div>
-<div class="row">
-	<div class="col">
-		<br />
+<div class="card">
+	<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">Wireless Networks</h4>
+	<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 fst-italic">Manage wireless SSIDs used in portal group configurations</h6>
+	<div class="card-header">
+		<a id="addWirelessNetwork" module="wireless" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Wireless Network</a>
 	</div>
-</div>
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th scope="col">Wireless Network SSID</th>
-      <th scope="col">Wireless Network Description</th>
-	  <th scope="col">View</th>
-	  <th scope="col">Edit</th>
-	  <th scope="col">Delete</th>
-    </tr>
-  </thead>
-  <tbody>
-    <?php
+	<div class="card-body">
+		<div class="text-center fst-italic">Wireless SSIDs are used in email communications when an endpoint is Enrolled in the iPSK Management Database.</div>
+		<table class="table table-hover">
+  			<thead>
+    			<tr>
+					<th scope="col">Wireless Network SSID</th>
+    				<th scope="col">Wireless Network Description</th>
+					<th scope="col">View</th>
+					<th scope="col">Edit</th>
+					<th scope="col">Delete</th>
+    			</tr>
+  			</thead>
+  			<tbody>
+	<?php
 		if($wirelessNetworks){
 			while($row = $wirelessNetworks->fetch_assoc()) {				
 				print '<tr>';
@@ -65,9 +54,11 @@
 			}
 		}
 	?>
-  </tbody>
-</table>
-<div id="popupcontent"></div>
+  			</tbody>
+		</table>
+		<div id="popupcontent"></div>
+	</div>
+</div>
 <script>
 	$(function() {	
 		feather.replace()

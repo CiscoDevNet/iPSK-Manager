@@ -123,24 +123,23 @@ HTML;
 	</head>
 	<body>
 	<?php print $persistantAlert;?>
-    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+    <nav class="navbar navbar-dark fixed-top bg-primary flex-md-nowrap p-0 shadow">
 		<div class="container-fluid">
-			<a class="navbar-brand col-sm-3 col-md-2 me-0" href="#">
-				<img src="images/iPSK-Logo.svg" width="61" height="32" />
-				<span class="ps-2">Management Portal</span>
+			<a class="navbar-brand bg-primary col-sm-3 col-md-2 me-0" href="#">
+				<img src="images/ipsk-logo.gif" width="180" height="32" />
+				
 			</a>
 		</div>
 	  <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
 	  <ul class="navbar-nav px-3">
 		<li class="nav-item text-nowrap">
-		  <a id="signOut" class="nav-link" href="#">Sign out</a>
+		  <a id="signOut" class="nav-link text-white" href="#">Sign out</a>
 		</li>
 	  </ul>
 	</nav>
 	<div class="container-fluid">
-		
 		<div class="row">
-			<nav id="sidebarNav" class="col-md-2 d-none d-md-block bg-light sidebar">
+			<nav id="sidebarNav" class="col-md-2 d-none d-md-block bg-light sidebar p-2">
 				<div class="sidebar-sticky">
 					<ul class="nav flex-column">
 <?php
@@ -199,9 +198,8 @@ HTML;
 					</ul>
 				</div>
 			</nav>
-
-			<main role="main" class="col-md-9 ms-sm-auto col-lg-10 px-4">
-				<div id="mainContent" class="float-rounded mx-auto shadow-lg p-2 bg-white">
+			<main role="main" class="col-md-9 ms-sm-auto col-lg-10 p-2 px-4">
+				<div id="mainContent" class="float-rounded mx-auto shadow-lg p-4 bg-white">
 				
 				</div>
 				<div id="adminPortalNotifications">	
