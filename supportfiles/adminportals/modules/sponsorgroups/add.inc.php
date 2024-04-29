@@ -218,7 +218,7 @@ HTML;
 					</div>	
 				</div>
 				<div class="modal-footer">
-					<button id="create" module="sponsorgroups" sub-module="create" type="submit" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</button>
+					<button id="create" module="sponsorgroups" sub-module="create" type="submit" class="btn btn-primary shadow">Create</button>
 					<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 				</div>
 				
@@ -242,11 +242,10 @@ HTML;
 		
 		if(failure){
 			return false;
-		}		
-		
-		//$("#addSponsorGroup").modal('hide');
-		//$('body').removeClass('modal-open');
-		//$('.modal-backdrop').remove();
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('addSponsorGroup'));
+			modal.hide();
+		}
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

@@ -20,40 +20,44 @@
 
 
 	print <<< HTML
-<div class="row">
-	<div class="col m-3 shadow border border-secondary p-2">
-		<div class="row">
-			<div class="col text-center text-primary"><h5>SMTP Settings</h5></div>
+<div class="container-fluid">
+	<div class="row row-cols-1 row-cols-md-2 g-4">
+		<div class="col">
+			<div class="card h-100">
+          		<div class="card-header bg-primary text-white">SMTP Settings</div>
+          		<div class="card-body">
+					<label class="form-label" for="smtpHost">SMTP Hostname/IP:</label>
+					<div class="mb-3 input-group-sm w-75">
+						<input type="text" class="form-control shadow smtpupdate" id="smtpHost" value="{$smtpSettings['smtp-hostname']}" placeholder="smtp.demo.local">
+					</div>
+					<label class="form-label" for="smtpPort">SMTP Port:</label>
+					<div class="mb-3 input-group-sm w-75">
+						<input type="text" class="form-control shadow smtpupdate" id="smtpPort" value="{$smtpSettings['smtp-port']}" placeholder="e.g. 25">
+					</div>
+					<label class="form-label" for="smtpUsername">SMTP Username:</label>
+					<div class="mb-3 input-group-sm w-75">
+						<input type="text" class="form-control shadow smtpupdate" id="smtpUsername" value="{$smtpSettings['smtp-username']}">
+					</div>
+					<label class="form-label" for="smtpFromAddress">From Address:</label>
+					<div class="mb-3 input-group-sm w-75">
+						<input type="text" class="form-control shadow smtpupdate" id="smtpFromAddress" value="{$smtpSettings['smtp-fromaddress']}">
+					</div>
+					<label class="form-label" for="smtpPassword">SMTP Pasword:</label>
+					<div class="mb-3 input-group-sm w-75">
+						<input type="password" class="form-control shadow" id="smtpPassword">
+					</div>
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update smtpupdate" base-value="1" value="{$smtpSettings['enabled']}" id="smtpEnabled"{$smtpSettings['enabled-check']}>
+						<label class="form-check-label" for="smtpEnabled">SMTP Email Enabled</label>
+					</div>
+				</div>
+				<div class="card-footer">
+					<button id="updatesmtp" module="sysconfig" sub-module="update" module-action="smtpupdate" type="submit" class="btn btn-primary btn-sm shadow" disabled>Update Settings</button>
+					<button id="setsmtppass" module="sysconfig" sub-module="update" module-action="smtppass" type="submit" class="btn btn-primary btn-sm shadow" disabled>Set Password</button>
+				</div>
+			</div>
 		</div>
-		<label class="fw-bold" for="smtpHost">SMTP Hostname/IP:</label>
-		<div class="mb-3 input-group-sm fw-bold">
-			<input type="text" class="form-control shadow smtpupdate" id="smtpHost" value="{$smtpSettings['smtp-hostname']}" placeholder="smtp.demo.local">
-		</div>
-		<label class="fw-bold" for="smtpPort">SMTP Port:</label>
-		<div class="mb-3 input-group-sm fw-bold">
-			<input type="text" class="form-control shadow smtpupdate" id="smtpPort" value="{$smtpSettings['smtp-port']}" placeholder="e.g. 25">
-		</div>
-		<label class="fw-bold" for="smtpUsername">SMTP Username:</label>
-		<div class="mb-3 input-group-sm fw-bold">
-			<input type="text" class="form-control shadow smtpupdate" id="smtpUsername" value="{$smtpSettings['smtp-username']}">
-		</div>
-		<label class="fw-bold" for="smtpFromAddress">From Address:</label>
-		<div class="mb-3 input-group-sm fw-bold">
-			<input type="text" class="form-control shadow smtpupdate" id="smtpFromAddress" value="{$smtpSettings['smtp-fromaddress']}">
-		</div>
-		<label class="fw-bold" for="smtpPassword">SMTP Pasword:</label>
-		<div class="mb-3 input-group-sm fw-bold">
-			<input type="password" class="form-control shadow" id="smtpPassword">
-		</div>
-		<div class="form-check">
-			<input type="checkbox" class="form-check-input checkbox-update smtpupdate" base-value="1" value="{$smtpSettings['enabled']}" id="smtpEnabled"{$smtpSettings['enabled-check']}>
-			<label class="form-check-label" for="smtpEnabled">SMTP Email Enabled</label>
-		</div>
-		<button id="updatesmtp" module="sysconfig" sub-module="update" module-action="smtpupdate" type="submit" class="btn btn-primary shadow" disabled>Update Settings</button>
-		<button id="setsmtppass" module="sysconfig" sub-module="update" module-action="smtppass" type="submit" class="btn btn-primary shadow" disabled>Set Password</button>
 	</div>
 </div>
 HTML;
-
-
 ?>

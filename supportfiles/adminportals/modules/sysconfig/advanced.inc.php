@@ -18,25 +18,28 @@
  *limitations under the License.
  */
 
-
 	print <<< HTML
-<div class="row">
-	<div class="col m-3 shadow border border-secondary p-2">
-		<div class="row">
-			<div class="col text-center text-primary"><h5>Advanced Platform Settings</h5></div>
+<div class="container-fluid">
+	<div class="row row-cols-1 row-cols-md-2 g-4">
+		<div class="col">
+			<div class="card h-100">
+          		<div class="card-header bg-primary text-white">Advanced Platform Settings</div>
+          		<div class="card-body">
+					<div class="form-label">
+						<input type="checkbox" class="form-check-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-portal-psk-edit-value']}" id="portalPskEditEnabled"{$advancedSettings['enable-portal-psk-edit']}>
+						<label class="form-check-label" for="portalPskEditEnabled">Enable the "Manual PSK Editing" Portal Group Permission</label>
+					</div>
+					<div class="form-label">
+						<input type="checkbox" class="form-check-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-advanced-logging-value']}" id="advancedLoggingSettings"{$advancedSettings['enable-advanced-logging']}>
+						<label class="form-check-label" for="advancedLoggingSettings">Enable Platform Logging Settings <a class="d-inline-block" data-bs-toggle="tooltip" title="" data-bs-original-title="Use with caution. Changing logging settings should be used for debugging purposes only." data-bs-placement="right"><i data-feather="alert-triangle"></i></a></label>
+					</div>			
+				</div>
+				<div class="card-footer">
+					<button id="updateadvanced" module="sysconfig" sub-module="update" module-action="advancedupdate" type="submit" class="btn btn-primary btn-sm shadow" disabled>Update Settings</button>
+				</div>
+			</div>
 		</div>
-		<label class="fw-bold" for="adminPortalHostname">Advanced Settings:</label>
-		<div class="form-check">
-			<input type="checkbox" class="form-check-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-portal-psk-edit-value']}" id="portalPskEditEnabled"{$advancedSettings['enable-portal-psk-edit']}>
-			<label class="form-check-label text-danger" for="portalPskEditEnabled"><strong>Enable the "Manual PSK Editing" Portal Group Permission</strong></label>
-		</div>
-		<div class="form-check">
-			<input type="checkbox" class="form-check-input checkbox-update advancedtab" base-value="1" value="{$advancedSettings['enable-advanced-logging-value']}" id="advancedLoggingSettings"{$advancedSettings['enable-advanced-logging']}>
-			<label class="form-check-label text-danger" for="advancedLoggingSettings"><strong>Enable Platform Logging Settings</strong></label>
-		</div>
-		<button id="updateadvanced" module="sysconfig" sub-module="update" module-action="advancedupdate" type="submit" class="btn btn-primary shadow" disabled>Update Settings</button>
 	</div>
 </div>
 HTML;
-
 ?>

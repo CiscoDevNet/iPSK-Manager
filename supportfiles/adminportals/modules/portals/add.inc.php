@@ -148,7 +148,7 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button id="create" module="portals" sub-module="create" type="submit" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</button>
+					<button id="create" module="portals" sub-module="create" type="submit" class="btn btn-primary shadow">Create</button>
 					<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 				</div>
 				</form>
@@ -171,10 +171,10 @@
 
 			if(failure){
 				return false;
+			} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('addSponsorPortal'));
+			modal.hide();
 			}
-			
-			//$('.modal-backdrop').remove();
-			//$("body").removeClass('modal-open');
 			
 			$.ajax({
 				url: "ajax/getmodule.php",

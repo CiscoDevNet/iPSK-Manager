@@ -66,6 +66,11 @@
 
 			mysqli_data_seek($sponsorLogins,0);
 		}
+	} else {
+		for ($x = 1; $x <= 7; $x++) { 
+			$sponsorChartLabel .= "'".date('Y-m-d', strtotime('-'.$x.' days'))."',";
+			$sponsorChartData .= "0,";
+		}
 	}
 
 	if($captiveLogins){
@@ -87,6 +92,11 @@
 			}
 
 			mysqli_data_seek($captiveLogins,0);
+		}
+	} else {
+		for ($x = 1; $x <= 7; $x++) { 
+			$captiveChartLabel .= "'".date('Y-m-d', strtotime('-'.$x.' days'))."',";
+			$captiveChartData .= "0,";
 		}
 	}
 
@@ -110,6 +120,11 @@
 
 			mysqli_data_seek($adminLogins,0);
 		}
+	} else {
+		for ($x = 1; $x <= 7; $x++) { 
+			$adminChartLabel .= "'".date('Y-m-d', strtotime('-'.$x.' days'))."',";
+			$adminChartData .= "0,";
+		}
 	}
 
 	if($addedEndpoints){
@@ -132,78 +147,78 @@
 
 			mysqli_data_seek($addedEndpoints,0);
 		}
+	} else {
+		for ($x = 1; $x <= 7; $x++) { 
+			$addedEndpointsChartLabel .= "'".date('Y-m-d', strtotime('-'.$x.' days'))."',";
+			$addedEndpointsChartData .= "0,";
+		}
 	}
 
 ?>
-<div class="row">
-	<div class="col-12"><h1 class="text-center">iPSK Dashboard</h1></div>
-</div>
-<div class="row">
-	<div class="col-12"><h6 class="text-center">Welcome to the iPSK Management Portal for Cisco ISE</h6></div>
-</div>
-<div class="row">
-	<div class="col"><hr></div>
-</div>
 
-<div class="container-fluid">
-    <div class="row">
-      <!-- Chart 1 -->
-      <div class="col-md-4 mb-4">
-        <div class="card h-100">
-          <div class="card-header">Sponsor Portal Authentications (Last 7 Days)</div>
-          <div class="card-body">
-            <canvas id="chart1"></canvas>
-          </div>
-        </div>
-      </div>
-      <!-- Chart 2 -->
-      <div class="col-md-4 mb-4">
-        <div class="card h-100">
-          <div class="card-header">Captive Portal Authentications (Last 7 Days)</div>
-          <div class="card-body">
-            <canvas id="chart2"></canvas>
-          </div>
-        </div>
-      </div>
-      <!-- Chart 3 -->
-      <div class="col-md-4 mb-4">
-        <div class="card h-100">
-          <div class="card-header">Admin Portal Authentications (Last 7 Days)</div>
-          <div class="card-body">
-            <canvas id="chart3"></canvas>
-          </div>
-        </div>
-      </div>
-      <!-- Chart 4 -->
-      <div class="col-md-4 mb-4">
-        <div class="card h-100">
-          <div class="card-header">Total Endpoints By Group</div>
-          <div class="card-body">
-            <canvas id="chart4"></canvas>
-          </div>
-        </div>
-      </div>
-      <!-- Chart 5 -->
-      <div class="col-md-4 mb-4">
-        <div class="card h-100">
-          <div class="card-header">Endpoint Information</div>
-          <div class="card-body">
-            <canvas id="chart5"></canvas>
-          </div>
-        </div>
-      </div>
-      <!-- Chart 6 -->
-      <div class="col-md-4 mb-4">
-        <div class="card h-100">
-          <div class="card-header">Endpoints Added (Last 7 Days)</div>
-          <div class="card-body">
-            <canvas id="chart6"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+<div class="card">
+	<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">iPSK Dashboard</h4>
+	<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 fst-italic">Welcome to the iPSK Management Portal for Cisco ISE</h6>
+	<div class="card-body">
+		<div class="container-fluid">
+    		<div class="row">
+    			<!-- Chart 1 -->
+      			<div class="col-md-4 mb-4">
+        			<div class="card h-100">
+          				<div class="card-header bg-primary text-white">Sponsor Portal Authentications (Last 7 Days)</div>
+          				<div class="card-body">
+            				<canvas id="chart1"></canvas>
+          				</div>
+        			</div>
+      			</div>
+      			<!-- Chart 2 -->
+      			<div class="col-md-4 mb-4">
+        			<div class="card h-100">
+          				<div class="card-header bg-primary text-white">Captive Portal Authentications (Last 7 Days)</div>
+          				<div class="card-body">
+            				<canvas id="chart2"></canvas>
+          				</div>
+        			</div>
+      			</div>
+      			<!-- Chart 3 -->
+      			<div class="col-md-4 mb-4">
+        			<div class="card h-100">
+          				<div class="card-header bg-primary text-white">Admin Portal Authentications (Last 7 Days)</div>
+          				<div class="card-body">
+            				<canvas id="chart3"></canvas>
+          				</div>
+        			</div>
+      			</div>
+      			<!-- Chart 4 -->
+      			<div class="col-md-4 mb-4">
+        			<div class="card h-100">
+          				<div class="card-header bg-primary text-white">Total Endpoints By Group</div>
+          				<div class="card-body">
+            				<canvas id="chart4"></canvas>
+          				</div>
+        			</div>
+      			</div>
+      			<!-- Chart 5 -->
+      			<div class="col-md-4 mb-4">
+        			<div class="card h-100">
+          				<div class="card-header bg-primary text-white">Endpoint Information</div>
+          				<div class="card-body">
+            				<canvas id="chart5"></canvas>
+          				</div>
+        			</div>
+      			</div>
+      			<!-- Chart 6 -->
+      			<div class="col-md-4 mb-4">
+        			<div class="card h-100">
+          				<div class="card-header bg-primary text-white">Endpoints Added (Last 7 Days)</div>
+          				<div class="card-body">
+            				<canvas id="chart6"></canvas>
+          				</div>
+        		</div>
+      		</div>
+    	</div>
+  	</div>
+</div>
 <script>
 		var sponsorConfig = {
 			type: 'line',

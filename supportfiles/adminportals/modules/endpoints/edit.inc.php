@@ -205,7 +205,7 @@ HTML;
 			</div> 
 			<div class="modal-footer">
 				<input type="hidden" id="id" value="{$endpoint['id']}">
-				<a id="update" href="#" module="endpoints" sub-module="edit" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Update</a>
+				<a id="update" href="#" module="endpoints" sub-module="edit" role="button" class="btn btn-primary shadow">Update</a>
 				<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
@@ -225,10 +225,10 @@ HTML;
 		
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('editEndpoint'));
+			modal.hide();
 		}
-		
-		//$('.modal-backdrop').remove();
-		//$("body").removeClass('modal-open');
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

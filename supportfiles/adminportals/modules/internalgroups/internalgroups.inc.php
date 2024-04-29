@@ -22,38 +22,26 @@
 
 	$internalGroups = $ipskISEDB->getInternalGroups();
 ?>
-
-<div class="row">
-	<div class="col-12"><h1 class="text-center">Internal Identity Management - Groups</h1></div>
-</div>
-<div class="row">
-	<div class="col-12"><h6 class="text-center">Manage iPSK Internal Groups and map to External LDAP Groups</h6></div>
-</div>
-<div class="row">
-	<div class="col"><hr></div>
-</div>
-<div class="row menubar">
-	<div class="col-2"><a id="addGroup" module="internalgroups" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Group</a></div>
-	<div class="col-11"></div>
-</div>
-<div class="row">
-	<div class="col">
-		<br />
+<div class="card">
+	<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">Identity Group Management</h4>
+	<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 fst-italic">Manage internal groups or map to external LDAP groups</h6>
+	<div class="card-header">
+		<a id="addGroup" module="internalgroups" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Group</a>
 	</div>
-</div>
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th scope="col">Group Name</th>
-      <th scope="col">Description</th>
-	  <th scope="col">Group Type</th>
-	  <th scope="col">Admin Portal</th>
-	  <th scope="col">View</th>
-	  <th scope="col">Edit</th>
-	  <th scope="col">Delete</th>
-    </tr>
-  </thead>
-  <tbody>
+	<div class="card-body">
+		<table class="table table-hover">
+  			<thead>
+    			<tr>
+      				<th scope="col">Group Name</th>
+      				<th scope="col">Description</th>
+	  				<th scope="col">Group Type</th>
+	  				<th scope="col">Admin Portal</th>
+	  				<th scope="col">View</th>
+	  				<th scope="col">Edit</th>
+	  				<th scope="col">Delete</th>
+    			</tr>
+  			</thead>
+  			<tbody>
     <?php
 		if($internalGroups){
 			while($row = $internalGroups->fetch_assoc()) {
@@ -86,9 +74,11 @@
 			}
 		}
 	?>
-  </tbody>
-</table>
-<div id="popupcontent"></div>
+  			</tbody>
+		</table>
+		<div id="popupcontent"></div>
+	</div>
+</div>
 <script>
 	$(function() {	
 		feather.replace()

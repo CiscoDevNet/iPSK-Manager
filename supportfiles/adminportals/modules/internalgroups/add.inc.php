@@ -34,8 +34,8 @@ $htmlbody = <<<HTML
       <div class="modal-body">
 		<label class="fw-bold" for="groupName">Group Name:</label>
 		<div class="mb-3 input-group-sm fw-bold">
-			<input type="text" class="form-control shadow form-validation" validation-state="required" id="groupName" name="groupName" placeholder="" required>
-			<div class="invalid-feedback">Please enter a valid Group Name</div>
+			<input type="text" class="form-control shadow form-validation" validation-state="required" id="groupName" name="groupName" data-command="getdata" data-set="internalgroups" placeholder="" required>
+			<div id="groupNameInvalid" class="invalid-feedback">Please enter a valid Group Name</div>
 		</div>
 		<label class="fw-bold" for="description">Description:</label>
 		<div class="mb-3 input-group-sm fw-bold">
@@ -67,7 +67,7 @@ $htmlbody = <<<HTML
 		</div>
 	  </div>
       <div class="modal-footer">
-		<a id="create" href="#" module="internalgroups" sub-module="create" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</a>
+	  	<button id="create" module="internalgroups" sub-module="create" type="submit" class="btn btn-primary shadow">Create</button>
         <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
@@ -82,13 +82,14 @@ $htmlbody = <<<HTML
 		event.preventDefault();
 		
 		failure = formFieldValidation();
-		
+
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('addInternalGroup'));
+			modal.hide();
 		}
-		
-		//$('.modal-backdrop').remove();
-		
+				
 		$.ajax({
 			url: "ajax/getmodule.php",
 			
@@ -135,6 +136,51 @@ $htmlbody = <<<HTML
 			$("#groupDn").removeClass('form-validation');
 			$("#groupDn").val('');
 		}
+	});
+
+	function isValueInObject(obj, value) {
+    	if (typeof obj !== 'object' || obj === null) {
+        	return false;
+      	}
+
+      	for (var key in obj) {
+        	if (obj[key].toUpperCase() === value.toUpperCase()) {
+          		return true;
+        	}
+      	}
+		// Recursive Search
+      	for (var key in obj) {
+        	if (isValueInObject(obj[key], value)) {
+          		return true;
+        	}
+      	}
+
+      	return false;
+    }
+
+	$("#groupName").change(function(){
+		event.preventDefault();
+		$("#create").removeAttr('disabled');
+		$(this).removeClass('is-invalid');
+		$("#groupNameInvalid").text("Please enter a valid Group Name");
+
+		$.ajax({
+			url: "ajax/getdata.php",
+			data: {
+				'data-command': $(this).attr('data-command'),
+				'data-set': $(this).attr('data-set')
+			},
+			type: "POST",
+			dataType: "json",
+			success: (json) => {
+				var isValuePresent = isValueInObject(json, $("#groupName").val());
+				if (isValuePresent) {	
+					$("#groupNameInvalid").text("Group name already exists");
+					$(this).addClass('is-invalid');					
+					$("#create").attr("disabled", true);
+				}
+			}
+		});
 	});
 </script>
 HTML;

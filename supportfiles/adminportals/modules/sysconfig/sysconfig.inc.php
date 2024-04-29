@@ -267,34 +267,59 @@
 	}
 
 ?>
-<div class="row">
-	<div class="col-12"><h1 class="text-center">Platform Settings</h1></div>
-</div>
-<div class="row">
-	<div class="col"><hr></div>
-</div>
-<nav>
-	<div class="nav nav-tabs" id="nav-tab" role="tablist">
-		<a class="nav-item nav-link active" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="true">General</a>
-		<a class="nav-item nav-link" id="nav-hostname-tab" data-bs-toggle="tab" href="#nav-hostname" role="tab" aria-controls="nav-hostname" aria-selected="false">Portal Hostnames</a>
-		<a class="nav-item nav-link" id="nav-proto-tab" data-bs-toggle="tab" href="#nav-proto" role="tab" aria-controls="nav-proto" aria-selected="false">Ports & Protocols</a>
-		<a class="nav-item nav-link" id="nav-ise-tab" data-bs-toggle="tab" href="#nav-ise" role="tab" aria-controls="nav-ise" aria-selected="false">Cisco ISE Integration</a>
-		<a class="nav-item nav-link" id="nav-smtp-tab" data-bs-toggle="tab" href="#nav-smtp" role="tab" aria-controls="nav-smtp" aria-selected="false">SMTP Configuration</a>
-		<a class="nav-item nav-link" id="nav-advanced-tab" data-bs-toggle="tab" href="#nav-advanced" role="tab" aria-controls="nav-advanced" aria-selected="false">Advanced Settings</a>
-		<?php print $logSettingsTab;?>
+<div class="card">
+	<h4 class="text-center card-header bg-primary text-white">Platform Configuration</h4>
+	<div class="card-header">
+		<ul class="nav nav-pills card-header-pills">
+        	<li class="nav-item">
+        		<a class="nav-item nav-link active" id="nav-general-tab" data-bs-toggle="tab" href="#nav-general" role="tab" aria-controls="nav-general" aria-selected="true">General</a>
+          	</li>
+          	<li class="nav-item">
+            	<a class="nav-item nav-link" id="nav-hostname-tab" data-bs-toggle="tab" href="#nav-hostname" role="tab" aria-controls="nav-hostname" aria-selected="false">Portal Settings</a>
+          	</li>
+        	<li class="nav-item">
+				<a class="nav-item nav-link" id="nav-ise-tab" data-bs-toggle="tab" href="#nav-ise" role="tab" aria-controls="nav-ise" aria-selected="false">Cisco ISE Integration</a>        	</li>
+        	<li class="nav-item">
+            	<a class="nav-item nav-link" id="nav-smtp-tab" data-bs-toggle="tab" href="#nav-smtp" role="tab" aria-controls="nav-smtp" aria-selected="false">SMTP Configuration</a>
+        	</li>
+        	<li class="nav-item">
+				<a class="nav-item nav-link" id="nav-advanced-tab" data-bs-toggle="tab" href="#nav-advanced" role="tab" aria-controls="nav-advanced" aria-selected="false">Advanced Settings</a>
+			</li>
+        	<li class="nav-item">
+            	<?php print $logSettingsTab;?>
+          	</li>
+        </ul>
 	</div>
-</nav>
-<div class="tab-content" id="nav-tabContent">
-	<div class="tab-pane fade show active" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab"><?php include("general.inc.php");?></div>
-	<div class="tab-pane fade" id="nav-hostname" role="tabpanel" aria-labelledby="nav-hostname-tab"><?php include("hostnames.inc.php");?></div>
-	<div class="tab-pane fade" id="nav-proto" role="tabpanel" aria-labelledby="nav-proto-tab"><?php include("protocols.inc.php");?></div>
-	<div class="tab-pane fade" id="nav-ise" role="tabpanel" aria-labelledby="nav-ise-tab"><?php include("ise.inc.php");?></div>
-	<div class="tab-pane fade" id="nav-smtp" role="tabpanel" aria-labelledby="nav-smtp-tab"><?php include("smtp.inc.php");?></div>
-	<div class="tab-pane fade" id="nav-advanced" role="tabpanel" aria-labelledby="nav-advanced-tab"><?php include("advanced.inc.php");?></div>
-	<div class="tab-pane fade" id="nav-logging" role="tabpanel" aria-labelledby="nav-logging-tab"><?php if($advancedSettings['enable-advanced-logging-value']){include('logging.inc.php');}?></div>
+	<div class="card-body">
+    	<div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab">
+            	<?php include( "general.inc.php");?>
+            </div>
+            <div class="tab-pane fade" id="nav-hostname" role="tabpanel" aria-labelledby="nav-hostname-tab">
+            	<?php include( "portal.inc.php");?>
+            </div>
+            <div class="tab-pane fade" id="nav-ise" role="tabpanel" aria-labelledby="nav-ise-tab">
+            	<?php include( "ise.inc.php");?>
+            </div>
+            <div class="tab-pane fade" id="nav-smtp" role="tabpanel" aria-labelledby="nav-smtp-tab">
+            	<?php include( "smtp.inc.php");?>
+            </div>
+            <div class="tab-pane fade" id="nav-advanced" role="tabpanel" aria-labelledby="nav-advanced-tab">
+            	<?php include( "advanced.inc.php");?>
+            </div>
+            <div class="tab-pane fade" id="nav-logging" role="tabpanel" aria-labelledby="nav-logging-tab">
+            	<?php if($advancedSettings[ 'enable-advanced-logging-value']){include('logging.inc.php');}?>
+            </div>
+        </div>
+    </div>
 </div>
-
 <script>
+	feather.replace();
+
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+  return new bootstrap.Tooltip(tooltipTriggerEl)
+})
 
 	$(".checkbox-update").change(function(){
 		if($(this).prop('checked')){
@@ -303,6 +328,22 @@
 			$(this).attr('value', '0');
 		}
 	});
+
+	$('#portalHostname').change(function() {
+		$("#deletehostname").removeAttr('disabled');
+	});
+
+	$('#hostname').change(function() {
+		$("#addhostname").removeAttr('disabled');
+	});
+
+	$('#protocolPorts').change(function() {
+		$("#deleteprotocol").removeAttr('disabled');
+	});
+
+	$('#portalPort').change(function() {
+		$("#addprotocol").removeAttr('disabled');
+	});
 	
 	$(".generaltab").change(function(){
 		$("#updateGeneral").removeAttr('disabled');
@@ -310,6 +351,17 @@
 
 	$(".complexitytab").change(function(){
 		$("#updateComplexity").removeAttr('disabled');
+	});
+
+	$("#samlDirectory").toggle($("#samlLdapSource").is(':checked'))
+
+	$(".samltab").change(function(){
+		$("#samlDirectory").toggle($("#samlLdapSource").is(':checked'))
+		$("#updateSaml").removeAttr('disabled');
+	});
+
+	$(".ldaptab").change(function(){
+		$("#updateLdap").removeAttr('disabled');
 	});
 	
 	$(".iseers").change(function(){
@@ -374,6 +426,55 @@
 			}
 		});
 	});
+
+	$("#updateLdap").click(function(){
+		event.preventDefault();
+
+		$.ajax({
+			url: "ajax/getmodule.php",
+			
+			data: {
+				module: $(this).attr('module'),
+				'sub-module': $(this).attr('sub-module'),
+				'module-action': $(this).attr('module-action'),
+				'ldapSSLCheck': $("#ldapSSLCheck").val(),
+				'nestedGroups': $("#nestedGroups").val()
+			},
+			type: "POST",
+			dataType: "text",
+			success: function (data) {
+					if(data != 0){
+						$("#updateLdap").attr("disabled", true);
+					}
+			}
+		});
+	});
+
+	$("#updateSaml").click(function(){
+		event.preventDefault();
+
+		$.ajax({
+			url: "ajax/getmodule.php",
+			
+			data: {
+				module: $(this).attr('module'),
+				'sub-module': $(this).attr('sub-module'),
+				'module-action': $(this).attr('module-action'),
+				'samlEnabled': $("#samlEnabled").val(),
+				'samlLdapSource': $("#samlLdapSource").val(),
+				'samlHeaders': $("#samlHeaders").val(),
+				'samlUsernameVariable': $("#samlUsernameVariable").val(),
+				'samlLdapSourceDirectory': $('#samlLdapSourceDirectory').val()
+			},
+			type: "POST",
+			dataType: "text",
+			success: function (data) {
+					if(data != 0){
+						$("#updateSaml").attr("disabled", true);
+					}
+			}
+		});
+	});
 	
 	$("#updateComplexity").click(function(){
 		event.preventDefault();
@@ -422,6 +523,7 @@
 						var temp = $('<option>', {value: data});
 						$("#portalHostname").append(temp.html($("#hostname").val()));
 						$("#hostname").val("");
+						$("#addhostname").attr("disabled", true);
 					}
 			}
 		});
@@ -444,6 +546,7 @@
 			success: function (data) {
 					if(data == 1){
 						$("#portalHostname").find("option:selected").remove();
+						$("#deletehostname").attr("disabled", true);
 					}
 			}
 		});
@@ -473,6 +576,7 @@
 						var portalPort = $("#portalPort").val();
 						$("#protocolPorts").append(temp.html(portalProtocol + " (" + portalPort + ")"));
 						$("#portalPort").val("");
+						$("#addprotocol").attr("disabled", true);
 					}
 			}
 		});
@@ -495,6 +599,7 @@
 			success: function (data) {
 					if(data == 1){
 						$("#protocolPorts").find("option:selected").remove();
+						$("#deleteprotocol").attr("disabled", true);
 					}
 			}
 		});

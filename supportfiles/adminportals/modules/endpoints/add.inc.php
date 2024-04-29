@@ -129,7 +129,7 @@
 
 				</div>
 				<div class="modal-footer">
-					<button id="create" module="endpoints" sub-module="create" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</button>
+					<button id="create" module="endpoints" sub-module="create" class="btn btn-primary shadow">Create</button>
 					<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 				</div>
 			</div>
@@ -154,6 +154,9 @@
 
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('addEndpointDialog'));
+			modal.hide();
 		}
 		
 		//$("#addEndpointDialog").modal('hide');

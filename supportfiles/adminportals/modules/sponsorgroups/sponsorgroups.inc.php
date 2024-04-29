@@ -22,40 +22,28 @@
 
 	$endSponsorGroups = $ipskISEDB->getSponsorGroups();
 ?>
-
-<div class="row">
-	<div class="col-12"><h1 class="text-center">Portal Groups</h1></div>
-</div>
-<div class="row">
-	<div class="col-12"><h6 class="text-center">Portal Groups are groups used to define permisssions per endpoint and/or group.</h6></div>
-</div>
-<div class="row">
-	<div class="col"><hr></div>
-</div>
-<div class="row menubar">
-	<div class="col-3"><a id="addPortalGroup" module="sponsorgroups" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Portal Group</a></div>
-	<div class="col-10"></div>
-</div>
-<div class="row">
-	<div class="col">
-		<br />
+<div class="card">
+	<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">Portal Groups</h4>
+	<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 fst-italic">Groups used to define permisssions per endpoint and/or group</h6>
+	<div class="card-header">
+		<a id="addPortalGroup" module="sponsorgroups" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Portal Group</a>
 	</div>
-</div>
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th scope="col">Portal Group Name</th>
-      <th scope="col">Portal Group Description</th>
-	  <th scope="col">Portal Group Authentication Type</th>
-	  <th scope="col">Portal Group Type</th>
-	  <th scope="col">Max Devices per User</th>
-	  <th scope="col">View</th>
-	  <th scope="col">Edit</th>
-	  <th scope="col">Delete</th>
-    </tr>
-  </thead>
-  <tbody>
-    <?php
+	<div class="card-body">
+		<table class="table table-hover">
+  			<thead>
+    			<tr>
+					<th scope="col">Portal Group Name</th>
+    				<th scope="col">Portal Group Description</th>
+					<th scope="col">Portal Group Authentication Type</th>
+					<th scope="col">Portal Group Type</th>
+					<th scope="col">Max Devices per User</th>
+					<th scope="col">View</th>
+					<th scope="col">Edit</th>
+					<th scope="col">Delete</th>
+    			</tr>
+  			</thead>
+  			<tbody>
+	<?php
 		if($endSponsorGroups){
 			while($row = $endSponsorGroups->fetch_assoc()) {
 				if($row['sponsorGroupAuthType'] == 0){
@@ -89,9 +77,11 @@
 			}
 		}
 	?>
-  </tbody>
-</table>
-<div id="popupcontent"></div>
+  			</tbody>
+		</table>
+		<div id="popupcontent"></div>
+	</div>
+</div>
 <script>
 	$(function() {	
 		feather.replace()

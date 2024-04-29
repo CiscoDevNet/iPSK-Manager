@@ -55,7 +55,7 @@
 		$password = $authorizationTemplate['ciscoAVPairPSK'];
 		$readonlyFlag = "";
 		$minLength = '8';
-		$passwordFeather = "shuffle";
+		$passwordFeather = "refresh-cw";
 		$iPSKTypeFlag = " disabled";
 		$pskModeFlag = "0";
 		$keyType = '<option value="0" selected>Common PSK</option><option value="1">Random PSK</option>';
@@ -142,7 +142,7 @@ $htmlbody = <<<HTML
 			<div class="modal-footer">
 				<input type="hidden" id="pskMode" value="$pskModeFlag">
 				<input type="hidden" id="id" value="{$authorizationTemplate['id']}">
-				<a id="update" href="#" module="authz" sub-module="update" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Update</a>
+				<a id="update" href="#" module="authz" sub-module="update" role="button" class="btn btn-primary shadow">Update</a>
 				<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
@@ -165,7 +165,7 @@ $htmlbody = <<<HTML
 			$("#ciscoAVPairPSK").attr('validation-minimum-length','8');
 			$("#pskType").attr('disabled','true');
 			$("#pskMode").val('0');
-			$("#passwordfeather").attr('data-feather','shuffle');
+			$("#passwordfeather").attr('data-feather','refresh-cw');
 			feather.replace();
 		}else if($("#ciscoAVPairPSK").val() != "Random"){
 			$("#ciscoAVPairPSK").val('Random');
@@ -213,11 +213,11 @@ $htmlbody = <<<HTML
 		
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('editauthztemplate'));
+			modal.hide();
 		}
-		
-		//$("#addauthztemplate").modal({show: false});
 
-		
 		$.ajax({
 			url: "ajax/getmodule.php",
 			

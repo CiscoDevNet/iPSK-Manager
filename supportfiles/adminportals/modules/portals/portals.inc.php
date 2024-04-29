@@ -23,39 +23,28 @@
 	$portals = $ipskISEDB->getPortals();
 	$directoryNames = $ipskISEDB->getAuthDirectoryNames();
 	
-?><div class="row">
-	<div class="col-12"><h1 class="text-center">Portals</h1></div>
-</div>
-<div class="row">
-	<div class="col-12"><h6 class="text-center">Manage iPSK Portals Add, View, Edit, and/or Delete</h6></div>
-</div>
-</div>
-<div class="row">
-	<div class="col"><hr></div>
-</div>
-<div class="row menubar">
-	<div class="col-2"><a id="addSponsor" module="portals" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Portal</a></div>
-	<div class="col-11"></div>
-</div>
-<div class="row">
-	<div class="col">
-		<br />
+?>
+<div class="card">
+	<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">Portals</h4>
+	<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 fst-italic">Manage iPSK portals users access to onboard or manage endpoints</h6>
+	<div class="card-header">
+		<a id="addSponsor" module="portals" sub-module="add" class="btn btn-primary custom-link text-white" href="#" role="button">Add Portal</a>
 	</div>
-</div>
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th scope="col">Portal Name</th>
-      <th scope="col">Description</th>
-      <th scope="col">Portal Hostname</th>
-	  <th scope="col">Authentication Directory</th>
-	  <th scope="col">View</th>
-	  <th scope="col">Edit</th>
-	  <th scope="col">Delete</th>
-    </tr>
-  </thead>
-  <tbody>
-    <?php
+	<div class="card-body">
+		<table class="table table-hover">
+  			<thead>
+    			<tr>
+					<th scope="col">Portal Name</th>
+      				<th scope="col">Description</th>
+  				    <th scope="col">Portal Hostname</th>
+					<th scope="col">Authentication Directory</th>
+					<th scope="col">View</th>
+					<th scope="col">Edit</th>
+					<th scope="col">Delete</th>
+    			</tr>
+  			</thead>
+  			<tbody>
+	<?php
 		if($portals){
 			while($row = $portals->fetch_assoc()) {		
 				print '<tr>';
@@ -76,9 +65,11 @@
 			}
 		}
 	?>
-  </tbody>
-</table>
-<div id="popupcontent"></div>
+  			</tbody>
+		</table>
+		<div id="popupcontent"></div>
+	</div>
+</div>
 <script>
 	$(function() {	
 		feather.replace()

@@ -19,19 +19,22 @@
  */
 
 	if($sanitizedInput['module-action'] == "general"){
-		
-		
 		$ipskISEDB->setGlobalSetting("admin-portal","admin-portal-hostname", $sanitizedInput['adminPortalHostname']);
 		$ipskISEDB->setGlobalSetting("admin-portal","admin-portal-strict-hostname", $sanitizedInput['strict-hostname']);
 		$ipskISEDB->setGlobalSetting("admin-portal","redirect-on-hostname-match", $sanitizedInput['redirect-hostname']);
+		
+		print true;
+	}elseif($sanitizedInput['module-action'] == "ldap"){
 		$ipskISEDB->setGlobalSetting("ldap-settings","ldap-ssl-check", $sanitizedInput['ldapSSLCheck']);
 		$ipskISEDB->setGlobalSetting("ldap-settings","nested-groups", $sanitizedInput['nestedGroups']);
+
+		print true;
+	}elseif($sanitizedInput['module-action'] == "saml"){
 		$ipskISEDB->setGlobalSetting("saml-settings","enabled", $sanitizedInput['samlEnabled']);
 		$ipskISEDB->setGlobalSetting("saml-settings","ldap-source", $sanitizedInput['samlLdapSource']);
 		$ipskISEDB->setGlobalSetting("saml-settings","headers", $sanitizedInput['samlHeaders']);
 		$ipskISEDB->setGlobalSetting("saml-settings","usernamefield", $sanitizedInput['samlUsernameVariable']);
 		$ipskISEDB->setGlobalSetting("saml-settings","ldap-source-directory", $sanitizedInput['samlLdapSourceDirectory']);
-		
 
 		print true;
 	}elseif($sanitizedInput['module-action'] == "complexity"){
