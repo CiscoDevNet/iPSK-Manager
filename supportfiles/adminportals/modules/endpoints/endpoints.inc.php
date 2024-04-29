@@ -81,22 +81,7 @@
 		<a id="bulkEndpoint" module="endpoints" sub-module="bulk" class="btn btn-primary custom-link text-white" href="#" role="button">Add Bulk Endpoints</a>
 	</div>
 	<div class="card-body">
-		<table class="table table-hover">
-  			<thead>
-    			<tr>
-					<th scope="col">Portal Name</th>
-      				<th scope="col">Description</th>
-  				    <th scope="col">Portal Hostname</th>
-					<th scope="col">Authentication Directory</th>
-					<th scope="col">View</th>
-					<th scope="col">Edit</th>
-					<th scope="col">Delete</th>
-    			</tr>
-  			</thead>
-  			<tbody>
 			  <?php print $pageData['endpointAssociationList'];?>
-  			</tbody>
-		</table>
 		<div id="popupcontent"></div>
 	</div>
 </div>
