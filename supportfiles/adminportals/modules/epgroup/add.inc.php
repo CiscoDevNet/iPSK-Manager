@@ -32,7 +32,7 @@
 	
 		$htmlbody = <<<HTML
 <!-- Modal -->
-<div class="modal fade" id="viewepggroup" tabindex="-1" role="dialog" aria-labelledby="viewepggroupModal" aria-hidden="true">
+<div class="modal fade" id="addepggroup" tabindex="-1" role="dialog" aria-labelledby="addepggroupModal" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -67,7 +67,7 @@
 		</div>
 	  </div>
       <div class="modal-footer">
-	  <a id="create" href="#" module="epgroup" sub-module="create" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</a>
+	  <a id="create" href="#" module="epgroup" sub-module="create" role="button" class="btn btn-primary shadow">Create</a>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
@@ -76,7 +76,7 @@
 <script>
 	var failure;
 	
-	$("#viewepggroup").modal('show');
+	$("#addepggroup").modal('show');
 
 	$(function() {	
 		feather.replace()
@@ -101,11 +101,10 @@
 		
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('addepggroup'));
+			modal.hide();
 		}
-		
-		//$("#viewepggroup").modal({show: false});
-		//$('.modal-backdrop').remove();
-		//$("body").removeClass('modal-open');
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

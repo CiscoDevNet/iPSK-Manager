@@ -58,7 +58,7 @@
 	  </div>
       <div class="modal-footer">
 		<input type="hidden" id="id" value="{$internalUser['id']}">
-		<a id="updatepass" href="#" module="internalusers" sub-module="updatepass" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Reset Password</a>
+		<a id="updatepass" href="#" module="internalusers" sub-module="updatepass" role="button" class="btn btn-primary shadow">Reset Password</a>
         <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
@@ -76,9 +76,10 @@
 		
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('addInternalUser'));
+			modal.hide();
 		}
-		
-		$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

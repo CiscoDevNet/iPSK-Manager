@@ -142,7 +142,7 @@ $htmlbody = <<<HTML
 			<div class="modal-footer">
 				<input type="hidden" id="pskMode" value="$pskModeFlag">
 				<input type="hidden" id="id" value="{$authorizationTemplate['id']}">
-				<a id="update" href="#" module="authz" sub-module="update" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Update</a>
+				<a id="update" href="#" module="authz" sub-module="update" role="button" class="btn btn-primary shadow">Update</a>
 				<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
@@ -213,11 +213,11 @@ $htmlbody = <<<HTML
 		
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('editauthztemplate'));
+			modal.hide();
 		}
-		
-		//$("#addauthztemplate").modal({show: false});
 
-		
 		$.ajax({
 			url: "ajax/getmodule.php",
 			

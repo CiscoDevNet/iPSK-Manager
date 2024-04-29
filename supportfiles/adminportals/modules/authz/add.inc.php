@@ -105,7 +105,7 @@ $htmlbody = <<<HTML
 	  </div>
 	  <input type="hidden" id="pskMode" value="0">
       <div class="modal-footer">
-		<a id="create" href="#" module="authz" sub-module="create" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</a>
+		<a id="create" href="#" module="authz" sub-module="create" role="button" class="btn btn-primary shadow">Create</a>
         <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
@@ -168,11 +168,11 @@ $htmlbody = <<<HTML
 		
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('addauthztemplate'));
+			modal.hide();
 		}
-		
-		//$("#addauthztemplate").modal({show: false});
-		//$('.modal-backdrop').remove();
-		
+
 		$.ajax({
 			url: "ajax/getmodule.php",
 			

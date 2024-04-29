@@ -63,7 +63,7 @@ $htmlbody = <<<HTML
 		</div>
 	  </div>
       <div class="modal-footer">
-		<a id="create" href="#" module="internalusers" sub-module="create" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Create</a>
+		<a id="create" href="#" module="internalusers" sub-module="create" role="button" class="btn btn-primary shadow">Create</a>
         <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
@@ -81,9 +81,10 @@ $htmlbody = <<<HTML
 		
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('addInternalUser'));
+			modal.hide();
 		}
-		
-		$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

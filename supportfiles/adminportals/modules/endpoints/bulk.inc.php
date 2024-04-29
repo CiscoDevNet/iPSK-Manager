@@ -235,7 +235,7 @@
 				</form>
 			</div>
 			<div class="modal-footer">
-				<button id="bulkimport" module="endpoints" sub-module="bulkimport" class="btn btn-primary shadow" data-bs-dismiss="modal" disabled>Import</button>
+				<button id="bulkimport" module="endpoints" sub-module="bulkimport" class="btn btn-primary shadow" disabled>Import</button>
 				<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 			</div>
 		</div>
@@ -263,11 +263,10 @@
 
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('bulkAddEndpointDialog'));
+			modal.hide();
 		}
-		
-		//$("#bulkAddEndpointDialog").modal('hide');
-		//$('body').removeClass('modal-open');
-		//$('.modal-backdrop').remove();
 		
 		$.ajax({
 			url: "ajax/getmodule.php",

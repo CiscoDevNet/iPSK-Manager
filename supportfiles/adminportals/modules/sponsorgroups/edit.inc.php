@@ -296,7 +296,7 @@ $htmlbody = <<<HTML
 				</div>
 				<div class="modal-footer">
 					<input type="hidden" id="id" value="{$sponsorGroups['id']}">
-					<button id="update" module="sponsorgroups" sub-module="update" type="submit" class="btn btn-primary shadow" data-bs-dismiss="modal">Update</button>
+					<button id="update" module="sponsorgroups" sub-module="update" type="submit" class="btn btn-primary shadow">Update</button>
 					<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 				</div>
 				
@@ -320,10 +320,10 @@ $htmlbody = <<<HTML
 		
 		if(failure){
 			return false;
-		}		
-		
-		//$('.modal-backdrop').remove();
-		//$("body").removeClass('modal-open');
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('editSponsorGroup'));
+			modal.hide();
+		}
 		
 		$.ajax({
 			url: "ajax/getmodule.php",
