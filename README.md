@@ -30,7 +30,7 @@ Identity PSK Manager enables the following features/functionality:
 
 **What's New (April 2024)**
 - [SAML Authentication Support](#saml-authentication-support) (External SP Required)
-- Refreshed Dashboard
+- Refreshed Admin Portal Pages & Dashboard
 - Endpoint Page Filtering Enhancements (Admin and Sponsor Portal)
 - [Active Directory Netsted Group Support](#active-directory-nested-group-support)
 - LDAP Disable SSL Certificate Verification Option
