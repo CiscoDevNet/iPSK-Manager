@@ -42,7 +42,7 @@
 	}
 	
 	if(is_array($_SESSION['authorizedEPGroups'])){
-		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-select mt-2 mb-3 shadow">';
+		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-select mb-2 shadow">';
 				
 		for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++) {
 			if(!isset($trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']])){
@@ -86,7 +86,7 @@
 	}
 	
 	if(is_array($_SESSION['authorizedWirelessNetworks'])){
-		$pageData['wirelessSSIDList'] .= '<select name="wirelessSSID" class="form-select mt-2 mb-3 shadow">';
+		$pageData['wirelessSSIDList'] .= '<select name="wirelessSSID" class="form-select shadow">';
 	
 		for($count = 0; $count < $_SESSION['authorizedWirelessNetworks']['count']; $count++) {
 			if(!isset($trackSeenObjects[$_SESSION['authorizedWirelessNetworks'][$count]['wirelessSSIDId']])){
@@ -99,13 +99,15 @@
 	}
 	
 	if($_SESSION['portalAuthorization']['create'] == true){
-		$pageData['createButton'] = '<div class="col py-1"><button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button></div>';
+		$pageData['createButton'] = '<li class="nav-item"><a class="nav-item nav-link active" id="createAssoc" data-bs-toggle="tab" href="#" role="tab">Create Associations</a></li>';
+//		<div class="col py-1"><button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button></div>';
 	}else{
 		$pageData['createButton'] = '';
 	}
 	
 	if($_SESSION['portalAuthorization']['bulkcreate'] == true){
-		$pageData['bulkButton'] = '<div class="col py-1"><button id="bulkAssoc" class="btn btn-primary shadow" type="button">Bulk Associations</button></div>';
+		$pageData['bulkButton'] = '<li class="nav-item"><a class="nav-item nav-link" id="bulkAssoc" data-bs-toggle="tab" href="#" role="tab">Bulk Associations</a></li>';
+		//'<div class="col py-1"><button id="bulkAssoc" class="btn btn-primary shadow" type="button">Bulk Associations</button></div>';
 	}else{
 		$pageData['bulkButton'] = '';
 	}
@@ -118,8 +120,8 @@
 	print <<< HTML
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
+<head>
+	<meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
@@ -133,10 +135,135 @@
 
     <!-- Custom styles for this template -->
     <link href="styles/sponsor.css" rel="stylesheet">
-  </head>
-
-  <body>
+</head>
+<body>
 	<div class="container">
+		<div class="card mx-auto">
+			<div class="card-header bg-primary">
+				<div class="row">	
+					<div class="col">
+						<img src="images/ipsk-logo.gif" width="180" height="32" />
+					</div>
+					<div class="col-6">
+						<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">{$portalSettings['portalName']}</h4>
+						<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 border-bottom-0 fst-italic">Manage Identity Pre-Shared Keys ("iPSK") Associations</h6>
+					</div>
+					<div class="col text-end">
+						<a id="signOut" class="nav-link text-white" href="#">Sign out</a>		
+					</div>
+				</div>
+			</div>
+			<div class="card-header">
+				<ul class="nav nav-pills card-header-pills">
+					{$pageData['createButton']}
+					{$pageData['bulkButton']}
+        			<li class="nav-item">
+						<a class="nav-item nav-link" id="manageAssoc" data-bs-toggle="tab" href="#" role="tab">Manage Associations</a>
+					</li>
+        		</ul>
+			</div>
+			<div class="card-body">
+				<form id="associationform" action="create.php?portalId=$portalId" method="post">
+				<div class="container">
+					<div class="row row-cols-1 row-cols-md-2">
+					<!--<div class="card mx-auto w-100 h-100">
+						<div class="card-body">-->
+						
+							<div class="col">
+								<div class="card h-100">
+          							<div class="card-header bg-primary text-white">Access Details</div>
+          							<div class="card-body input-group-sm">
+									  
+										<label class="form-label" for="associationGroup">Access type:</label>	
+				  						{$pageData['endpointGroupList']}
+										<div class="container-fluid">
+											<div class="row">
+												<div class="col-md">
+													<p><small>Maximum access duration:&nbsp;<span id="duration" class="text-danger count">-</span></small></p>
+												</div>
+												<div class="col-md">
+													<p><small>Pre Shared Key Type:&nbsp;<span id="keyType" class="text-danger count">-</span></small></p>
+												</div>
+											</div>
+										</div>
+										<label class="form-label" for="wirelessSSID">Wireless SSID:</label>
+										{$pageData['wirelessSSIDList']}
+									</div>
+								</div>
+							</div>
+							<div class="col">
+								<div class="card h-100">
+          							<div class="card-header bg-primary text-white">Endpoint Details</div>
+									<div class="card-body">
+				  						
+										<div class="container">
+											<div class="row">
+												<div class="col-sm">
+													<div class="mb-3 input-group-sm">
+				
+														<label class="form-label" for="macAddress">Endpoint MAC Address:</label>
+														<input type="text" class="form-control shadow user-input form-validation" validation-state="required" validation-minimum-length="17" validation-maximum-length="17" value="" id="macAddress" name="macAddress" maxlength="17" placeholder="XX:XX:XX:XX:XX:XX">
+														<div class="invalid-feedback">Please enter a valid MAC Address</div>
+													</div>
+												</div>
+												<div class="col-sm">
+													<div class="mb-3 input-group-sm">
+														<label class="form-label" for="endpointDescription">Endpoint Description:</label>
+														<input type="text" class="form-control user-input shadow" value="" name="endpointDescription" placeholder="Device Description">
+													</div>
+												</div>
+											</div>
+										</div>
+										<div class="container">
+											<div class="row">
+												<div class="col-sm">
+													<div class="mb-3 input-group-sm">
+														<label class="form-label" for="fullName">Full Name:</label>
+														<input type="text" class="form-control user-input shadow form-validation" validation-state="required" value="{$sessionData['fullName']}" name="fullName" placeholder="John Smith">
+														<div class="invalid-feedback">Please enter your Full Name</div>
+													</div>
+												</div>
+												<div class="col-sm">
+													<div class="mb-3 input-group-sm">
+														<label class="form-label" for="emailAddress">Email address:</label>
+														<input type="email" class="form-control user-input shadow form-validation" validation-state="required" value="{$sessionData['emailAddress']}" name="emailAddress" placeholder="john@company.com">
+														<div class="invalid-feedback">Please enter a valid email address</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>	
+							</div>
+					</div>
+					<div class="row row-cols-1 row-cols-md-1 p-4">
+						<div class="text-center">
+							<button class="btn btn-primary shadow" id="submitbtn" type="button">Submit</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="card-footer text-center">
+			Copyright &copy; 2024 Cisco and/or its affiliates.
+		</div>
+		</div>
+	</div>
+
+
+
+			
+				
+
+
+
+
+
+
+
+
+
+
+<!--
 		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
 			<form id="associationform" action="create.php?portalId=$portalId" method="post">
 				<div class="mt-2 mb-4">
@@ -233,7 +360,7 @@
 			<p>Copyright &copy; 2024 Cisco and/or its affiliates.</p>
 		</div>
 		
-	</div>
+	</div>-->
 
   </body>
   <script type="text/javascript" src="scripts/jquery.min.js"></script>

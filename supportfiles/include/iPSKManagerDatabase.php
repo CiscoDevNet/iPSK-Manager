@@ -2050,11 +2050,12 @@
 			
 			$query = "INSERT INTO endpointAssociations (`endpointId`, `macAddress`, `epGroupID`, `createdBy`) VALUES('$endpointId','$macAddress','$epGroupID','$createdBy')";
 			
-			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult){
+			try {
+				$queryResult = $this->dbConnection->query($query);
 				return true;
-			}else{
+			}
+			catch (Exception $e) {
+				error_log("Caught Exception: $e");
 				return false;
 			}
 		}

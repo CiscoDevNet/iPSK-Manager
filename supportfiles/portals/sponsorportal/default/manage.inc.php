@@ -42,7 +42,7 @@
 	$endpointAssociationList = $ipskISEDB->getEndPointAssociationList($_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id'], $_SESSION['portalAuthorization']['viewall'], $_SESSION['portalAuthorization']['viewallDn']);
 
 	if($endpointAssociationList){
-		$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr id="endpoint-table-filter"><th scope="col" data-dt-order="disable"><div class="form-check"><input type="checkbox" class="form-check-input" base-value="1" value="0" id="allCheck"><label class="form-check-label" for="allCheck">MAC Address</label></div></th><th scope="col" data-dt-order="disable">Endpoint Group</th><th scope="col" data-dt-order="disable">Expiration Date</th><th scope="col" data-dt-order="disable">Full Name</th><th scope="col" data-dt-order="disable">Email</th><th scope="col" data-dt-order="disable">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr><tr id="endpoint-table-header"><th scope="col"><div class="form-check"><input type="checkbox" class="form-check-input" base-value="1" value="0" id="allCheck"><label class="form-check-label" for="allCheck">MAC Address</label></div></th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">Full Name</th><th scope="col">Email</th><th scope="col">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
+		$pageData['endpointAssociationList'] .= '<table id="endpoint-table" class="table table-hover"><thead><tr id="endpoint-table-filter"><th scope="col" data-dt-order="disable"><label class="form-check-label" for="allCheck">MAC Address</label></th><th scope="col" data-dt-order="disable">Endpoint Group</th><th scope="col" data-dt-order="disable">Expiration Date</th><th scope="col" data-dt-order="disable">Full Name</th><th scope="col" data-dt-order="disable">Email</th><th scope="col" data-dt-order="disable">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr><tr id="endpoint-table-header"><th scope="col"><div class="form-check"><input type="checkbox" class="form-check-input" onclick="event.stopPropagation()" base-value="1" value="0" id="allCheck"><label class="form-check-label" for="allCheck">MAC Address</label></div></th><th scope="col">Endpoint Group</th><th scope="col">Expiration Date</th><th scope="col">Full Name</th><th scope="col">Email</th><th scope="col">Description</th><th scope="col">View</th><th scope="col">Actions</th></tr></thead><tbody>';
 		for($idxId = 0; $idxId < $endpointAssociationList['count']; $idxId++) {
 			$viewEnabled = false;
 			
@@ -84,6 +84,7 @@
 				//Suspend Permission
 				if($endpointAssociationList[$idxId]['groupPermissions'] & 16){
 					$actionRowData .= '<a class="dropdown-item action-tableicons" module="suspend" row-id="'.$endpointAssociationList[$idxId]['id'].'" href="#">Suspend</a>';
+				
 				}
 				
 				//Activate Permission
@@ -144,19 +145,19 @@
 	$pageData['endpointAssociationList'] .= "</tbody></table>";
 		
 	if($_SESSION['portalAuthorization']['create'] == true){
-		$pageData['createButton'] = '<div class="col py-1"><button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button></div>';
+		$pageData['createButton'] = '<li class="nav-item"><a class="nav-item nav-link" id="createAssoc" data-bs-toggle="tab" href="#" role="tab">Create Associations</a></li>';
 	}else{
 		$pageData['createButton'] = '';
 	}
 	
 	if($_SESSION['portalAuthorization']['bulkcreate'] == true){
-		$pageData['bulkButton'] = '<div class="col py-1"><button id="bulkAssoc" class="btn btn-primary shadow" type="button">Bulk Associations</button></div>';
+		$pageData['bulkButton'] = '<li class="nav-item"><a class="nav-item nav-link" id="bulkAssoc" data-bs-toggle="tab" href="#" role="tab">Bulk Associations</a></li>';
 	}else{
 		$pageData['bulkButton'] = '';
 	}
 	
 	if($pageNotice){
-		$pageData['pageNotice'] = '<div class="row"><div class="col-1"></div><div class="col"><span class="h5 text-danger"><strong>Notice:</strong> You have exceeded your allotment of devices you are allowed to Provision</span></div><div class="col-1"></div></div>';
+		$pageData['pageNotice'] = '<div class="row"><div class="col-1"></div><div class="col fs-6 text-center text-danger">Notice: You have exceeded your allotment of devices you are allowed to provision</div><div class="col-1"></div></div>';
 	}else{
 		$pageData['pageNotice'] = "";
 	}
@@ -173,12 +174,15 @@
 	
 	<title>{$portalSettings['portalName']}</title>
     
+	<!-- Datatables core CSS -->
+	<link href="styles/datatables.min.css" rel="stylesheet">
 
     <!-- Bootstrap core CSS -->
     <link href="styles/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="styles/sponsor.css" rel="stylesheet">
+
   </head>
   <style>
 	button.buttons-colvis {
@@ -186,66 +190,67 @@
 	}
   </style>
   <body>
-	<div class="container">
-		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
-			{$pageData['pageNotice']}
-			<div class="mt-2 mb-4">
-				<img src="images/iPSK-Logo.svg" width="108" height="57" />
+  <div class="container">
+		<div class="card mx-auto">
+			<div class="card-header bg-primary">
+				<div class="row">	
+					<div class="col">
+						<img src="images/ipsk-logo.gif" width="180" height="32" />
+					</div>
+					<div class="col-6">
+						<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">{$portalSettings['portalName']}</h4>
+						<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 border-bottom-0 fst-italic">Manage Identity Pre-Shared Keys ("iPSK") Associations</h6>
+					</div>
+					<div class="col text-end">
+						<a id="signOut" class="nav-link text-white" href="#">Sign out</a>		
+					</div>
+				</div>
 			</div>
-			<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
-			<h2 class="h6 mt-2 mb-3 fw-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
-			<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
+			<div class="card-header">
+				<ul class="nav nav-pills card-header-pills">
+					{$pageData['createButton']}
+					{$pageData['bulkButton']}
+        			<li class="nav-item">
+						<a class="nav-item nav-link active" id="manageAssoc" data-bs-toggle="tab" href="#" role="tab">Manage Associations</a>
+					</li>
+        		</ul>
+			</div>
+			<div class="card-body">
+				<form id="associationform" action="create.php?portalId=$portalId" method="post">
 				<div class="container">
-					<div class="row">
-						{$pageData['createButton']}
-						{$pageData['bulkButton']}
-						<div class="col py-1">
-							<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
+					<div class="row row-cols-1 row-cols-md-1">
+						<div class="col">
+							<div class="card h-100">
+								<div class="card-header bg-primary text-white">Manage Endpoint Associations</div>
+								<div id="bulkOptions" class="card-header">			
+									<div class="btn-toolbar gap-3">
+										<button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="suspend" type="button" disabled>Suspend</button>
+										<button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="activate" type="button" disabled>Activate</button>
+										<button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="delete" type="delete" disabled>Delete</button>
+									</div>
+								</div>					
+								<div class="card-body input-group-sm">
+									<div class="overflow-auto row text-start">
+										<div class="col shadow mx-auto bg-white">
+										{$pageData['pageNotice']}
+											<div class="table-responsive">
+												{$pageData['endpointAssociationList']}
+											</div>	
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
-						<div class="col py-1">
-							<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
-						</div>
 					</div>
-				</div>
+				</div>	
 			</div>
-			<div class="row text-start">
-				<div class="col-sm"></div>
-				<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary text-center">
-					<h4 class="h4">Manage Endpoint Associations</h4>
-				</div>
-				<div class="col-sm"></div>
-			</div>
-			<div id="bulkOptions" class="row text-start d-none">
-				<div class="col-sm"></div>
-				<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary text-center">
-					<h5 class="h5 text-danger">Bulk Selected Options</h5>
-					<div class="row">
-						<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="suspend" type="button">Suspend</button></div>
-						<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="activate" type="button">Activate</button></div>
-						<div class="col"><button class="btn btn-primary shadow bulkaction-button" module="bulkupdate" sub-module="delete" type="delete">Delete</button></div>
-					</div>
-				</div>
-				<div class="col-sm"></div>
-			</div>
-			<div class="overflow-auto row text-start">
-				<div class="col-sm"></div>
-				<div class="col-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-					<div class="table-responsive">
-						{$pageData['endpointAssociationList']}
-					</div>
-					<div class="row">
-						<div class="col"><hr></div>
-					</div>
-				</div>
-				<div class="col-sm"></div>
+			<div class="card-footer text-center">
+			Copyright &copy; 2024 Cisco and/or its affiliates.
 			</div>
 		</div>
-		<div class="m-0 mx-auto p-2 bg-white text-center">
-			<p>Copyright &copy; 2024 Cisco and/or its affiliates.</p>
-		</div>
-	</div>
-  <div id="popupcontent"></div>
-  </body>
+	</div>	
+  	<div id="popupcontent"></div>
+  	</body>
   <!-- Javascript DataTables -->
   <script type="text/javascript" src="scripts/jquery.min.js"></script>
   <link href="styles/datatables.min.css" rel="stylesheet">
@@ -316,21 +321,25 @@
 		event.preventDefault();
 	});
 	
-	$("#allCheck").change(function(){
+	//$('.allCheck').on('click', function(e) {
+		
+	$("#allCheck").change(function(e){
 		if($(this).prop('checked')){
 			$(this).attr('value', $(this).attr('base-value'));
 			$(".endpointCheckBox").each(function () {
 				$(this).attr('value', $(this).attr('base-value'));
 				$(this).prop( "checked", true );
 			});
-			$("#bulkOptions").removeClass('d-none');
+			$(".bulkaction-button").removeAttr('disabled');
+		//	$("#bulkOptions").removeClass('d-none');
 		}else{
 			$(this).attr('value', '0');
 			$(".endpointCheckBox").each(function () {
 				$(this).attr('value', '0');
 				$(this).prop( "checked", false );
 			});
-			$("#bulkOptions").addClass('d-none');
+			$(".bulkaction-button").attr('disabled',true);
+			//$("#bulkOptions").addClass('d-none');
 		}
 	});
 
@@ -339,7 +348,8 @@
 
 		if($(this).prop('checked')){
 			$(this).attr('value', $(this).attr('base-value'));
-			$("#bulkOptions").removeClass('d-none');
+			$(".bulkaction-button").removeAttr('disabled');
+			//$("#bulkOptions").removeClass('d-none');
 		}else{
 			$(this).attr('value', '0');
 
@@ -352,9 +362,11 @@
 			});
 
 			if(stillChecked){
-				$("#bulkOptions").removeClass('d-none');
+				$(".bulkaction-button").removeAttr('disabled');
+				//$("#bulkOptions").removeClass('d-none');
 			}else{
-				$("#bulkOptions").addClass('d-none');
+				$(".bulkaction-button").attr('disabled',true);
+				//$("#bulkOptions").addClass('d-none');
 			}
 		}
 	});
@@ -406,18 +418,6 @@
 
 		$("#endpoint-table").DataTable({
 			"columnDefs": [
-        		{
-            		target: 3,
-            		visible: false,
-        		},
-        		{
-            		target: 4,
-            		visible: false
-        		},
-				{
-            		target: 5,
-            		visible: false
-        		},
 				{
             		target: 6,
             		orderable: false
@@ -442,30 +442,61 @@
       					$("input", $("#endpoint-table thead #endpoint-table-filter th")[i]).val(col_search_val);
     				}
   				}
-			}
+
+			},
 		});
 
 		var table = $("#endpoint-table").DataTable();
+
+		// Get State
+		if (table.state.loaded() != null) {
+			tableState = table.state();
+			
+			// Enable all columns
+			table.column(3).visible(true);
+			table.column(4).visible(true);
+			table.column(5).visible(true);
+		}
+
 		$("#endpoint-table thead #endpoint-table-filter input").on( 'keyup change', function () {
-        table
-            .column( $(this).parent().index()+':visible' )
+		table
+            .column( $(this).parent().parent().index()+':visible' )
             .search( this.value )
             .draw();
     	} );
-	} );
 
+		// Hide columns after keyup change event registered
+		if (table.state.loaded() == null) {
+			table.column(3).visible(false);
+			table.column(4).visible(false);
+			table.column(5).visible(false);
+		} else {
+			if (!tableState.columns[3].visible) {
+				table.column(3).visible(false)
+			}
+			if (!tableState.columns[4].visible) {
+				table.column(4).visible(false)
+			}
+			if (!tableState.columns[5].visible) {
+				table.column(5).visible(false)
+			}
+
+		}
+
+	} ); 
+/*
 	$(document).ready(function () {
 		// Clear Datatable Filters On Reload Or Page Change
     	$('.nav-link').click(function () {
 			var table = $('#endpoint-table').DataTable();
-			table.state.clear();
+			//table.state.clear();
     	});
 		$(window).on('beforeunload', function() {
 			var table = $('#endpoint-table').DataTable();
-			table.state.clear();
+			//table.state.clear();
     	});
     });
-	
+	*/
 
 	</script>
 </html>

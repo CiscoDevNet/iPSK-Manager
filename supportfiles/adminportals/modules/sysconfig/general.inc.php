@@ -92,7 +92,7 @@ HTML;
 					<div class="mb-3" id="samlDirectory">
 						<label class="form-label" for="samlLdapSourceDirectory">Select LDAP Server For SAML Authorization:</label>		
 						<select class="form-select form-select-sm shadow samltab w-50" id="samlLdapSourceDirectory">
-					HTML;
+HTML;
 					while($row = $ldapListing->fetch_assoc()){
 						if($row['id'] == $samlSettings['ldap-source-directory']){
 							print "<option value=\"".$row['id']."\" selected>".$row['adConnectionName']."</option>";
@@ -103,7 +103,7 @@ HTML;
 					print <<< HTML
 						</select>
 					</div>
-					HTML;	
+HTML;	
 				}
 print <<< HTML
 					

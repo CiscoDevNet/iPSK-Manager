@@ -363,10 +363,12 @@
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);
 
 		// Added sanitization method for strings due to deprecation of filter FILTER_SANITIZE_STRING
-		foreach ($mysanitizedInputs as $key => $value) {
-			if (in_array($key, $stringKeysToSanitize)) {
-				$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value), ENT_QUOTES, 'UTF-8');
-			} 
+		if (is_iterable($mysanitizedInputs)) {
+			foreach ($mysanitizedInputs as $key => $value) {
+				if (in_array($key, $stringKeysToSanitize)) {
+					$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value), ENT_QUOTES, 'UTF-8');
+				} 
+			}
 		}
 
 		return $mysanitizedInputs;
@@ -394,10 +396,12 @@
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);
 
-		foreach ($mysanitizedInputs as $key => $value) {
-			if (in_array($key, $stringKeysToSanitize)) {
-				$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value), ENT_QUOTES, 'UTF-8');
-			} 
+		if (is_iterable($mysanitizedInputs)) {
+			foreach ($mysanitizedInputs as $key => $value) {
+				if (in_array($key, $stringKeysToSanitize)) {
+					$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value), ENT_QUOTES, 'UTF-8');
+				} 
+			}
 		}
 
 		return $mysanitizedInputs;

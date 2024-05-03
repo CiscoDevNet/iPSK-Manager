@@ -40,7 +40,7 @@
 	}
 	
 	if(is_array($_SESSION['authorizedEPGroups'])){
-		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-select mt-2 mb-3 shadow">';
+		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-select mb-2 shadow">';
 				
 		for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++) {
 			if(!isset($trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']])){
@@ -75,7 +75,7 @@
 	}
 	
 	if(is_array($_SESSION['authorizedWirelessNetworks'])){
-		$pageData['wirelessSSIDList'] .= '<select name="wirelessSSID" class="form-select mt-2 mb-3 shadow">';
+		$pageData['wirelessSSIDList'] .= '<select name="wirelessSSID" class="form-select mb-3 shadow">';
 	
 		for($count = 0; $count < $_SESSION['authorizedWirelessNetworks']['count']; $count++) {
 			if(!isset($trackSeenObjects[$_SESSION['authorizedWirelessNetworks'][$count]['wirelessSSIDId']])){
@@ -88,13 +88,13 @@
 	}
 	
 	if($_SESSION['portalAuthorization']['create'] == true){
-		$pageData['createButton'] = '<div class="col py-1"><button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button></div>';
+		$pageData['createButton'] = '<li class="nav-item"><a class="nav-item nav-link" id="createAssoc" data-bs-toggle="tab" href="#" role="tab">Create Associations</a></li>';
 	}else{
 		$pageData['createButton'] = '';
 	}
 	
 	if($_SESSION['portalAuthorization']['bulkcreate'] == true){
-		$pageData['bulkButton'] = '<div class="col py-1"><button id="bulkAssoc" class="btn btn-primary shadow" type="button">Bulk Associations</button></div>';
+		$pageData['bulkButton'] = '<li class="nav-item"><a class="nav-item nav-link active" id="bulkAssoc" data-bs-toggle="tab" href="#" role="tab">Bulk Associations</a></li>';
 	}else{
 		$pageData['bulkButton'] = '';
 	}
@@ -131,208 +131,195 @@
   </head>
 
   <body>
-	<div class="container">
-		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
-			<div class="mt-2 mb-4">
-				<img src="images/iPSK-Logo.svg" width="108" height="57" />
-			</div>
-			<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
-			<h2 class="h6 mt-2 mb-3 fw-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
-			<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
-				<div class="container">
-					<div class="row">
-						{$pageData['createButton']}
-						{$pageData['bulkButton']}
-						<div class="col py-1">
-							<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
-						</div>
-						<div class="col py-1">
-							<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
-						</div>
+  <div class="container">
+  <form id="bulkAssociationform" action="bulkimport.php?portalId=$portalId" method="post">
+		<div class="card mx-auto">
+			<div class="card-header bg-primary">
+				<div class="row">	
+					<div class="col">
+						<img src="images/ipsk-logo.gif" width="180" height="32" />
+					</div>
+					<div class="col-6">
+						<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">{$portalSettings['portalName']}</h4>
+						<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 border-bottom-0 fst-italic">Manage Identity Pre-Shared Keys ("iPSK") Associations</h6>
+					</div>
+					<div class="col text-end">
+						<a id="signOut" class="nav-link text-white" href="#">Sign out</a>		
 					</div>
 				</div>
 			</div>
-			<form id="bulkAssociationform" action="bulkimport.php?portalId=$portalId" method="post">
-				<div class="container-fluid">
-					<div class="row text-start">
-						<div class="col-sm"></div>
-						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-							<h6>Association type:</h6>
-							{$pageData['endpointGroupList']}
-							<div class="container-fluid">
-								<div class="row">
-									<div class="col-md">
-										<p><small>Maximum access duration:&nbsp;<span id="duration" class="text-danger count">-</span></small></p>
-									</div>
-									<div class="col-md">
-										<p><small>Pre Shared Key Type:&nbsp;<span id="keyType" class="text-danger count">-</span></small></p>
-									</div>
-								</div>
-							</div>
-							<h6>Wireless SSID:</h6>
-							{$pageData['wirelessSSIDList']}
-						</div>
-						<div class="col-sm"></div>
-					</div>
-				</div>
-				<div class="container-fluid">
-					<div class="row text-start">
-						<div class="col-sm"></div>
-						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-							<h6>Bulk Import Type:</h6>
-							<div class="container-fluid">
-								<div class="row">
-									<div class="col-md">
-										<select name="bulkImportType" id="bulkImportType" class="form-select mt-2 mb-3 shadow"><option value="0">(Select an Import Option)</option>{$pageData['bulkOption']}</select>
-									</div>
-								</div>
-								<div id="sampleFileDownload" class="row d-none">
-									<div class="col-md">
-										CSV Format Sample File Download: <a href="/query.php?portalId=$portalId&samplefile=1">import_sample.csv</a>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="col-sm"></div>
-					</div>
-				</div>
-				<div class="container-fluid">
-					<div id="csvBulkImport" class="d-none row text-start">
-						<div class="col-sm"></div>
-						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-							<h6>Upload CSV File to Import:</h6>
-							<div class="row">
-								<div class="col">
-									<div class="mb-3">
-									  <label for="csvFile">Choose CSV File:</label>
-									  <input type="file" accept=".csv" class="form-control" name="csvFile" id="csvFile">
-									</div>
-									<input type="hidden" name="uploadkey" id="uploadkey" value="">
-								</div>
-							</div>
-							<div class="row mx-auto">
-								<div class="col-3"><button class="btn btn-primary shadow" id="uploadCsv" type="button" disabled>Upload</button></div>
-								<div class="col"><span id="uploadMessage" class="fw-bold text-success d-none"></span></div>
-							</div>
-							<div class="row mx-auto">
-								<div class="col text-primary fw-bold text-center">CSV File Upload Details</div>
-							</div>
-							<div class="row mx-auto">
-								<div class="col border border-secondary">
-									<p><small>
-										<span id="" class="h6 text-secondary">Total Entries in Upload:</span><span id="importCount" class="ps-2 h5 text-success count">-</span>
-									</small></p>
-								</div>
-								<div class="col border border-secondary">
-									<p><small>
-										<span id="" class="h6 text-secondary">Total Entries to be Imported:</span><span id="validCount" class="ps-2 h5 text-success count">-</span>
-									</small></p>
-								</div>
-							</div>
-							<div class="row mx-auto">
-								<div class="col border border-secondary">
-									<h6 class="fw-bold text-center">Total Invalid Entries</h6>
-									<div class="row">
-										<div class="col border border-secondary">
-											<p><small>
-												<span class="h6 text-secondary">Illegal Characters:</span><span id="invalidCharacters" class="ps-2 h5 text-danger count">-</span>
-											</small></p>
+			<div class="card-header">
+				<ul class="nav nav-pills card-header-pills">
+					{$pageData['createButton']}
+					{$pageData['bulkButton']}
+        			<li class="nav-item">
+						<a class="nav-item nav-link" id="manageAssoc" data-bs-toggle="tab" href="#" role="tab">Manage Associations</a>
+					</li>
+        		</ul>
+			</div>
+			<div class="card-body">
+					<div class="row row-cols-1 row-cols-md-2">	
+							<div class="col">
+								<div class="card h-100">
+          							<div class="card-header bg-primary text-white">Access Details</div>
+          							<div class="card-body input-group-sm">
+										<label class="form-label" for="associationGroup">Access type:</label>	
+				  						{$pageData['endpointGroupList']}
+										<div class="container-fluid">
+											<div class="row">
+												<div class="col-md">
+													<small>Maximum access duration:&nbsp;<span id="duration" class="text-danger count">-</span></small>
+												</div>
+												<div class="col-md mb-3">
+													<small>Pre Shared Key Type:&nbsp;<span id="keyType" class="text-danger count">-</span></small>
+												</div>
+											</div>
 										</div>
-										<div class="col border border-secondary">
-											<p><small>
-												<span class="h6 text-secondary">Entry Format:</span><span id="invalidItems" class="ps-2 h5 text-danger count">-</span>
-											</small></p>
+										<label class="form-label" for="wirelessSSID">Wireless SSID:</label>
+										{$pageData['wirelessSSIDList']}
+										<label class="form-label" for="bulkImportType">Bulk Import Type:</label>
+										<select name="bulkImportType" id="bulkImportType" class="form-select mb-3 shadow">
+											<option value="0">(Select an Import Option)</option>
+											{$pageData['bulkOption']}
+										</select>		
+										<div id="sampleFileDownload" class="row d-none">
+											<div class="col-md">
+												CSV Format Sample File Download: <a href="/query.php?portalId=$portalId&samplefile=1">import_sample.csv</a>
+											</div>
 										</div>
 									</div>
 								</div>
-								<div class="col border border-secondary">
-									<p><small>
-										<span class="h6 text-secondary">Total Filtered Entries:</span><span id="filteredItems" class="ps-2 h5 text-danger count">-</span>
-									</small></p>
-								</div>
 							</div>
-						</div>
-						<div class="col-sm"></div>
-					</div>
-				</div>
-				<div class="container-fluid">
-					<div id="iseBulkImport" class="d-none row text-start">
-						<div class="col-sm"></div>
-						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-							<h6>Select the Endpoint Identity Group you would like to import:</h6>
-							<div class="row">
-								<div class="col">
-									<div class="mb-3">
-										<select name="groupUuid" id="iseEPGroups" class="form-select mt-2 mb-3 shadow"></select>
+							<div class="col">
+								<div id="csvBulkImport" class="d-none card h-100">
+          							<div class="card-header bg-primary text-white">CSV Import Data</div>
+									<div class="card-body">	
+										<div class="row">
+											<label class="form-label" for="csvFile">Choose CSV File:</label>
+											<div class="mb-3 input-group-sm">
+									  			<input type="file" accept=".csv" class="form-control user-input shadow" name="csvFile" id="csvFile">
+											</div>
+											<input type="hidden" name="uploadkey" id="uploadkey" value="">
+										</div>
+										<div class="row">
+											<div class="col d-flex justify-content-center">
+												<button class="btn mb-3 btn-primary shadow" id="uploadCsv" type="button" disabled>Upload</button>
+											</div>
+										</div>
+										<div class="row mb-3">
+											<div class="text-center">CSV File Upload Details: <span id="uploadMessage" class="text-success d-none"></span></div>
+										</div>
+										<div class="row">
+											<div class="col">
+												Total Entries in Upload: <span id="importCount" class="text-success count">-</span>
+											</div>
+											<div class="col">
+												Total Entries to be Imported: <span id="validCount" class="text-success count">-</span>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col">
+												Entries With Illegal Characters: <span id="invalidCharacters" class="text-danger count">-</span>
+											</div>
+											<div class="col">
+												Total Filtered Entries: <span id="filteredItems" class="text-danger count">-</span>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col">
+												Entries With Invalid Format: <span id="invalidItems" class="text-danger count">-</span>
+											</div>
+										</div>
+										<div class="row">
+											<div class="mb-3 text-center">
+												<button class="btn btn-primary shadow" id="submitbtn" type="button">Import</button>
+											</div>
+										</div>
 									</div>
 								</div>
-							</div>
-							<div class="container-fluid">
-								<div class="row">
-									<div class="col-md pe-0">
-										<p><small>
-											Description:&nbsp;<span id="iseepgDescription" class="text-danger count">-</span>
-										</small></p>
+								<div id="iseBulkImport" class="d-none card h-100">
+									<div class="card-header bg-primary text-white">ISE Endpoint Group Import</div>
+									<div class="card-body input-group-sm">	
+										<label class="form-label" for="groupUuid">Select the Endpoint Identity Group you would like to import:</label>
+										<select name="groupUuid" id="iseEPGroups" class="form-select mb-2 shadow"></select>
+										<div class="row">
+											<div class="col">
+												<div class="row">
+													<small>Description:&nbsp;<span id="iseepgDescription" class="text-danger count">-</span></small>
+												</div>
+												<div class="row mb-3">
+													<small>Endpoint Count:&nbsp;<span id="iseepgCount" class="text-danger count">-</span></small>
+												</div>
+											</div>
+											<div class="col d-flex align-items-center">
+												<button class="btn btn-sm btn-primary shadow" id="getCount" type="button">Get Count</button>
+											</div>
+										</div>
+										<div class="row mt-3 associationrow">
+											<div class="col-sm">
+												<div class="mb-3 input-group-sm">
+													<label class="form-label" for="endpointDescription">Endpoint Description:</label>
+													<input type="text" class="form-control shadow user-input" value="" name="endpointDescription" id="endpointDescription" placeholder="Device Description">
+												</div>
+											</div>								
+											<div class="row associationrow">
+												<div class="col-sm">
+													<div class="mb-3 input-group-sm">
+														<label class="form-label" for="fullName">Full Name:</label>
+														<input type="text" class="form-control user-input shadow form-validation" validation-state="required" value="" name="fullName" id="fullName" placeholder="John Smith">
+														<div class="invalid-feedback">Please enter your Full Name</div>
+													</div>
+												</div>
+												<div class="col-sm">
+													<div class="mb-3 input-group-sm">
+														<label class="form-label" for="emailAddress">Email address</label>
+														<input type="email" class="form-control user-input shadow form-validation" validation-state="required" value="{$sessionData['emailAddress']}" name="emailAddress" placeholder="john@company.com">
+														<div class="invalid-feedback">Please enter a valid email address</div>
+													</div>
+												</div>
+											</div>
+											<div class="row associationrow">
+												<div class="mb-3 text-center">
+													<button class="btn btn-primary shadow" id="iseSubmitbtn" type="button">Import</button>
+												</div>
+											</div>
+										</div>
 									</div>
-									<div class="col-md-4 ps-0">
-										<p><small>
-											Endpoint Count:&nbsp;<span id="iseepgCount" class="text-danger count">-</span>
-										</small></p>
-									</div>
-									<div class="col-md-2 ps-0">
-										<button class="btn btn-secondary shadow" id="getCount" type="button">Get Count</button>
-									</div>
-								</div>
+								</div>	
 							</div>
-						</div>
-						<div class="col-sm"></div>
-					</div>
-				</div>
-				<div class="container-fluid">
-					<div id="associationDetails" class="d-none row text-start">
-						<div class="col-sm"></div>
-						<div class="col-10 col-sm-10 mt-2 shadow mx-auto p-2 bg-white border border-primary">
-							<h6>Association Details:</h6>	
-							<div class="row associationrow">
-								<div class="col">
-									<div class="mb-3">
-										<label for="endpointDescription">Endpoint Description</label>
-										<input type="text" class="form-control mt-2 mb-3 user-input shadow" value="" name="endpointDescription" id="endpointDescription" placeholder="Device Description">
-									</div>
-								</div>
-							</div>
-							<div class="row associationrow">
-								<div class="col">
-									<div class="mb-3">
-										<label for="fullName">Full Name</label>
-										<input type="text" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="" name="fullName" id="fullName" placeholder="John Smith">
-										<div class="invalid-feedback">Please enter your Full Name</div>
-									</div>
-								</div>
-							</div>
-							<div class="row associationrow"> 
-								<div class="col">
-									<div class="mb-3">
-										<label for="emailAddress">Email address</label>
-										<input type="email" class="form-control mt-2 mb-3 user-input shadow form-validation" validation-state="required" value="{$sessionData['emailAddress']}" name="emailAddress" placeholder="john@company.com">
-										<div class="invalid-feedback">Please enter a valid email address</div>
-									</div> 
-								</div>
-							</div>
-							<div class="mb-3 text-center">
-								<button class="btn btn-primary shadow" id="submitbtn" type="button">Import</button>
-							</div>
-						</div>
-						<div class="col-sm"></div>
-					</div>
-				</div>
-			</form>
+					</div>	
+			</div>
+			<div class="card-footer text-center">
+			Copyright &copy; 2024 Cisco and/or its affiliates.
+			</div>
 		</div>
-		<div class="m-0 mx-auto p-2 bg-white text-center">
-			<p>Copyright &copy; 2024 Cisco and/or its affiliates.</p>
-		</div>
-		
-	</div>
+	</form>
+	</div>	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+										
+
+
+
+
+
+
+
+
+	
 
   </body>
   <script type="text/javascript" src="scripts/jquery.min.js"></script>
@@ -342,6 +329,22 @@
 	var failure;
 	
 	$("#submitbtn").click(function() {
+		event.preventDefault();
+		$(this).attr("disabled", true);
+		
+		if($("#uploadkey").val() == ""){
+			failure = formFieldValidation();
+		
+			if(failure){
+				$(this).removeAttr('disabled');
+				return false;
+			}
+		}
+		
+		$("#bulkAssociationform").submit();
+	});
+
+	$("#iseSubmitbtn").click(function() {
 		event.preventDefault();
 		$(this).attr("disabled", true);
 		
@@ -403,7 +406,6 @@
 		
 		var form = $('#bulkAssociationform')[0];
 		var data = new FormData(form);
-		
 		$.ajax({
 			url: "/fileupload.php?portalId=$portalId",
 			
