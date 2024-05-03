@@ -107,14 +107,14 @@
 						 *sendEmail($sanitizedInput['emailAddress'],"iPSK Wi-Fi Credentials","You have been successfully setup to connect to the Wi-Fi Network, please use the following Passcode:".$randomPassword."\n\nThank you!",$smtpSettings);
 						 */
 					}
-					$pageData['createComplete'] .= "<h3>The Endpoint Association has successfully completed.</h3><h6>The uniquely generated Pre-Shared Key for the end point is:</h6>";
+					$pageData['createComplete'] .= "<div class=\"text-success fs-5\">The Endpoint Association has successfully completed.</div><div class=\"mb-3\">The uniquely generated Pre-Shared Key for the end point is:</div>";
 				}else{
 					//LOG::Entry
 					$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
 					$logMessage = "REQUEST:FAILURE[unable_to_create_endpoint_association];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					
-					$pageData['createComplete'] .= "<h3>The Endpoint Association has failed, please contact a support technician for assistance.</h3><h5 class=\"text-danger\">(Error message: Unable to create endpoint association)</h5>";
+					$pageData['createComplete'] .= "<div class=\"text-danger fs-5\">Endpoint Association failed: Unable to create association.</div><div class=\"mb-3\">Check for duplicate enpoints or data input error.</div>";
 					$randomPassword = "";
 					$pageData['hidePskFlag'] = " d-none";
 				}
@@ -124,7 +124,7 @@
 				$logMessage = "REQUEST:FAILURE[unable_to_create_endpoint];ACTION:SPONSORCREATE;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				$pageData['createComplete'] .= "<h3>The Endpoint Association has failed, please contact a support technician for assistance.</h3><h5 class=\"text-danger\">(Error message: Unable to create endpoint)</h5>";
+				$pageData['createComplete'] .= "<div class=\"text-danger fs-5\">Endpoint Association failed: Unable to create endpoint.</div><div class=\"mb-3\">Please contact a support technician for assistance.</div>";
 				$randomPassword = "";
 				$pageData['hidePskFlag'] = " d-none";
 			}
@@ -132,13 +132,13 @@
 	}
 	
 	if($_SESSION['portalAuthorization']['create'] == true){
-		$pageData['createButton'] = '<button id="createAssoc" class="btn btn-primary shadow" type="button">Create Associations</button>';
+		$pageData['createButton'] = '<li class="nav-item"><a class="nav-item nav-link active" id="createAssoc" data-bs-toggle="tab" href="#" role="tab">Create Associations</a></li>';
 	}else{
 		$pageData['createButton'] = '';
 	}
 	
 	if($_SESSION['portalAuthorization']['bulkcreate'] == true){
-		$pageData['bulkButton'] = '<button id="bulkAssoc" class="btn btn-primary shadow" type="button">Bulk Associations</button>';
+		$pageData['bulkButton'] = '<li class="nav-item"><a class="nav-item nav-link" id="bulkAssoc" data-bs-toggle="tab" href="#" role="tab">Bulk Associations</a></li>';
 	}else{
 		$pageData['bulkButton'] = '';
 	}
@@ -162,68 +162,59 @@
   </head>
 
   <body>
-	<div class="container">
-		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
-				<div class="mt-2 mb-4">
-					<img src="images/iPSK-Logo.svg" width="108" height="57" />
-				</div>
-				<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
-				<h2 class="h6 mt-2 mb-3 fw-normal">Manage Identity Pre-Shared Keys ("iPSK") Associations</h2>
-				<div class="mb-3 mx-auto shadow p-2 bg-white border border-primary">
-					<div class="row">
-						<div class="col-3">				
-						{$pageData['createButton']}
-						</div>
-						<div class="col-3">				
-						{$pageData['bulkButton']}
-						</div>
-						<div class="col-3">				
-							<button id="manageAssoc" class="btn btn-primary shadow" type="button">Manage Associations</button>
-						</div>
-						<div class="col-3">				
-							<button id="signOut" class="btn btn-primary shadow" type="button">Sign Out</button>
-						</div>
+  <div class="container">
+		<div class="card mx-auto">
+			<div class="card-header bg-primary">
+				<div class="row">	
+					<div class="col">
+						<img src="images/ipsk-logo.gif" width="180" height="32" />
+					</div>
+					<div class="col-6">
+						<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">{$portalSettings['portalName']}</h4>
+						<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 border-bottom-0 fst-italic">Manage Identity Pre-Shared Keys ("iPSK") Associations</h6>
+					</div>
+					<div class="col text-end">
+						<a id="signOut" class="nav-link text-white" href="#">Sign out</a>		
 					</div>
 				</div>
-				
-				<div class="row text-start">
-					<div class="col-2"></div>
-					<div class="col-8 mb-3 mx-auto shadow p-2 bg-white border border-primary">
-						<div class="row m-auto text-start">
-							{$pageData['createComplete']}
-						</div>
-						<div class="row">
-							<div class="col{$pageData['hidePskFlag']}">
-								<div class="input-group input-group-sm mb-3 shadow copied-popover" data-bs-animation="true" data-bs-container="body" data-bs-trigger="manual" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Pre Shared Key has been Copied!">
-									<div class="input-group-prepend">
-										<span class="input-group-text fw-bold shadow" id="basic-addon1">Pre-Shared Key</span>
-									</div>
-									<input type="text" id="presharedKey" class="form-control shadow" process-value="$randomPassword" value="$randomPassword" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true" readonly>
-									<div class="input-group-append">
-										<span class="input-group-text fw-bold shadow" id="basic-addon1"><a id="copyPassword" href="#" data-clipboard-target="#presharedKey"><span id="passwordfeather" data-feather="copy"></span></a></span>
-									</div>
+			</div>
+			<div class="card-header">
+				<ul class="nav nav-pills card-header-pills">
+					{$pageData['createButton']}
+					{$pageData['bulkButton']}
+        			<li class="nav-item">
+						<a class="nav-item nav-link" id="manageAssoc" data-bs-toggle="tab" href="#" role="tab">Manage Associations</a>
+					</li>
+        		</ul>
+			</div>
+			<div class="card-body">
+				<div class="card w-50 mx-auto h-100">
+          			<div class="card-header bg-primary text-white">Create Status</div>  
+          			<div class="card-body input-group-sm">
+						{$pageData['createComplete']}
+						<div class="{$pageData['hidePskFlag']}">
+							<div class="input-group mb-3 shadow copied-popover" data-bs-animation="true" data-bs-container="body" data-bs-trigger="manual" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="Pre Shared Key has been copied!">
+								<div class="input-group-prepend">
+									<span class="input-group-text fw-bold shadow" id="basic-addon1">Pre-Shared Key</span>
 								</div>
-								Click on the copy button to copy the Pre Shared Key to your Clipboard.
-							</div>
+								<input type="text" id="presharedKey" class="form-control shadow" process-value="$randomPassword" value="$randomPassword" aria-label="password" aria-describedby="basic-addon1" data-lpignore="true" readonly>
+								<div class="input-group-append">
+									<span class="input-group-text fw-bold shadow" id="basic-addon1"><a id="copyPassword" href="#" data-clipboard-target="#presharedKey"><span id="passwordfeather" data-feather="copy"></span></a></span>
+								</div>
+							</div>		
+							Click on the copy button to copy the Pre Shared Key to your Clipboard.
 						</div>
-						<div class="row">
-							<div class="col text-center">
-								<button id="newAssoc" class="btn btn-primary shadow" type="button">Create New</button>
-							</div>
+						<div class="mt-3 text-center">
+							<button id="newAssoc" class="btn btn-primary shadow" type="button">Create Another</button>
 						</div>
-					</div>
-					<div class="col-2"></div>
-				</div>
-
-			<form action="login.php" method="post" class="form-signin">
-			</form>
+					</div>				
+				</div>	
+			</div>
+			<div class="card-footer text-center">
+			Copyright &copy; 2024 Cisco and/or its affiliates.
+			</div>
 		</div>
-		<div class="m-0 mx-auto p-2 bg-white text-center">
-			<p>Copyright &copy; 2024 Cisco and/or its affiliates.</p>
-		</div>
-		
-	</div>
-
+	</div>	
   </body>
   <script type="text/javascript" src="scripts/jquery.min.js"></script>
   <script type="text/javascript" src="scripts/feather.min.js"></script>

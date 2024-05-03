@@ -174,18 +174,6 @@
 		
 		$("#endpoint-table").DataTable({
 			"columnDefs": [
-        		{
-            		target: 3,
-            		visible: false,
-        		},
-        		{
-            		target: 4,
-            		visible: false
-        		},
-				{
-            		target: 5,
-            		visible: false
-        		},
 				{
             		target: 6,
             		orderable: false
@@ -217,12 +205,41 @@
 		});
 
 		var table = $("#endpoint-table").DataTable();
+
+		// Get State
+		if (table.state.loaded() != null) {
+			tableState = table.state();
+			
+			// Enable all columns
+			table.column(3).visible(true);
+			table.column(4).visible(true);
+			table.column(5).visible(true);
+		}
+
 		$("#endpoint-table thead #endpoint-table-filter input").on( 'keyup change', function () {
         table
-            .column( $(this).parent().index()+':visible' )
+            .column( $(this).parent().parent().index()+':visible' )
             .search( this.value )
             .draw();
-    } );
+    	} );
+
+		// Hide columns after keyup change event registered
+		if (table.state.loaded() == null) {
+			table.column(3).visible(false);
+			table.column(4).visible(false);
+			table.column(5).visible(false);
+		} else {
+			if (!tableState.columns[3].visible) {
+				table.column(3).visible(false)
+			}
+			if (!tableState.columns[4].visible) {
+				table.column(4).visible(false)
+			}
+			if (!tableState.columns[5].visible) {
+				table.column(5).visible(false)
+			}
+
+		}
 
 
 	} );

@@ -40,7 +40,7 @@ Identity PSK Manager enables the following features/functionality:
 
 **Cisco Products:**
 
-- Cisco ISE v2.4 (or greater)
+- Cisco ISE v2.4+
 
 **Tools & Frameworks:**
 
@@ -62,11 +62,11 @@ The Documentation and Guides available from these tools, contained the details n
 
 ## Prerequisites
 
-- Cisco ISE v2.4 (or greater)
+- Cisco ISE v2.4+ (Tested with ISE 3.3)
 - Apache Web Server
-- PHP 7.2 or greater
+- PHP 8.0+ (Tested with PHP 8.3)
   - Required Modules: **mbstring, ldap, mysqli, mysqlnd, curl, simplexml, xml, sodium, and json**
-- MySQL or MariaDB
+- MySQL or MariaDB (Tested with MySQL 8.1)
 
 ## Installation
 
