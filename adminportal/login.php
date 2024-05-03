@@ -76,7 +76,7 @@
 
 	if ($samlLogin == true && $samlSettings['ldap-source'] == true) {
 		$sanitizedInput['authDirectory'] = $samlSettings['ldap-source-directory'];
-	} else {
+	} elseif ($samlLogin == true) {
 		$sanitizedInput['authDirectory'] = 0;
 	}
 	
