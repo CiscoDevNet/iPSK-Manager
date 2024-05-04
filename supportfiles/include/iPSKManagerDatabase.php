@@ -501,6 +501,8 @@
 		
 		function authenticateInternalUser($username,$password,$saml = false){
 			
+			$passwordVerify = false;
+			
 			$authQuery = sprintf("SELECT password FROM `internalUsers` WHERE userName = '%s' LIMIT 1", $this->dbConnection->real_escape_string($username));
 			
 			$authQueryResult = $this->dbConnection->query($authQuery);
@@ -549,6 +551,9 @@
 						$_SESSION['authenticationTimestamp'] = time();
 						$_SESSION['logonTime'] = time();
 						$_SESSION['loggedIn'] = true;
+						if(isset($_SESSION['logoutTimer'])) {
+							unset($_SESSION['logoutTimer']);
+						}
 						
 						return true;
 					}else{
@@ -2055,7 +2060,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2069,7 +2074,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2083,7 +2088,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2097,7 +2102,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2121,7 +2126,7 @@
 				return $insertId;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2181,7 +2186,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2202,7 +2207,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2227,7 +2232,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2252,7 +2257,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2266,7 +2271,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2280,7 +2285,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2340,7 +2345,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2354,7 +2359,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2368,7 +2373,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2382,7 +2387,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2396,7 +2401,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2410,7 +2415,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2424,7 +2429,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2438,7 +2443,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2452,7 +2457,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2466,7 +2471,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2480,7 +2485,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2494,7 +2499,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2508,7 +2513,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2531,7 +2536,7 @@
 					return true;
 				}
 				catch (Exception $e) {
-					error_log("Caught Exception: $e");
+					//error_log("Caught Exception: $e");
 					return false;
 				}
 			}else{
@@ -2557,7 +2562,7 @@
 					return true;
 				}
 				catch (Exception $e) {
-					error_log("Caught Exception: $e");
+					//error_log("Caught Exception: $e");
 					return false;
 				}
 			}else{
@@ -2578,7 +2583,7 @@
 					return true;
 				}
 				catch (Exception $e) {
-					error_log("Caught Exception: $e");
+					//error_log("Caught Exception: $e");
 					return false;
 				}
 			}else{
@@ -2606,7 +2611,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2626,7 +2631,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2651,7 +2656,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2665,7 +2670,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2679,7 +2684,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2693,7 +2698,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2722,7 +2727,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2751,7 +2756,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2776,7 +2781,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2790,7 +2795,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2804,7 +2809,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2828,7 +2833,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2847,7 +2852,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2861,7 +2866,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2875,7 +2880,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2889,7 +2894,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2903,7 +2908,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2917,7 +2922,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -2931,7 +2936,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 		}
@@ -3044,7 +3049,7 @@
 				return true;
 			}
 			catch (Exception $e) {
-				error_log("Caught Exception: $e");
+				//error_log("Caught Exception: $e");
 				return false;
 			}
 			

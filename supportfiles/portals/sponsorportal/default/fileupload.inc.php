@@ -34,8 +34,7 @@
 	if($sanitizedInput['uploadkey'] != ""){
 		unset($_SESSION['bulk-import'][$sanitizedInput['uploadkey']]);
 	}
-	//echo $_FILES['csvFile']." Umm";
-	//die();
+	
 	//Check File Extension for a CSV File
 	if(strtolower(substr($_FILES['csvFile']['name'],strlen($_FILES['csvFile']['name']) - 4, 4)) == ".csv"){
 		//Import file data from the uploaded file

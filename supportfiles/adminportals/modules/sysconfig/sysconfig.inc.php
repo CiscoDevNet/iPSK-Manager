@@ -266,6 +266,10 @@
 		$logSettingsTab = '';
 	}
 
+	if(!isset($smtpSettings['enabled'])) {
+		$smtpSettings['enabled'] = false;
+	}
+
 ?>
 <div class="card">
 	<h4 class="text-center card-header bg-primary text-white">Platform Configuration</h4>

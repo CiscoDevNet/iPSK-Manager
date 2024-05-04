@@ -54,6 +54,7 @@
 	if(!ipskLoginSessionCheck()){
 		session_destroy();
 		header("Location: /");
+		die();
 	}
 	
 	//CHECK FOR INSTALLATION FILES

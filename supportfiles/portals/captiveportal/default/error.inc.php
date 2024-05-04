@@ -32,6 +32,7 @@
 		$_SESSION = null;
 		session_destroy();
 		header("Location: /index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}");
+		die();
 	}	
 	
 	$errorId  = (isset($_GET['errorId'])) ? $_GET['errorId'] : '';
@@ -41,7 +42,7 @@
  	if($id == 1){
 		//LOG::Entry
 		$logData = $ipskISEDB->generateLogData();
-		$logMessage = "REQUEST:FAILURE{E1}[exceeded_device_count];ACTION:CAPTIVEPORTAL;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";SID:".$_SESSION['logonSID'].";";
+		$logMessage = "REQUEST:FAILURE{E1}[exceeded_device_count];ACTION:CAPTIVEPORTAL;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";AUTHDIRECTORY:".$_SESSION['portalSettings']['authenticationDirectory'].";SID:".$_SESSION['logonSID'].";";
 		$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 		
 		$pageData['errorMessage'] = "You have exceeded the amount of devices you're allowed to provision.  Please contact the system administrator.";
@@ -49,7 +50,7 @@
 	}elseif($id == 2){
 		//LOG::Entry
 		$logData = $ipskISEDB->generateLogData();
-		$logMessage = "REQUEST:FAILURE{E2}[no_create_priv];ACTION:CAPTIVEPORTAL;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";SID:".$_SESSION['logonSID'].";";
+		$logMessage = "REQUEST:FAILURE{E2}[no_create_priv];ACTION:CAPTIVEPORTAL;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";AUTHDIRECTORY:".$_SESSION['portalSettings']['authenticationDirectory'].";SID:".$_SESSION['logonSID'].";";
 		$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 		
 		$pageData['errorMessage'] = "You do not have access to provision any devices at this time. Please contact the system administrator.";
@@ -57,7 +58,7 @@
 	}elseif($id == 3){
 		//LOG::Entry
 		$logData = $ipskISEDB->generateLogData();
-		$logMessage = "REQUEST:FAILURE{E3}[unable_to_id_device];ACTION:CAPTIVEPORTAL;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";SID:".$_SESSION['logonSID'].";";
+		$logMessage = "REQUEST:FAILURE{E3}[unable_to_id_device];ACTION:CAPTIVEPORTAL;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";AUTHDIRECTORY:".$_SESSION['portalSettings']['authenticationDirectory'].";SID:".$_SESSION['logonSID'].";";
 		$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 		
 		$pageData['errorMessage'] = "The system was unable to identify your device, please try again or contact the system administrator.";
@@ -65,7 +66,7 @@
 	}else{
 		//LOG::Entry
 		$logData = $ipskISEDB->generateLogData();
-		$logMessage = "REQUEST:FAILURE{E4}[internal_server_error];ACTION:CAPTIVEPORTAL;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";SID:".$_SESSION['logonSID'].";";
+		$logMessage = "REQUEST:FAILURE{E4}[internal_server_error];ACTION:CAPTIVEPORTAL;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";AUTHDIRECTORY:".$_SESSION['portalSettings']['authenticationDirectory'].";SID:".$_SESSION['logonSID'].";";
 		$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 		
 		$pageData['errorMessage'] = "An internal system error has occured.";

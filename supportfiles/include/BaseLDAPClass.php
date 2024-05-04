@@ -221,6 +221,9 @@
 						$_SESSION['authenticationTimestamp'] = time();
 						$_SESSION['logonTime'] = time();
 						$_SESSION['loggedIn'] = true;
+						if(isset($_SESSION['logoutTimer'])) {
+							unset($_SESSION['logoutTimer']);
+						}
 						
 						return true;
 					}else{

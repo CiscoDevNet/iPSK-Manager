@@ -74,6 +74,7 @@
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
 				$matchedGroupCount = 0;
+				$authZSuccess = false;
 				
 				if($authorizedGroups['count'] > 0){
 					$groupCount = 0;
@@ -119,8 +120,8 @@
 						}
 						
 						//LOG::Entry
-						$logData = $ipskISEDB->generateLogData(Array("authorizedGroups"=>$authorizedGroups), Array("ldapCreds"=>$ldapCreds), Array("sanitizedInput"=>$sanitizedInput));
-						$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";SID:".$_SESSION['logonSID'].";";
+						$logData = $ipskISEDB->generateLogData(Array("authorizedGroups"=>$authorizedGroups), Array("sanitizedInput"=>$sanitizedInput));
+						$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:Internal;SID:".$_SESSION['logonSID'].";";
 						$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						
 						if($_SESSION['portalAuthorization']['create'] == false){
@@ -147,7 +148,7 @@
 				}	
 			}else{
 				//LOG::Entry
-				$logData = $ipskISEDB->generateLogData(Array("authorizationGroups"=>$_SESSION['authorizationGroups']));
+				$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
 				$logMessage = "REQUEST:FAILURE{3}[user_authn_failure];ACTION:SPONSORAUTHN;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USER:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
