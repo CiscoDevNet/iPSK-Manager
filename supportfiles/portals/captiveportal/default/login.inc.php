@@ -79,6 +79,7 @@
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
 				$matchedGroupCount = 0;
+				$authZSuccess = false;
 				
 				if($authorizedGroups['count'] > 0){
 					$groupCount = 0;
@@ -183,6 +184,7 @@
 					$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"],$inputPassword,$samlLogin,$ldapSettings['nested-groups']);
 					
 					$matchedGroupCount = 0;
+					$authZSuccess = false;
 					
 					if($validUser){
 						//LOG::Entry

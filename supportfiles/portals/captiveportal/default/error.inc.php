@@ -75,7 +75,7 @@
 
 	$homeUrl = "/index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}";
 
-	print <<< HTML
+?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -85,7 +85,7 @@
     <meta name="author" content="">
     <link rel="icon" href="images/favicon.png">
 	
-	<title>{$portalSettings['portalName']}</title>
+	<title><?php echo $portalSettings['portalName']?></title>
     
 
     <!-- Bootstrap core CSS -->
@@ -94,28 +94,21 @@
     <!-- Custom styles for this template -->
     <link href="styles/sponsor.css" rel="stylesheet">
   </head>
+  <body class="text-center">
+	<div class="card mx-auto error-page">
+		<div class="card-header bg-primary mb-4">
+  			<img src="images/ipsk-logo.gif" width="180" height="32" />
+		</div>
+		<div class="card-body">
+			<h1 class="h4 mt-0 mb-4 fw-normal"><?php echo $portalSettings['portalName'];?></h1>
+			<div class="alert alert-danger shadow mb-5 h6" role="alert"><?php echo $pageData['errorMessage']?></div>
+			
+			<a class="btn btn-primary shadow mb-3" href="<?php echo $homeUrl?>" type="button">Login Page</a>
 
-  <body>
-	<div class="container">
-		<div class="float-rounded mx-auto shadow-lg p-2 bg-white text-center">
-			<div class="mt-2 mb-4">
-				<img src="images/iPSK-Logo.svg" width="108" height="57" />
-			</div>
-			<h1 class="h3 mt-2 mb-4 fw-normal">{$portalSettings['portalName']}</h1>
-			<div class="alert alert-danger shadow" role="alert"><h6>{$pageData['errorMessage']}</h6></div>
-			<a class="btn btn-primary shadow" href="$homeUrl" type="button">Login Page</a>
 		</div>
-		<div class="m-0 mx-auto p-2 bg-white text-center">
-			<p>Copyright &copy; 2024 Cisco and/or its affiliates.</p>
+		<div class="card-footer bg-light">
+			Copyright &copy; 2024 Cisco and/or its affiliates.
 		</div>
-		
 	</div>
-
   </body>
-  
 </html>
-
-
-HTML;
-
-?>

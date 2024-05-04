@@ -30,6 +30,7 @@ Identity PSK Manager enables the following features/functionality:
 
 **What's New (May 2024)**
 - Refreshed Sponsor Portal Pages
+- Refreshed Captive Portal Pages
 
 **What's New (April 2024)**
 - [SAML Authentication Support](#saml-authentication-support) (External SP Required)

@@ -173,6 +173,7 @@
 					$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"], $inputPassword, $samlLogin, $ldapSettings['nested-groups']);
 					
 					$matchedGroupCount = 0;
+					$authZSuccess = false;
 					
 					if($validUser){
 						//LOG::Entry
