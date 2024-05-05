@@ -46,7 +46,7 @@
   <body class="text-center">
     <div class="card mx-auto shadow-lg bg-primary">
       <div class="card-body">
-				  <img class="mt-2 mb-4" src="images/ipsk-logo.gif" width="180" height="32" />
+				  <img class="mt-2 mb-4" src="404/ipsk-logo.gif" width="180" height="32" />
 			    <div class="col">
 				    <div class="alert alert-light shadow" role="alert"><h2 class="h2 mt-2 mb-3 fw-bold">Error 404</h2><br>The requested page was not found.</div>
 			    </div>
