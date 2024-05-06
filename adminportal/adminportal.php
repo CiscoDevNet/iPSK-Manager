@@ -68,9 +68,9 @@
 	
 	if($installerFilesPresent){
 		$persistantAlert = <<< HTML
-		<div style="z-index: 1090; height: 56px; width: 100%; pointer-events: none;" id="notifiationBar" class="fixed-top position-sticky row">
+		<div style="z-index: 1090; height: 56px; width: 100%; pointer-events: none;" id="notifiationBar" class="fixed-top row">
 			<div class="col"></div>
-			<div style="pointer-events: auto;" id="notifiationWindow" class="position-sticky shadow-lg text-center alert alert-danger col-4">
+			<div style="pointer-events: auto;" id="notifiationWindow" class="shadow-lg text-center alert alert-danger col-4">
 			<h6><strong>ALERT:  Installation Files are still installed.</strong></h6></div>
 			<div class="col"></div>
 		</div>
@@ -138,7 +138,7 @@ HTML;
 		</li>
 	  </ul>
 	</nav>
-	<div class="container-fluid">
+	<div class="container-fluid mt-5">
 		<div class="row">
 			<nav id="sidebarNav" class="col-md-2 d-none d-md-block bg-light sidebar p-2">
 				<div class="sidebar-sticky">
