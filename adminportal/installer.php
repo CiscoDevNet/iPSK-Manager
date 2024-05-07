@@ -657,7 +657,7 @@ HTML;
 			}
 		}
 	}elseif ($upgrade) {
-		if(!copy("/opt/ipsk-manager/config.php","../supportfiles/include/config.php")) {
+		if(copy("/opt/ipsk-manager/config.php","../supportfiles/include/config.php")) {
 			unlink("installer.inc.php");
 			unlink("installer.php");
 			header("Location: /");
