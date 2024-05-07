@@ -31,6 +31,7 @@ Identity PSK Manager enables the following features/functionality:
 **What's New (May 2024)**
 - Refreshed Sponsor Portal Pages
 - Refreshed Captive Portal Pages
+- [Automated Update Process](#keeping-ipsk-manager-up-to-date)
 
 **What's New (April 2024)**
 - [SAML Authentication Support](#saml-authentication-support) (External SP Required)
@@ -359,12 +360,17 @@ mysql> DROP USER 'install'@'%';
 ```
 
 ## Appendix
-## (Experimental) Keeping iPSK Manager up to date
-When there is an update to the Git repository, local iPSK Manager deployment can be updated without reinstallation
+## Keeping iPSK Manager up to date
+#### The automated process documented in this section only applies with versions of iPSK Manager that are installed on your system that have this section in the README.
+When there is an update to the Git repository, local iPSK Manager deployment can be updated without reinstallation.  We recomend you periodically update your iPSK Manager deployment so you get all the latest features and fixes.  You can choose to automate the update process by creating a cron job.
 
-1. Make sure to make backups of the install directory and the database, and also the config.php file should be backed up
+To use this upgrade method you need to copy the config.php file from the supportfiles/include directory to someplace outside the iPSK Manager source code.  Automatic restoration of the config.php file will take place after upgrades if the config.php file is placed in the /opt/ipsk-manager directory on your host running iPSK Manager.
+
+1. You should have regular backups of the database, installation directory, and config.php file to restore from if there is a upgrade failure. 
+2. Copy the config.php file to /opt/ipsk-manager, you will need to create this directory.  You only need to copy this file once and if you make changes to it.
 ```
-admin@ubuntu:~$ sudo cp /var/www/iPSK-Manager/supportfiles/include/config.php /some/backup/directory/
+admin@ubuntu:~$ sudo mkdir /opt/ipsk-manager
+admin@ubuntu:~$ sudo cp /var/www/iPSK-Manager/supportfiles/include/config.php /opt/ipsk-manager
 ```
 2. Go to iPSK Manager install directory
 ```
@@ -374,6 +380,7 @@ admin@ubuntu:~$ cd /var/www/iPSK-Manager
 ```
 admin@ubuntu:~$ sudo git pull
 ```
+4. After the repository is pulled open a web browser to the URL of the Admin Portal of iPSK Manager.  The installer script will detect your config.php in the backup directory (/opt/ipsk-manager) and automatically copy it, remove the installation files, and redirect you to the login screen.  At this point your iPSK Manager installation has been updated.
 
 ## (Experimental) GUI Logging
 Logging via GUI can be enabled by editing the **'additionalmenus.json'** file in **/var/www/iPSK-Manager/supportfiles/adminportals/modules/** directory. Change the "menuEnabled" flag at the end to 1 (default is 0) as shown below and refresh admin GUI and you will see 'System Logging' option visible just below 'About' settings. Note that logging view currently lacks few features to make it useable beyond basic troubleshooting.
@@ -488,13 +495,7 @@ admin@ubuntu:~$ sudo apt-get install libapache2-mod-shib
 
 Configure the Shibboleth SP to your environment based on Shibboleth documentation. The user attribute should only contain the username for iPSK-Manager to work properly with SAML authentication.
 
-After configuring Shibboleth SP add the following lines to .htaccess files in iPSK-Manager/adminportal and iPSK-Manager/portals.  Then enable SAML in Platform Configuration and iPSK-Manager will use the authenticated SAML username as the login user.
-
-```
-AuthType shibboleth
-ShibRequestSetting requireSession 1
-Require valid-user
-```
+The necessary lines of configuration are already present in .htacess files within the iPSK Manager file structure for using the Shibboleth Apache plugin module.  Once the module is enabled in Apache the configuration will become active.  You will still need to enable SAML from within the iPSK Manager Platform Configuration settings an also do any necessary steps to the Apache configuration that are required for SP operation. 
 
 ## Active Directory Nested Group Support
 

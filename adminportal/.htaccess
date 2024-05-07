@@ -6,6 +6,12 @@ ErrorDocument 404 /404.php
 
 DirectoryIndex index.php
 
+<IfModule mod_shib.c>
+  AuthType shibboleth
+  ShibRequestSetting requireSession 1
+  Require valid-user
+</IfModule>
+
 RedirectMatch 404 ^/ajax/?$
 RedirectMatch 404 ^/scripts/?$
 RedirectMatch 404 ^/images/?$
