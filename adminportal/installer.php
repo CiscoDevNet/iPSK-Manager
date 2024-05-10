@@ -40,7 +40,7 @@
 	}
 	
 	$license = <<< TEXT
-	Copyright 2023 Cisco Systems, Inc. or its affiliates
+	Copyright 2024 Cisco Systems, Inc. or its affiliates
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -61,6 +61,8 @@ TEXT;
 	$dbCreateFlag = false;
 	$managerUserCreateFlag = false;
 	$iseUserCreateFlag = false;
+	$upgrade = false;
+	$inContainer = false;
 	
 	//Length of DB User Password
 	$passwordLength = 20;
@@ -95,7 +97,15 @@ TEXT;
 		$key = random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
 		return base64_encode($key);
 	}
+
+	if(is_file("/opt/ipsk-manager/config.php")) {
+		$upgrade = true;
+	}
 	
+	if(is_file("/.dockerenv")) {
+		$inContainer = true;
+	}
+
 	//Main Installer Code
 	if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['step'])){
 		if($_POST['step'] == 1){
@@ -537,6 +547,9 @@ HTML;
 				$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Successfully Created config.php</div>";
 				$_SESSION['installSuccess'] = true;
 				$_SESSION['installDetails'] = $installDetails;
+				if($inContainer) {
+					copy("../supportfiles/include/config.php","/opt/ipsk-manager/config.php");
+				}
 			}
 			
 			Bail:
@@ -642,6 +655,19 @@ HTML;
 				
 				exit(0);
 			}
+		}
+	}elseif ($upgrade) {
+		if(copy("/opt/ipsk-manager/config.php","../supportfiles/include/config.php")) {
+			unlink("installer.inc.php");
+			unlink("installer.php");
+			header("Location: /");
+			exit(0);
+
+		} else {
+			session_destroy();
+			http_response_code(500);
+			header("Location: ./500.php");
+			exit(0);
 		}
 	}else{
 		$_SESSION['identityPSKInstalling'] = true;

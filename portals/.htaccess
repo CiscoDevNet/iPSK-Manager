@@ -3,6 +3,12 @@ Options +FollowSymLinks
 
 DirectoryIndex index.php
 
+<IfModule mod_shib.c>
+  AuthType shibboleth
+  ShibRequestSetting requireSession 1
+  Require valid-user
+</IfModule>
+
 <IfModule mod_rewrite.c>
 
   RewriteEngine On

@@ -86,7 +86,7 @@ $(document).ready(function() {
 	});
 	
 	if($("#databaseUpdateDetected").length){
-		$("#databaseUpdateDetected").modal({keyboard: false,backdrop: 'static',show: true});
+		$("#databaseUpdateDetected").modal('show');
 	}
 });	
 

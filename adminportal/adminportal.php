@@ -94,7 +94,7 @@ HTML;
 						</button>
 					</div>
 					<div class="modal-body">
-						<p class="h5" style="text-decoration: underline;">Database Schema Update Required:</p><br /><p class="h6">Updates to Stored Procedures:<br /><br />Please review Database Change Log @ </p><p><a href="https://github.com/CiscoSE/iPSK-Manager/blob/master/DB_CHANGELOG.md">(GitHub) /CiscoSE/iPSK-Manager/blob/master/DB_CHANGELOG.md</a></p>
+						<p class="h5" style="text-decoration: underline;">Database Schema Update Required:</p><br /><p class="h6">Updates to Stored Procedures:<br /><br />Please review Database Change Log @ </p><p><a href="https://github.com/CiscoDevNet/iPSK-Manager/blob/master/DB_CHANGELOG.md">(GitHub) /CiscoDevNet/iPSK-Manager/blob/master/DB_CHANGELOG.md</a></p>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Ok</button>
