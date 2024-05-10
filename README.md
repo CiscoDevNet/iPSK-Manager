@@ -32,6 +32,8 @@ Identity PSK Manager enables the following features/functionality:
 - Refreshed Sponsor Portal Pages
 - Refreshed Captive Portal Pages
 - [Automated Update Process](#keeping-ipsk-manager-up-to-date)
+- Support for running iPSK Manager in a Docker Container 
+  - Full container build file and documentation found in external repository [iPSK-Manager-Docker](https://github.com/PubSec-Security-DevNet/iPSK-Manager-Docker)
 
 **What's New (April 2024)**
 - [SAML Authentication Support](#saml-authentication-support) (External SP Required)
