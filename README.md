@@ -14,6 +14,8 @@ In addition, both the 'Sponsor' & 'Captive' Portals can be customized.  You can 
 
 The ODBC Connection provides the core functionality between IPSK Manager and Cisco ISE, while the API's are for other minor functionality such as performing Change of Authorizations ("CoA") and creation of Authorization Profiles for IPSK Captive Portals.
 
+<center><img src="docimages/dashboard.png" width="900"></center>
+
 ## Features
 
 Identity PSK Manager enables the following features/functionality:
@@ -75,7 +77,7 @@ The Documentation and Guides available from these tools, contained the details n
   - Required Modules: **mbstring, ldap, mysqli, mysqlnd, curl, simplexml, xml, sodium, and json**
 - MySQL or MariaDB (Tested with MySQL 8.1)
 
-## Installation
+## iPSK Manager Installation
 
 #### Ubuntu 22.04.x LTS
 
@@ -360,6 +362,9 @@ mysql> REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'install'@'%';
 mysql> FLUSH PRIVILEGES;
 mysql> DROP USER 'install'@'%';
 ```
+To configure ISE and WLC for iPSK Manager Click Links Below:
+
+[[ISE Configuration](ISE.md)] [[WLC Configuration](WLC.md)] 
 
 ## Appendix
 ## Keeping iPSK Manager up to date
