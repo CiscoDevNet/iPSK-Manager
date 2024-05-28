@@ -925,7 +925,30 @@
 			}else{
 				return false;
 			}
-		}		
+		}
+		
+		function getPxGridDirectEndpoints(){
+			$query = "SELECT endpoints.id, endpoints.macAddress, 
+						CASE endpoints.accountEnabled
+							WHEN 0 THEN 'False'
+							WHEN 1 THEN 'True'
+						ELSE endpoints.accountEnabled
+						END AS accountEnabled, endpoints.accountExpired, endpoints.fullName, endpoints.description, endpoints.createdDate, FROM_UNIXTIME(endpoints.expirationDate) AS expirationDate, endpoints.pskValue, REPLACE(endpoints.pskValue, 'psk=', '') AS pskValuePlain, endpointGroups.groupName, endpointGroups.description AS groupDescription, endpoints.lastUpdated
+						FROM endpoints JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId 
+						JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id;";
+
+			$queryResult = $this->dbConnection->query($query);
+			
+			if($queryResult){
+				if($queryResult->num_rows > 0){
+					return $queryResult;
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}
 		
 		function getEndpointGroups(){
 			$query = "SELECT `id`,`groupName`,`description`, `enabled`, `authzTemplateId`, `visible`, `notificationPermission`, `createdBy`, `createdDate` FROM `endpointGroups` WHERE visible=1";
