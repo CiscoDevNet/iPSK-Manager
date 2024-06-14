@@ -35,6 +35,19 @@
 		$ldapServer['createdBy'] = $ipskISEDB->getUserPrincipalNameFromCache($ldapServer['createdBy']);
 
 		$ldapServer['createdDate'] = date($globalDateOutputFormat, strtotime($ldapServer['createdDate']));
+
+		if(isset($ldapServer['directoryType'])){
+			if($ldapServer['directoryType'] == '0'){
+				$ldapServer['directoryType-ad'] = " selected";
+			}else{
+				$ldapServer['directoryType-ad'] = "";
+			}
+			if($ldapServer['directoryType'] == '1'){
+				$ldapServer['directoryType-openldap'] = " selected";
+			}else{
+				$ldapServer['directoryType-openldap'] = "";
+			}
+		}
 	
 $htmlbody = <<<HTML
 <!-- Modal -->
@@ -72,6 +85,13 @@ $htmlbody = <<<HTML
 		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="adBaseDN" value="{$ldapServer['adBaseDN']}" readonly>
 		</div>
+		<label class="fw-bold" for="directoryType">Directory Type:</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<select class="form-select form-select-sm shadow" id="directoryType" disabled>
+				<option value="0"{$ldapServer['directoryType-ad']}>Active Directory</option>
+				<option value="1"{$ldapServer['directoryType-openldap']}>OpenLDAP</option>
+			</select>
+		</div>		
 		<label class="fw-bold" for="adUsername">Username:</label>
 		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="adUsername" value="{$ldapServer['adUsername']}" readonly>

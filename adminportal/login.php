@@ -110,6 +110,10 @@
 								$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 								
 								$ipskISEDB->addUserCacheEntry($_SESSION['logonSID'],$_SESSION['userPrincipalName'],$_SESSION['sAMAccountName'],$_SESSION['logonDN'], $systemSID);
+								$adminSettings = $ipskISEDB->getGlobalClassSetting("admin-portal");
+								if($adminSettings['log-purge-interval'] != '') {
+									$ipskISEDB->purgeLogs($adminSettings['log-purge-interval']);
+								}
 								header("Location: /adminportal.php");
 								die();
 							}
@@ -145,7 +149,7 @@
 					$ldapSettings = $ipskISEDB->getGlobalClassSetting("ldap-settings");
 
 					if($ldapCreds){
-						$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ipskISEDB);
+						$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ldapCreds['directoryType'], $ipskISEDB);
 						//START-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
 						unset($ldapCreds['adPassword']);
 						//END-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
@@ -174,6 +178,10 @@
 											$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 											
 											$ipskISEDB->addUserCacheEntry($_SESSION['logonSID'],$_SESSION['userPrincipalName'],$_SESSION['sAMAccountName'],$_SESSION['logonDN'], $systemSID);
+											$adminSettings = $ipskISEDB->getGlobalClassSetting("admin-portal");
+											if($adminSettings['log-purge-interval'] != '') {
+												$ipskISEDB->purgeLogs($adminSettings['log-purge-interval']);
+											}
 											header("Location: /adminportal.php");
 											die();
 										}

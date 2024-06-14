@@ -60,6 +60,13 @@ $htmlbody = <<<HTML
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adBaseDN" value="">
 			<div class="invalid-feedback">Please enter a valid search base</div>
 		</div>
+		<label class="fw-bold" for="directoryType">Directory Type:</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<select class="form-select form-select-sm shadow" id="directoryType">
+				<option value="0" selected>Active Directory</option>
+				<option value="1">OpenLDAP</option>
+			</select>
+		</div>
 		<label class="fw-bold" for="adUsername">Username:</label>
 		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adUsername" value="">
@@ -67,8 +74,8 @@ $htmlbody = <<<HTML
 		</div>
 		<label class="fw-bold" for="password">Password:</label>
 		<div class="mb-3 input-group-sm fw-bold">
-			<input type="password" validation-state="required" class="form-control shadow form-validation my-password-field" id="password" value="">
-			<div class="invalid-feedback">Please enter a password</div>
+			<input type="password" validation-state="required" class="form-control shadow form-validation my-password-field" validation-minimum-length="6" id="password" value="">
+			<div class="invalid-feedback">Please enter a password that is at least 6 characters long.</div>
 		</div>
 		<label class="fw-bold" for="confirmpassword">Confirm Password:</label>
 		<div class="mb-3 input-group-sm fw-bold">
@@ -114,7 +121,8 @@ $htmlbody = <<<HTML
 				adUsername: $("#adUsername").val(),
 				adSecure: $("#adSecure").val(),
 				password: $("#password").val(),
-				confirmpassword: $("#confirmpassword").val()
+				confirmpassword: $("#confirmpassword").val(),
+				directoryType: $("#directoryType").val()
 			},
 			type: "POST",
 			dataType: "html",

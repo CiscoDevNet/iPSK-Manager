@@ -133,7 +133,9 @@
 			'adminPortalHostname',
 			'smtpHost',
 			'smtpUsername',
+			'smtpPassword',
 			'smtpFromAddress',
+			'smtpEncryption',
 			'samlUsernameVariable',	
 		];
 
@@ -266,9 +268,11 @@
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'adSecure'	=>	FILTER_VALIDATE_INT,
+			'directoryType' =>	FILTER_VALIDATE_INT,
 			'associationGroup'	=>	FILTER_VALIDATE_INT,
 			'editAssociation'	=>	FILTER_VALIDATE_INT,
 			'editPSK'	=>	FILTER_VALIDATE_INT,
+			'logPurgeInterval'	=>	FILTER_VALIDATE_INT,
 			'presharedKey'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
@@ -296,6 +300,9 @@
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'ersPassword'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  ),
+			'smtpPassword'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'ersEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
@@ -328,6 +335,9 @@
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'smtpFromAddress'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  ),
+			'smtpEncryption'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'smtpEnabled'	=>	FILTER_VALIDATE_BOOLEAN,

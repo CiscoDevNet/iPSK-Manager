@@ -4,3 +4,4 @@ patches.json
 supportfiles/include/config.php
 
 Dockerfile
+.DS_Store

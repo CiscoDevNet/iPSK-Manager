@@ -39,8 +39,9 @@
 		private $ldapsecure = true;
 		private $iPSKManagerClass;
 		private $sslDisableVerify;
+		private $directoryType;
 		
-		function __construct($ldapServer = null, $domainName = null, $username = null, $password = null, $baseDN = null, $ldaps = true, $sslCheck = false, $ipskManagerClass = false) {		
+		function __construct($ldapServer = null, $domainName = null, $username = null, $password = null, $baseDN = null, $ldaps = true, $sslCheck = false, $directoryType = 0, $ipskManagerClass = false) {		
 			$this->ldapHost = $ldapServer;
 			$this->ldapDomain = $domainName;
 			$this->ldapUsername = $username;
@@ -49,6 +50,7 @@
 			$this->ldapsecure = $ldaps;
 			$this->iPSKManagerClass = $ipskManagerClass;
 			$this->sslDisableVerify = $sslCheck;
+			$this->directoryType = $directoryType;
 		}
 		
 		function set_ldapHost($hostname) {
@@ -101,6 +103,14 @@
 
 		function get_sslCheck() {
 			return $this->sslDisableVerify;
+		}
+
+		function get_directoryType() {
+			return $this->directoryType;
+		}
+
+		function set_directoryType($directoryType) {
+			$this->directoryType = $directoryType;
 		}
 		
 		function testLdapServer(){
@@ -169,17 +179,30 @@
 			$ldapBind = @ldap_bind($ldapConnection, $this->ldapUsername, $this->ldapPassword);
 
 			if($ldapBind){
+
+				if($this->directoryType == 0) {
+					if(strpos($username,"@")){
+						$filter = '(userPrincipalName='.$username.')';
+					}elseif(strpos($username,"\\")){
+						$username = substr($username,strpos($username,"\\") + 1);
+						$filter = '(sAMAccountName='.$username.')';
+					}else{
+						$filter = '(sAMAccountName='.$username.')';
+					}
 				
-				if(strpos($username,"@")){
-					$filter = '(userPrincipalName='.$username.')';
-				}elseif(strpos($username,"\\")){
-					$username = substr($username,strpos($username,"\\") + 1);
-					$filter = '(sAMAccountName='.$username.')';
-				}else{
-					$filter = '(sAMAccountName='.$username.')';
+					$attributes = array("name", "mail", "samaccountname", "objectSid", "memberof", "userPrincipalName");
 				}
+
+				if($this->directoryType == 1) {
+					if(strpos($username,"@")){
+						$filter = '(mail='.$username.')';
+					}else{
+						$filter = '(uid='.$username.')';
+					}
 				
-				$attributes = array("name", "mail", "samaccountname", "objectSid", "memberof", "userPrincipalName");
+					$attributes = array("sn", "givenName", "mail", "cn", "memberof", "uid");
+				}
+
 				$result = ldap_search($ldapConnection, $this->ldapBaseDN, $filter, $attributes);
 
 				$entries = ldap_get_entries($ldapConnection, $result);  
@@ -201,30 +224,54 @@
 							$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						}
 
-						if ($nestedGroup) {
+						if ($nestedGroup && $this->directoryType == 0) {
 							$memberOfGroups = $this->getGroupsForMember($ldapConnection, $userDN);
 							$memberOfGroups['count'] = count($memberOfGroups);
 							$_SESSION['memberOf'] = $memberOfGroups;
 						} else {
 							$_SESSION['memberOf'] = $entries[0]['memberof'];
 						}
-	
-						$_SESSION['sAMAccountName'] = $entries[0]['samaccountname'][0];
-						$_SESSION['userPrincipalName'] = $entries[0]['userprincipalname'][0];
-						$_SESSION['fullName'] = (isset($entries[0]['name'][0])) ? $entries[0]['name'][0] : '';
-						$_SESSION['emailAddress'] = (isset($entries[0]['mail'][0])) ? $entries[0]['mail'][0] : '';
-						$_SESSION['logonUsername'] = $username;
-						$_SESSION['logonSID'] = convertBinSID($entries[0]['objectsid'][0]);
-						$_SESSION['logonDN'] = $userDN;
-						$_SESSION['logonDomain'] = $this->ldapDomain;
-						$_SESSION['authenticationGranted'] = true;
-						$_SESSION['authenticationTimestamp'] = time();
-						$_SESSION['logonTime'] = time();
-						$_SESSION['loggedIn'] = true;
-						if(isset($_SESSION['logoutTimer'])) {
-							unset($_SESSION['logoutTimer']);
-						}
 						
+						if($this->directoryType == 0) {
+							$_SESSION['sAMAccountName'] = $entries[0]['samaccountname'][0];
+							$_SESSION['userPrincipalName'] = $entries[0]['userprincipalname'][0];
+							$_SESSION['fullName'] = (isset($entries[0]['name'][0])) ? $entries[0]['name'][0] : '';
+							$_SESSION['emailAddress'] = (isset($entries[0]['mail'][0])) ? $entries[0]['mail'][0] : '';
+							$_SESSION['logonUsername'] = $username;
+							$_SESSION['logonSID'] = convertBinSID($entries[0]['objectsid'][0]);
+							$_SESSION['logonDN'] = $userDN;
+							$_SESSION['logonDomain'] = $this->ldapDomain;
+							$_SESSION['authenticationGranted'] = true;
+							$_SESSION['authenticationTimestamp'] = time();
+							$_SESSION['logonTime'] = time();
+							$_SESSION['loggedIn'] = true;
+							if(isset($_SESSION['logoutTimer'])) {
+								unset($_SESSION['logoutTimer']);
+							}
+						}
+
+						if($this->directoryType == 1) {
+							$_SESSION['sAMAccountName'] = $entries[0]['uid'][0];
+							if($entries[0]['mail'][0] != ''){
+								$_SESSION['userPrincipalName'] = $entries[0]['mail'][0];
+							}else{
+								$_SESSION['userPrincipalName'] = $username.'@'.$this->ldapDomain;
+							}
+							$_SESSION['fullName'] = (isset($entries[0]['givenName'][0]) && isset($entries[0]['sn'][0])) ? $entries[0]['givenName'][0]." ".$entries[0]['sn'][0] : '';
+							$_SESSION['emailAddress'] = (isset($entries[0]['mail'][0])) ? $entries[0]['mail'][0] : '';
+							$_SESSION['logonUsername'] = $username;
+							$_SESSION['logonSID'] = $entries[0]['uid'][0]."-".$this->ldapDomain;
+							$_SESSION['logonDN'] = $userDN;
+							$_SESSION['logonDomain'] = $this->ldapDomain;
+							$_SESSION['authenticationGranted'] = true;
+							$_SESSION['authenticationTimestamp'] = time();
+							$_SESSION['logonTime'] = time();
+							$_SESSION['loggedIn'] = true;
+							if(isset($_SESSION['logoutTimer'])) {
+								unset($_SESSION['logoutTimer']);
+							}
+						}
+
 						return true;
 					}else{
 						if($this->iPSKManagerClass){

@@ -100,12 +100,19 @@
 					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					
 					if($ipskISEDB->emailEndpointGroup($sanitizedInput['associationGroup'])){
-						sendHTMLEmail($sanitizedInput['emailAddress'], $portalSettings['portalName'], $randomPassword, $wifiSsid, $sanitizedInput['macAddress'], $endpointGroupAuthorization['groupName'], $sanitizedInput['endpointDescription'], $sanitizedInput['fullName'], $_SESSION['fullName'], $smtpSettings);
-						/*
-						 *Second Method to Send Email.  (Plain Text)
-						 *
-						 *sendEmail($sanitizedInput['emailAddress'],"iPSK Wi-Fi Credentials","You have been successfully setup to connect to the Wi-Fi Network, please use the following Passcode:".$randomPassword."\n\nThank you!",$smtpSettings);
-						 */
+						if($smtpSettings['enabled'] == 1) {
+							// Send email through SMTP server
+							sendSMTPEmail($sanitizedInput['emailAddress'], $portalSettings['portalName'], $randomPassword, $wifiSsid, $sanitizedInput['macAddress'], $endpointGroupAuthorization['groupName'], $sanitizedInput['endpointDescription'], $sanitizedInput['fullName'], $_SESSION['fullName'], $smtpSettings, $ipskISEDB);
+						}
+						else {
+							// Send email through system mail process
+							sendHTMLEmail($sanitizedInput['emailAddress'], $portalSettings['portalName'], $randomPassword, $wifiSsid, $sanitizedInput['macAddress'], $endpointGroupAuthorization['groupName'], $sanitizedInput['endpointDescription'], $sanitizedInput['fullName'], $_SESSION['fullName'], $smtpSettings, $ipskISEDB);
+							/*
+						 	*Second Method to Send Email.  (Plain Text)
+						 	*
+						 	*sendEmail($sanitizedInput['emailAddress'],"iPSK Wi-Fi Credentials","You have been successfully setup to connect to the Wi-Fi Network, please use the following Passcode:".$randomPassword."\n\nThank you!",$smtpSettings);
+						 	*/
+						}
 					}
 					$pageData['createComplete'] .= "<div class=\"text-success fs-5\">The Endpoint Association has successfully completed.</div><div class=\"mb-3\">The uniquely generated Pre-Shared Key for the end point is:</div>";
 				}else{

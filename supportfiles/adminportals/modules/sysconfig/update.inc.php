@@ -22,6 +22,7 @@
 		$ipskISEDB->setGlobalSetting("admin-portal","admin-portal-hostname", $sanitizedInput['adminPortalHostname']);
 		$ipskISEDB->setGlobalSetting("admin-portal","admin-portal-strict-hostname", $sanitizedInput['strict-hostname']);
 		$ipskISEDB->setGlobalSetting("admin-portal","redirect-on-hostname-match", $sanitizedInput['redirect-hostname']);
+		$ipskISEDB->setGlobalSetting("admin-portal","log-purge-interval", $sanitizedInput['logPurgeInterval']);
 		
 		print true;
 	}elseif($sanitizedInput['module-action'] == "ldap"){
@@ -71,6 +72,7 @@
 		$ipskISEDB->setGlobalSetting("smtp-settings","smtp-port", $sanitizedInput['smtpPort']);
 		$ipskISEDB->setGlobalSetting("smtp-settings","smtp-username", $sanitizedInput['smtpUsername']);
 		$ipskISEDB->setGlobalSetting("smtp-settings","smtp-fromaddress", $sanitizedInput['smtpFromAddress']);
+		$ipskISEDB->setGlobalSetting("smtp-settings","smtp-encryption", $sanitizedInput['smtpEncryption']);
 		
 		print true;
 	}elseif($sanitizedInput['module-action'] == "smtppass"){	

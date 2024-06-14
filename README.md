@@ -30,6 +30,12 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Portal Groups
 - Customizable Sponsor & Captive Portals
 
+**What's New (June 2024)**
+- iPSK Manager MySQL Log Table Purge on Admin Portal Login
+- SMTP Server Support
+- [OpenLDAP Support (Experimental)](#openldap-support-experimental)
+- Database Schema Update (v4)
+
 **What's New (May 2024)**
 - Refreshed Sponsor Portal Pages
 - Refreshed Captive Portal Pages
@@ -59,6 +65,7 @@ Identity PSK Manager enables the following features/functionality:
 - Chart JS v4.4.2
 - ClipBoard Copy v2.0.11
 - DataTables v2.0.5
+- PHPMailer v6.9.1
 
 **We would like to thank all the authors & contributers on the previously mentioned Tools & Frameworks!**
 
@@ -367,6 +374,58 @@ To configure ISE and WLC for iPSK Manager Click Links Below:
 [[ISE Configuration](ISE.md)] [[WLC Configuration](WLC.md)] 
 
 ## Appendix
+## OpenLDAP Support (Experimental)
+
+***The experimental status is due to the limited testing conducted with an OpenLDAP server. If you plan to use OpenLDAP support, ensure thorough testing within your environment before deploying it in a production setting.***
+
+iPSK Manager now includes the ability to use OpenLDAP as an LDAP directory. However, this feature **requires** the memberof overlay to be enabled on your OpenLDAP server. If the memberof overlay is not already enabled, you will need to activate it. After enabling it, you must either add the memberof attribute to all your users or remove and re-add users to groups to ensure the memberof attribute auto-populates.
+
+### Enabling MemberOf Overlay in OpenLDAP
+
+To enable the `memberof` overlay in OpenLDAP, follow these steps:
+
+1. **Access Your OpenLDAP Server**: Open a terminal and connect to your OpenLDAP server.
+
+2. **Create an LDIF File for the MemberOf Overlay**: Create a file named `memberof.ldif` with the following content:
+
+    ```ldif
+    dn: cn=module{0},cn=config
+    changetype: modify
+    add: olcModuleLoad
+    olcModuleLoad: memberof.la
+
+    dn: olcOverlay={0}memberof,olcDatabase={1}mdb,cn=config
+    objectClass: olcOverlayConfig
+    objectClass: olcMemberOf
+    olcOverlay: {0}memberof
+    olcMemberOfDangling: ignore
+    olcMemberOfRefInt: TRUE
+    olcMemberOfGroupOC: groupOfNames
+    olcMemberOfMemberAD: member
+    olcMemberOfMemberOfAD: memberOf
+    ```
+
+    Adjust `olcDatabase={1}mdb` if your database number or type is different (e.g., `{1}hdb` or `{2}mdb`).
+
+3. **Apply the LDIF File**: Use the `ldapadd` command to apply the LDIF file to your OpenLDAP configuration:
+
+    ```sh
+    ldapadd -Q -Y EXTERNAL -H ldapi:/// -f memberof.ldif
+    ```
+
+4. **Verify the MemberOf Overlay**: Check that the `memberof` overlay is correctly added by running:
+
+    ```sh
+    ldapsearch -Q -LLL -Y EXTERNAL -H ldapi:/// -b cn=config '(olcOverlay=memberof)'
+    ```
+
+    This command should return the configuration details of the `memberof` overlay.
+
+5. **Update Existing Users**: If you have existing users, you will need to update their `memberOf` attributes. You can either add the `memberOf` attribute manually or re-add users to their respective groups to have this attribute auto-populated.
+
+By following these steps, you will enable the `memberof` overlay on your OpenLDAP server and ensure it works correctly with iPSK Manager.
+
+
 ## Keeping iPSK Manager up to date
 #### The automated process documented in this section only applies with versions of iPSK Manager that are installed on your system that have this section in the README.
 When there is an update to the Git repository, local iPSK Manager deployment can be updated without reinstallation.  We recomend you periodically update your iPSK Manager deployment so you get all the latest features and fixes.  You can choose to automate the update process by creating a cron job.

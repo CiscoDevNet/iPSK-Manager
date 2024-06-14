@@ -29,6 +29,19 @@
 		}else{
 			$ldapServer['adSecureCheck'] = "";
 		}
+
+		if(isset($ldapServer['directoryType'])){
+			if($ldapServer['directoryType'] == '0'){
+				$ldapServer['directoryType-ad'] = " selected";
+			}else{
+				$ldapServer['directoryType-ad'] = "";
+			}
+			if($ldapServer['directoryType'] == '1'){
+				$ldapServer['directoryType-openldap'] = " selected";
+			}else{
+				$ldapServer['directoryType-openldap'] = "";
+			}
+		}
 	
 $htmlbody = <<<HTML
 <!-- Modal -->
@@ -70,6 +83,13 @@ $htmlbody = <<<HTML
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adBaseDN" value="{$ldapServer['adBaseDN']}">
 			<div class="invalid-feedback">Please enter a valid search abse</div>
 		</div>
+		<label class="fw-bold" for="directoryType">Directory Type:</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<select class="form-select form-select-sm shadow" id="directoryType">
+				<option value="0"{$ldapServer['directoryType-ad']}>Active Directory</option>
+				<option value="1"{$ldapServer['directoryType-openldap']}>OpenLDAP</option>
+			</select>
+		</div>	
 		<label class="fw-bold" for="adUsername">Username:</label>
 		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adUsername" value="{$ldapServer['adUsername']}">
@@ -126,7 +146,8 @@ $htmlbody = <<<HTML
 				adUsername: $("#adUsername").val(),
 				adSecure: $("#adSecure").val(),
 				password: $("#password").val(),
-				confirmpassword: $("#confirmpassword").val()
+				confirmpassword: $("#confirmpassword").val(),
+				directoryType: $("#directoryType").val()
 			},
 			type: "POST",
 			dataType: "html",

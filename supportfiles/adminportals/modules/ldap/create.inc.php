@@ -43,11 +43,11 @@ $htmlbody = <<<HTML
 </script>
 HTML;
 
-if($sanitizedInput['adConnectionName'] != "" && $sanitizedInput['adServer'] != "" && $sanitizedInput['adDomain'] != "" && $sanitizedInput['adUsername'] != "" && $sanitizedInput['adBaseDN'] != ""){
+if($sanitizedInput['adConnectionName'] != "" && $sanitizedInput['adServer'] != "" && $sanitizedInput['adDomain'] != "" && $sanitizedInput['adUsername'] != "" && $sanitizedInput['adBaseDN'] != "" && $sanitizedInput['directoryType'] != ""){
 	if($sanitizedInput['password'] == $sanitizedInput['confirmpassword']){
 		if(strlen($sanitizedInput['confirmpassword']) > 4){
 					
-			$ipskISEDB->addLdapServer($sanitizedInput['adConnectionName'], $sanitizedInput['adServer'], $sanitizedInput['adDomain'], $sanitizedInput['adUsername'], $sanitizedInput['confirmpassword'], $sanitizedInput['adBaseDN'], $sanitizedInput['adSecure'],  $_SESSION['logonSID']);
+			$ipskISEDB->addLdapServer($sanitizedInput['adConnectionName'], $sanitizedInput['adServer'], $sanitizedInput['adDomain'], $sanitizedInput['adUsername'], $sanitizedInput['confirmpassword'], $sanitizedInput['adBaseDN'], $sanitizedInput['adSecure'], $sanitizedInput['directoryType'], $_SESSION['logonSID']);
 			print $htmlbody;
 			
 		}

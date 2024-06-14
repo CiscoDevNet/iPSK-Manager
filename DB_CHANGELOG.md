@@ -1,6 +1,6 @@
 # Identity PSK Manager - Database Change Log
 
-Current Database Schema Version : **3**
+Current Database Schema Version : **4**
 
 All changes to this Sample Codes Database will be documented here:
 
@@ -81,6 +81,40 @@ Updates to the stored procedures require running the included `schemaupdate-v3.s
 2) Login to the CLI of the Server running MySQL
 3) Change to the directory where the script is located
 4) Execute the script with 'root' or a user with 'CREATE / DROP STORED PROCEDURE' Privileges
+> ```
+> mysql -u root -p < schemeupdate-v3.sql
+> ```
+OR
+> ```
+> mysql -u <USER> -p < schemeupdate-v3.sql
+> ```
+5) Enter password when prompted
+
+Database Changes (06/14/2022) - v4
+------
+
+### Changed
+- Added column to LDAP table to support directories other then Active Directory
+- Added column to endpoint table for last updated time to support future functionality
+
+Updates to the data tables require running the included `schemaupdate-v4.sql` update script against the database.
+1) Download and update the `schemaupdate-v4.sql` file with your environment specific variables as per README
+> ```
+> /* INSTALLATION README -----------------------------------------------------------
+> *  Replace the following values below with your specific installation information
+> *  Refer to 'DONOTDELETE-iPSKManager-Install.txt' for you environment details
+> *
+> * A total of one(1) entry needs updating in this SQL file:
+> *
+> *		<ISE_DB_NAME> = MySQL iPSK Manager Database Name
+> *			Example: USE `iPSKManager`;
+> * 			
+> *--------------------------------------------------------------------------------
+> */
+> ```
+2) Login to the CLI of the Server running MySQL
+3) Change to the directory where `schemaupdate-v4.sql` is located
+4) Execute the script with 'root' or a user with 'ALTER TABLE' Privileges
 > ```
 > mysql -u root -p < schemeupdate-v3.sql
 > ```

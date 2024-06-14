@@ -37,6 +37,10 @@ print <<< HTML
 							<option value="1">1 Day</option>
 						</select>
 					</div>
+					<label class="form-label" for="logPurgeInterval">Log Purge Interval in Days: <a class="d-inline-block" data-bs-toggle="tooltip" title="" data-bs-original-title="When logging into the admin portal logs older then number of days set will be purged.  If no value is defined logs are not purged." data-bs-placement="right"><i data-feather="help-circle"></i></a></label>
+					<div class="mb-3 input-group-sm fw-bold w-75">
+						<input type="text" class="form-control shadow generaltab" id="logPurgeInterval" value="{$adminPortalSettings['log-purge-interval']}">
+					</div>
 					<div class="form-check">
 						<input type="checkbox" class="form-check-input checkbox-update generaltab" base-value="1" value="{$adminPortalSettings['admin-portal-strict-hostname-value']}" id="strictHostname"{$adminPortalSettings['admin-portal-strict-hostname']}>
 						<label class="form-check-label" for="strictHostname">Enable Administration Portal Strict Hostname Matching</label>

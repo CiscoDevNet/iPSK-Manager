@@ -24,8 +24,16 @@
 	<div class="row row-cols-1 row-cols-md-2 g-4">
 		<div class="col">
 			<div class="card h-100">
-          		<div class="card-header bg-primary text-white">SMTP Settings</div>
+          		<div class="card-header bg-primary text-white">Email Configuration Settings</div>
           		<div class="card-body">
+				  	<label class="form-label" for="smtpFromAddress">From Address: <a class="d-inline-block" data-bs-toggle="tooltip" title="" data-bs-original-title="Set the from address when iPSK Manager sends emails.  Setting is used when using underlying system Mail Transfer Agent (MTA) or SMTP to send emails." data-bs-placement="right"><i data-feather="help-circle"></i></a></label>
+					<div class="mb-3 input-group-sm w-75">
+						<input type="text" class="form-control shadow smtpupdate" id="smtpFromAddress" value="{$smtpSettings['smtp-fromaddress']}">
+					</div>
+				  	<div class="form-check">
+						<input type="checkbox" class="form-check-input checkbox-update smtpupdate" base-value="1" value="{$smtpSettings['enabled']}" id="smtpEnabled"{$smtpSettings['enabled-check']}>
+						<label class="form-check-label" for="smtpEnabled">SMTP Email Enabled <a class="d-inline-block" data-bs-toggle="tooltip" title="" data-bs-original-title="By default emails are sent with the underlying Mail Transfer Agent (MTA) installed on the server. If one is not installed emails will not be sent. To use a SMTP server instead check box and complete the fields below." data-bs-placement="right"><i data-feather="help-circle"></i></a></label>
+					</div>
 					<label class="form-label" for="smtpHost">SMTP Hostname/IP:</label>
 					<div class="mb-3 input-group-sm w-75">
 						<input type="text" class="form-control shadow smtpupdate" id="smtpHost" value="{$smtpSettings['smtp-hostname']}" placeholder="smtp.demo.local">
@@ -38,17 +46,17 @@
 					<div class="mb-3 input-group-sm w-75">
 						<input type="text" class="form-control shadow smtpupdate" id="smtpUsername" value="{$smtpSettings['smtp-username']}">
 					</div>
-					<label class="form-label" for="smtpFromAddress">From Address:</label>
-					<div class="mb-3 input-group-sm w-75">
-						<input type="text" class="form-control shadow smtpupdate" id="smtpFromAddress" value="{$smtpSettings['smtp-fromaddress']}">
-					</div>
 					<label class="form-label" for="smtpPassword">SMTP Pasword:</label>
 					<div class="mb-3 input-group-sm w-75">
 						<input type="password" class="form-control shadow" id="smtpPassword">
 					</div>
-					<div class="form-check">
-						<input type="checkbox" class="form-check-input checkbox-update smtpupdate" base-value="1" value="{$smtpSettings['enabled']}" id="smtpEnabled"{$smtpSettings['enabled-check']}>
-						<label class="form-check-label" for="smtpEnabled">SMTP Email Enabled</label>
+					<label class="form-label" for="smtpEncryption">SMTP Encryption:</label>
+					<div class="mb-3 input-group-sm w-75">
+						<select class="form-select form-select-sm shadow smtpupdate" id="smtpEncryption">
+							<option value="None"{$smtpSettings['encryption-none']}>None</option>
+							<option value="TLS"{$smtpSettings['encryption-tls']}>TLS</option>
+							<option value="STARTTLS"{$smtpSettings['encryption-starttls']}>STARTTLS</option>
+						</select>
 					</div>
 				</div>
 				<div class="card-footer">

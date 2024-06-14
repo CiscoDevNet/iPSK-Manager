@@ -215,6 +215,24 @@
 		$smtpSettings['enabled-check'] = "";
 	}
 
+	if(isset($smtpSettings['smtp-encryption'])){
+		if($smtpSettings['smtp-encryption'] == 'None'){
+			$smtpSettings['encryption-none'] = " selected";
+		}else{
+			$smtpSettings['encryption-none'] = "";
+		}
+		if($smtpSettings['smtp-encryption'] == 'TLS'){
+			$smtpSettings['encryption-tls'] = " selected";
+		}else{
+			$smtpSettings['encryption-tls'] = "";
+		}
+		if($smtpSettings['smtp-encryption'] == 'STARTTLS'){
+			$smtpSettings['encryption-starttls'] = " selected";
+		}else{
+			$smtpSettings['encryption-starttls'] = "";
+		}
+	}
+
 	if($portsAndProtocols){
 		if($portsAndProtocols->num_rows > 0){
 			while($row = $portsAndProtocols->fetch_assoc()){
@@ -284,7 +302,7 @@
         	<li class="nav-item">
 				<a class="nav-item nav-link" id="nav-ise-tab" data-bs-toggle="tab" href="#nav-ise" role="tab" aria-controls="nav-ise" aria-selected="false">Cisco ISE Integration</a>        	</li>
         	<li class="nav-item">
-            	<a class="nav-item nav-link" id="nav-smtp-tab" data-bs-toggle="tab" href="#nav-smtp" role="tab" aria-controls="nav-smtp" aria-selected="false">SMTP Configuration</a>
+            	<a class="nav-item nav-link" id="nav-smtp-tab" data-bs-toggle="tab" href="#nav-smtp" role="tab" aria-controls="nav-smtp" aria-selected="false">Email Configuration</a>
         	</li>
         	<li class="nav-item">
 				<a class="nav-item nav-link" id="nav-advanced-tab" data-bs-toggle="tab" href="#nav-advanced" role="tab" aria-controls="nav-advanced" aria-selected="false">Advanced Settings</a>
@@ -411,6 +429,7 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 				'sub-module': $(this).attr('sub-module'),
 				'module-action': $(this).attr('module-action'),
 				adminPortalHostname: $("#adminPortalHostname").val(),
+				'logPurgeInterval': $("#logPurgeInterval").val(),
 				'strict-hostname': $("#strictHostname").val(),
 				'redirect-hostname': $("#redirectOnHostname").val(),
 				'ldapSSLCheck': $("#ldapSSLCheck").val(),
@@ -717,7 +736,8 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 				smtpPort: $("#smtpPort").val(),
 				smtpUsername: $("#smtpUsername").val(),
 				smtpFromAddress: $("#smtpFromAddress").val(),
-				smtpEnabled: $("#smtpEnabled").val()
+				smtpEnabled: $("#smtpEnabled").val(),
+				smtpEncryption: $("#smtpEncryption").val()
 			},
 			type: "POST",
 			dataType: "text",

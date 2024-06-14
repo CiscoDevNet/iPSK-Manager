@@ -43,15 +43,15 @@ $htmlbody = <<<HTML
 </script>
 HTML;
 
-if($sanitizedInput['id'] > 0 && $sanitizedInput['adConnectionName'] != "" && $sanitizedInput['adServer'] != "" && $sanitizedInput['adDomain'] != "" && $sanitizedInput['adUsername'] != "" && $sanitizedInput['adBaseDN'] != ""){
+if($sanitizedInput['id'] > 0 && $sanitizedInput['adConnectionName'] != "" && $sanitizedInput['adServer'] != "" && $sanitizedInput['adDomain'] != "" && $sanitizedInput['adUsername'] != "" && $sanitizedInput['adBaseDN'] != "" && $sanitizedInput['directoryType'] != ""){
 	if($sanitizedInput['password'] == $sanitizedInput['confirmpassword']){
 		if($sanitizedInput['confirmpassword'] == ""){
-			$ipskISEDB->updateLdapServer($sanitizedInput['id'], $sanitizedInput['adConnectionName'], $sanitizedInput['adServer'], $sanitizedInput['adDomain'], $sanitizedInput['adUsername'], null, $sanitizedInput['adBaseDN'], $sanitizedInput['adSecure'], $_SESSION['logonSID']);
+			$ipskISEDB->updateLdapServer($sanitizedInput['id'], $sanitizedInput['adConnectionName'], $sanitizedInput['adServer'], $sanitizedInput['adDomain'], $sanitizedInput['adUsername'], null, $sanitizedInput['adBaseDN'], $sanitizedInput['adSecure'], $sanitizedInput['directoryType'], $_SESSION['logonSID']);
 			print $htmlbody;
 			
 		}else if(strlen($sanitizedInput['confirmpassword']) > 4){
 					
-			$ipskISEDB->updateLdapServer($sanitizedInput['id'], $sanitizedInput['adConnectionName'], $sanitizedInput['adServer'], $sanitizedInput['adDomain'], $sanitizedInput['adUsername'], $sanitizedInput['confirmpassword'], $sanitizedInput['adBaseDN'], $sanitizedInput['adSecure'], $_SESSION['logonSID']);
+			$ipskISEDB->updateLdapServer($sanitizedInput['id'], $sanitizedInput['adConnectionName'], $sanitizedInput['adServer'], $sanitizedInput['adDomain'], $sanitizedInput['adUsername'], $sanitizedInput['confirmpassword'], $sanitizedInput['adBaseDN'], $sanitizedInput['adSecure'], $sanitizedInput['directoryType'], $_SESSION['logonSID']);
 			print $htmlbody;
 			
 		}
