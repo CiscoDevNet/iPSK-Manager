@@ -83,6 +83,8 @@ HTML;
 	
 	//Added Database Scheme Update Modal Dialog	for update to DB
 	if($ipskISEDB->check_dbSchemaUpdates()){
+		$schema = $ipskISEDB->getGlobalSetting("db-schema", "version");
+		$requiredSchema = $ipskISEDB->get_requiredSchemaVersion();
 		$databaseSchemeUpdate = <<< HTML
 		<div class="modal fade" id="databaseUpdateDetected" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered" role="document">
@@ -94,7 +96,7 @@ HTML;
 						</button>
 					</div>
 					<div class="modal-body">
-						<p class="h5" style="text-decoration: underline;">Database Schema Update Required:</p><br /><p class="h6">Updates to Stored Procedures:<br /><br />Please review Database Change Log @ </p><p><a href="https://github.com/CiscoDevNet/iPSK-Manager/blob/master/DB_CHANGELOG.md">(GitHub) /CiscoDevNet/iPSK-Manager/blob/master/DB_CHANGELOG.md</a></p>
+						<p class="h5" style="text-decoration: underline;">Database Schema Update Required:</p><br /><p class="h6">Your Schema Version: {$schema}<br />Required Schema Version: {$requiredSchema}<br /><br />Please review Database Change Log @ </p><p><a href="https://github.com/CiscoDevNet/iPSK-Manager/blob/master/DB_CHANGELOG.md">(GitHub) /CiscoDevNet/iPSK-Manager/blob/master/DB_CHANGELOG.md</a></p>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Ok</button>

@@ -149,7 +149,11 @@
 		function get_dbSchemaVersion(){
 			return $this->dbSchemaVersion;
 		}
-		
+
+		function get_requiredSchemaVersion(){
+			return $this->requiredSchemaVersion;
+		}
+
 		function check_dbSchemaUpdates(){
 			if($this->requiredSchemaVersion > $this->dbSchemaVersion){
 				return true;
