@@ -90,7 +90,7 @@ OR
 > ```
 5) Enter password when prompted
 
-Database Changes (06/14/2022) - v4
+Database Changes (06/14/2024) - v4
 ------
 
 ### Changed
