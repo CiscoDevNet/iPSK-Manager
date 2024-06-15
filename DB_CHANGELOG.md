@@ -42,11 +42,11 @@ Updates to the stored procedures require running the included `schemaupdate-v2.s
 3) Change to the directory where the script is located
 4) Execute the script with 'root' or a user with 'CREATE / DROP STORED PROCEDURE' Privileges
 > ```
-> mysql -u root -p < schemeupdate-v2.sql
+> mysql -u root -p < schemaupdate-v2.sql
 > ```
 OR
 > ```
-> mysql -u <USER> -p < schemeupdate-v2.sql
+> mysql -u <USER> -p < schemaupdate-v2.sql
 > ```
 5) Enter password when prompted
 
@@ -82,11 +82,11 @@ Updates to the stored procedures require running the included `schemaupdate-v3.s
 3) Change to the directory where the script is located
 4) Execute the script with 'root' or a user with 'CREATE / DROP STORED PROCEDURE' Privileges
 > ```
-> mysql -u root -p < schemeupdate-v3.sql
+> mysql -u root -p < schemaupdate-v3.sql
 > ```
 OR
 > ```
-> mysql -u <USER> -p < schemeupdate-v3.sql
+> mysql -u <USER> -p < schemaupdate-v3.sql
 > ```
 5) Enter password when prompted
 
@@ -116,10 +116,10 @@ Updates to the data tables require running the included `schemaupdate-v4.sql` up
 3) Change to the directory where `schemaupdate-v4.sql` is located
 4) Execute the script with 'root' or a user with 'ALTER TABLE' Privileges
 > ```
-> mysql -u root -p < schemeupdate-v3.sql
+> mysql -u root -p < schemaupdate-v4.sql
 > ```
 OR
 > ```
-> mysql -u <USER> -p < schemeupdate-v3.sql
+> mysql -u <USER> -p < schemaupdate-v4.sql
 > ```
 5) Enter password when prompted
