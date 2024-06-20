@@ -42,13 +42,13 @@ DELIMITER ;
 --
 -- Update Identity PSK Manager Database Endpoints Table
 --
-ALTER TABLE `endpoints` ADD `lastUpdated` TIMESTAMP NOT NULL AFTER `createdDate`;
+ALTER TABLE `endpoints` ADD `lastUpdated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `createdDate`;
 
 -- --------------------------------------------------------
 --
 -- Update Identity PSK Manager Database LDAP Table
 --
-ALTER TABLE `ldapServers` ADD `directoryType` INT NOT NULL AFTER `adSecure`;
+ALTER TABLE `ldapServers` ADD `directoryType` INT(11) NOT NULL AFTER `adSecure`;
 
 -- --------------------------------------------------------
 --
