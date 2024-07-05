@@ -93,7 +93,7 @@
 		</form>
 	  </div>
       <div class="modal-footer">
-		<a id="updategroups" href="#" module="internalusers" sub-module="updategroups" role="button" class="btn btn-primary shadow" data-bs-dismiss="modal">Update Membership</a>
+		<a id="updategroups" href="#" module="internalusers" sub-module="updategroups" role="button" class="btn btn-primary shadow">Update Membership</a>
         <button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
@@ -133,6 +133,9 @@
 		
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('manageGroupMembership'));
+			modal.hide();
 		}
 		
 		$('.modal-backdrop').remove();
