@@ -387,7 +387,7 @@
 
 		function check_ifAuthZProfileExists($name){
 			
-			$uriPath = "/ers/config/authorizationprofile/name/".$name;
+			$uriPath = "/ers/config/authorizationprofile/name/".rawurlencode($name);
 			
 			$headerArray = $this->ersRestContentTypeHeader;
 				
@@ -425,7 +425,7 @@
 		
 		function getAuthorizationProfile($name){
 			
-			$uriPath = "/ers/config/authorizationprofile/name/".$name;
+			$uriPath = "/ers/config/authorizationprofile/name/".rawurlencode($name);
 			
 			$headerArray = $this->ersRestContentTypeHeader;
 				

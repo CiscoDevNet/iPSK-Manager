@@ -102,11 +102,11 @@ HTML;
 				</div>
 				<label class="fw-bold" for="authorizationProfileName">Cisco ISE Authorization Profile Name:</label>
 				<div class="input-group input-group-sm mb-3">
-					<input type="text" id="authorizationProfileName" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="5" validation-maximum-length="20">
+					<input type="text" id="authorizationProfileName" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="5" validation-maximum-length="35">
 					<div class="input-group-append shadow">
 						<span class="input-group-text fw-bold" id="basic-addon1"><a id="checkauthzprofile" data-command="validate" data-set="authzprofile" href="#">Validate</a></span>
 					</div>
-					<div class="invalid-feedback">Please enter a Authorization Profile Name (Minimum length of 5 characters)</div>
+					<div class="invalid-feedback">Please enter a unique Authorization Profile Name (Minimum length of 5 maximum length 35 characters)</div>
 				</div>
 				<div class="mb-3 input-group-sm fw-bold">
 					<label class="fw-bold" for="description">Cisco ISE Authorization Profile Description:</label>
@@ -114,7 +114,7 @@ HTML;
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button id="addauthzprofile" module="portals" sub-module="authzprofile" row-id="{$sanitizedInput['id']}" type="submit" class="btn btn-primary shadow" data-bs-dismiss="modal">Create Authorization Profile</button>
+				<button id="addauthzprofile" module="portals" sub-module="authzprofile" row-id="{$sanitizedInput['id']}" type="submit" class="btn btn-primary shadow">Create Authorization Profile</button>
 				<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Close</button>
 			</div>
 			</form>
@@ -131,6 +131,13 @@ HTML;
 	});
 	
 	$("#checkauthzprofile").click(function(event) {
+
+		failure = formFieldValidation();
+
+		if(failure){
+			return false;
+		}
+
 		if($("#authorizationProfileName").val() != ""){
 			$.ajax({
 				url: "ajax/getdata.php",
@@ -154,7 +161,7 @@ HTML;
 			});
 		}else{
 			$("#authorizationProfileName").addClass('is-invalid');
-						$("#authorizationProfileName").removeClass('is-valid');
+			$("#authorizationProfileName").removeClass('is-valid');
 		}
 		
 		event.preventDefault();
@@ -167,6 +174,9 @@ HTML;
 
 		if(failure){
 			return false;
+		} else {
+			const modal = bootstrap.Modal.getInstance(document.getElementById('createISEAuthzProfile'));
+			modal.hide();
 		}
 		
 		//$('.modal-backdrop').remove();
