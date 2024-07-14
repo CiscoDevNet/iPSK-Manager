@@ -30,6 +30,9 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Portal Groups
 - Customizable Sponsor & Captive Portals
 
+**What's New (July 2024)**
+- [GUI Logging Enhancements](#gui-logging)
+
 **What's New (June 2024)**
 - iPSK Manager MySQL Log Table Purge on Admin Portal Login
 - SMTP Server Support
@@ -448,11 +451,13 @@ admin@ubuntu:~$ sudo git pull
 ```
 4. After the repository is pulled open a web browser to the URL of the Admin Portal of iPSK Manager.  The installer script will detect your config.php in the backup directory (/opt/ipsk-manager) and automatically copy it, remove the installation files, and redirect you to the login screen.  At this point your iPSK Manager installation has been updated.
 
-## (Experimental) GUI Logging
-Logging via GUI can be enabled by editing the **'additionalmenus.json'** file in **/var/www/iPSK-Manager/supportfiles/adminportals/modules/** directory. Change the "menuEnabled" flag at the end to 1 (default is 0) as shown below and refresh admin GUI and you will see 'System Logging' option visible just below 'About' settings. Note that logging view currently lacks few features to make it useable beyond basic troubleshooting.
+## GUI Logging
+Logging via GUI can be enabled by editing the **'additionalmenus.json'** file in **/var/www/iPSK-Manager/supportfiles/adminportals/modules/** directory. Change the "menuEnabled" flag at the end to 1 (default is 0) as shown below and refresh admin GUI and you will see 'System Logging' option visible just below 'About' settings. 
 ```
 {"0":{"id":"menuLogging","module":"logging","data-feather":"flag","menuText":"System Logging"},"menuItems":1,"menuEnabled":1}
 ```
+To view logs for the past hour, simply click on the 'System Logging' menu. From there, you can adjust the log display by selecting different time ranges available in the navigation bar options. 
+
 Note: Rest of the logging settings are under Platform Configuration > Advanced Settings and Logging Settings
 ## Use non-SSL port for admin and end user portal
 It is recommended to use SSL for security and main section of the document describes how to enable SSL. However, if no certificate is available, port 80 request to admin portal can be used by creating a file called '80.conf' with following content and placed in '/etc/apache2/sites-enabled' directory: 

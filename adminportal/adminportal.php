@@ -227,9 +227,13 @@ HTML;
     	$('.nav-link').click(function () {
 			var table = $('#endpoint-table').DataTable();
 			table.state.clear();
+			var table = $('#logging-table').DataTable();
+			table.state.clear();
     	});
 		$(window).on('beforeunload', function() {
 			var table = $('#endpoint-table').DataTable();
+			table.state.clear();
+			var table = $('#logging-table').DataTable();
 			table.state.clear();
     	});
     });
