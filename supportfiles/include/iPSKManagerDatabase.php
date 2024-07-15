@@ -502,7 +502,7 @@
 				return false;
 			}
 		}
-		
+
 		function authenticateInternalUser($username,$password,$saml = false){
 			
 			$passwordVerify = false;
@@ -1730,7 +1730,7 @@
 			}
 		}
 
-		function getLogging($minute = 600){
+		function getLogging($minute = 60){
 			$query = "SELECT `id`, `dateCreated`, `sessionID`, `fileName`, `functionName`, `className`, `classMethodName`, `lineNumber`, `message` FROM `logging` WHERE `dateCreated` BETWEEN DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL $minute MINUTE) AND CURRENT_TIMESTAMP() ORDER BY `dateCreated` DESC";
 			
 			$queryResult = $this->dbConnection->query($query);
