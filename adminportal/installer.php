@@ -655,7 +655,7 @@ HTML;
 
 				//If running within container with MySQL remove install user at end of install
 				if (file_exists("/removeinstalluser.sh")) {
-					exec("/bin/sudo /bin/bash /removeinstalluser.sh");
+					exec("/bin/sudo -S /bin/bash /removeinstalluser.sh");
 				}
 				
 				exit(0);
