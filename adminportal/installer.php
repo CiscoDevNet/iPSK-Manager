@@ -652,6 +652,11 @@ HTML;
 				session_destroy();
 				unlink("installer.inc.php");
 				unlink("installer.php");
+
+				//If running within container with MySQL remove install user at end of install
+				if (file_exists("/removeinstalluser.sh")) {
+					exec("bash /removeinstalluser.sh");
+				}
 				
 				exit(0);
 			}
