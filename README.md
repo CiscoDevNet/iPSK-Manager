@@ -81,22 +81,22 @@ The Documentation and Guides available from these tools, contained the details n
 
 ## Prerequisites
 
-- Cisco ISE v2.4+ (Tested with ISE 3.3)
-- Apache Web Server
+- Cisco ISE v2.4+ (Tested with ISE 3.3 and 3.4)
+- Apache Web Server (Tested with 2.4)
 - PHP 8.0+ (Tested with PHP 8.3)
   - Required Modules: **mbstring, ldap, mysqli, mysqlnd, curl, simplexml, xml, sodium, and json**
 - MySQL or MariaDB (Tested with MySQL 8.1)
 
 ## iPSK Manager Installation
 
-#### Ubuntu 22.04.x LTS
+#### Ubuntu 22.04.x LTS or 24.04.x LTS
 
 1. After installing Ubuntu OS, make sure the system is up-to-date:
 ```
 admin@ubuntu:~$ sudo apt-get update
 admin@ubuntu:~$ sudo apt-get upgrade
 ```
-2. After updating Ubuntu OS, install Apache2, PHP7, MySQL server, and additional modules:
+2. After updating Ubuntu OS, install Apache2, PHP8, MySQL server, and additional modules:
 ```
 admin@ubuntu:~$ sudo apt-get install php apache2 mysql-server php-mysqlnd php-ldap php-curl php-mbstring php-xml
 ```
