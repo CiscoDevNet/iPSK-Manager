@@ -23,7 +23,7 @@
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
 		session_destroy();
-		header("Location: /index.php?portalId=".$portalId);
+		header("Location: index.php?portalId=".$portalId);
 		die();
 	}
 	
@@ -102,7 +102,7 @@
 				print <<<HTML
 			
 <script>
-	window.location = "/manage.php?portalId=$portalId";
+	window.location = "manage.php?portalId=$portalId";
 </script>
 HTML;
 			}elseif($sanitizedInput['sub-module'] == "activate"){
@@ -153,7 +153,7 @@ HTML;
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+				url: $(this).attr('module') + ".php?portalId=$portalId",
 
 				data: formData,
 				processData: false,
@@ -217,7 +217,7 @@ HTML;
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+				url: $(this).attr('module') + ".php?portalId=$portalId",
 
 				data: formData,
 				processData: false,
@@ -281,7 +281,7 @@ HTML;
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+				url: $(this).attr('module') + ".php?portalId=$portalId",
 
 				data: formData,
 				processData: false,

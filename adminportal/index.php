@@ -28,7 +28,7 @@
 			require("./installer.php");
 			exit(0);
 		}else{
-			header("Location: /404.php");
+			header("Location: 404.php");
 			die();
 		}
 	}
@@ -85,7 +85,7 @@
 					$logMessage = "REQUEST:FAILURE[portal_hostname_lookup_failure];ACTION:HOSTNAMEREDIRECT;";
 					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 									
-					header("Location: /404.php");
+					header("Location: 404.php");
 				}
 			}
 		}else{
@@ -95,13 +95,13 @@
 				$logMessage = "REQUEST:FAILURE[admin_portal_hostname_no_match];ACTION:ADMINURLSTRICT;HOSTNAME:".$_SERVER['SERVER_NAME'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				header("Location: /404.php");
+				header("Location: 404.php");
 			}
 		}
 	}
 	
     if (!isset($_GET['error']) && $samlSettings['enabled'] == true) {
-		header("Location: /login.php");
+		header("Location: login.php");
 		die();
 	}else{
 ?><!doctype html>

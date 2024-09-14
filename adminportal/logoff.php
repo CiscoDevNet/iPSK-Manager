@@ -48,7 +48,7 @@
 		
 		$_SESSION = null;
 		session_destroy();
-		header("Location: /");
+		header("Location: ./");
 		die();
 	}else{
 		//LOG::Entry
@@ -56,7 +56,7 @@
 		$logMessage = "REQUEST:FAILURE[invalid_input];ACTION:ADMINLOGOFF;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USER:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 		$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 		
-		header("Location: /adminportal.php");
+		header("Location: adminportal.php");
 		die();	
 	}
 

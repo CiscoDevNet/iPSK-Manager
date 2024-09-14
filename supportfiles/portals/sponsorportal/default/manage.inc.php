@@ -32,7 +32,7 @@
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
 		session_destroy();
-		header("Location: /index.php?portalId=".$portalId);
+		header("Location: index.php?portalId=".$portalId);
 		die();
 	}
 
@@ -269,7 +269,7 @@
 	
 	$(".action-tableicons").click(function(event) {
 		$.ajax({
-			url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+			url: $(this).attr('module') + ".php?portalId=$portalId",
 			
 			data: {
 				id: $(this).attr('row-id')
@@ -286,15 +286,15 @@
 	});
 	
 	$("#createAssoc").click(function() {
-		window.location.href = "/sponsor.php?portalId=$portalId";
+		window.location.href = "sponsor.php?portalId=$portalId";
 	});
 	
 	$("#bulkAssoc").click(function() {
-		window.location.href = "/bulk.php?portalId=$portalId";
+		window.location.href = "bulk.php?portalId=$portalId";
 	});
 	
 	$("#manageAssoc").click(function() {
-		window.location.href = "/manage.php?portalId=$portalId";
+		window.location.href = "manage.php?portalId=$portalId";
 		
 		// Comment out if you want to clear table state when pressing manage associations 
 		
@@ -304,7 +304,7 @@
 		
 	$("#signOut").click(function(event) {
 		$.ajax({
-			url: "/logoff.php?portalId=$portalId",
+			url: "logoff.php?portalId=$portalId",
 			
 			data: {
 				logoff: true
@@ -312,7 +312,7 @@
 			type: "POST",
 			dataType: "html",
 			success: function (data) {
-				window.location = "/index.php?portalId=$portalId";
+				window.location = "index.php?portalId=$portalId";
 			}
 		});
 		var table = $('#endpoint-table').DataTable();
@@ -386,7 +386,7 @@
 
 		if(multiSelect){
 			$.ajax({
-				url: "/" + $(this).attr('module') + ".php?portalId=$portalId",
+				url: $(this).attr('module') + ".php?portalId=$portalId",
 
 				data: formData,
 				processData: false,

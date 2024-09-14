@@ -22,7 +22,7 @@
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
 		session_destroy();
-		print "<script>window.location = \"/index.php?portalId=$portalId\";</script>";
+		print "<script>window.location = \"index.php?portalId=$portalId\";</script>";
 		die();
 	}
 	

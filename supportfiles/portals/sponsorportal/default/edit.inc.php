@@ -22,7 +22,7 @@
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
 		session_destroy();
-		print "<script>window.location = \"/index.php?portalId=$portalId\";</script>";
+		print "<script>window.location = \"index.php?portalId=$portalId\";</script>";
 		die();
 	}
 	
@@ -88,7 +88,7 @@
 		
 		print <<<HTML
 <script>
-	window.location = "/manage.php?portalId=$portalId";
+	window.location = "manage.php?portalId=$portalId";
 </script>
 HTML;
 	}else{
@@ -104,7 +104,7 @@ HTML;
 			$portalId = $_GET['portalId'];
 			$_SESSION = null;
 			session_destroy();
-			header("Location: /index.php?portalId=".$portalId);
+			header("Location: index.php?portalId=".$portalId);
 			die();
 		}
 		
@@ -285,7 +285,7 @@ HTML;
 		$('.modal-backdrop').remove();
 		
 		$.ajax({
-			url: "/edit.php?portalId=$portalId",
+			url: "edit.php?portalId=$portalId",
 			
 			data: {
 				id: $("#id").val(),
@@ -356,7 +356,7 @@ HTML;
 		
 		if($("#editPSK").val() == "1"){
 			$.ajax({
-				url: "/query.php?portalId=$portalId",
+				url: "query.php?portalId=$portalId",
 				data: {
 					id: $("#id").val(),
 					action: $(this).attr('action')

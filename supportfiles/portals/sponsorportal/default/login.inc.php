@@ -125,10 +125,10 @@
 						$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						
 						if($_SESSION['portalAuthorization']['create'] == false){
-							header("Location: /manage.php?portalId=".$portalId);
+							header("Location: manage.php?portalId=".$portalId);
 							die();
 						}else{
-							header("Location: /sponsor.php?portalId=".$_SESSION['portalSettings']['portalId']);
+							header("Location: sponsor.php?portalId=".$_SESSION['portalSettings']['portalId']);
 							die();
 						}
 					}else{
@@ -137,14 +137,14 @@
 						$logMessage = "REQUEST:FAILURE{1}[user_authz_failure];ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USER:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 						$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						
-						header("Location: /index.php?error=1&portalId=".$_SESSION['portalSettings']['portalId']);
+						header("Location: index.php?error=1&portalId=".$_SESSION['portalSettings']['portalId']);
 					}
 				}else{
 					//LOG::Entry
 					$logData = $ipskISEDB->generateLogData(Array("authorizationGroups"=>$_SESSION['authorizationGroups']));
 					$logMessage = "REQUEST:FAILURE{2}[no_authz_groups];ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USER:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 					
-					header("Location: /index.php?error=2&portalId=".$_SESSION['portalSettings']['portalId']);
+					header("Location: index.php?error=2&portalId=".$_SESSION['portalSettings']['portalId']);
 				}	
 			}else{
 				//LOG::Entry
@@ -152,7 +152,7 @@
 				$logMessage = "REQUEST:FAILURE{3}[user_authn_failure];ACTION:SPONSORAUTHN;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USER:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				header("Location: /index.php?error=3&portalId=".$_SESSION['portalSettings']['portalId']);
+				header("Location: index.php?error=3&portalId=".$_SESSION['portalSettings']['portalId']);
 			}
 		}else{
 			if(is_numeric($_SESSION['portalSettings']['id'])){
@@ -229,10 +229,10 @@
 								$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 								
 								if($_SESSION['portalAuthorization']['create'] == false){
-									header("Location: /manage.php?portalId=".$portalId);
+									header("Location: manage.php?portalId=".$portalId);
 									die();
 								}else{
-									header("Location: /sponsor.php?portalId=".$_SESSION['portalSettings']['portalId']);
+									header("Location: sponsor.php?portalId=".$_SESSION['portalSettings']['portalId']);
 									die();
 								}
 							}else{
@@ -241,7 +241,7 @@
 								$logMessage = "REQUEST:FAILURE{1}[user_authz_failure];ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 								$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 								
-								header("Location: /index.php?error=1&portalId=".$_SESSION['portalSettings']['portalId']);
+								header("Location: index.php?error=1&portalId=".$_SESSION['portalSettings']['portalId']);
 							}
 						}else{
 							//LOG::Entry
@@ -249,7 +249,7 @@
 							$logMessage = "REQUEST:FAILURE{2}[no_authz_groups];ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 							$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 							
-							header("Location: /index.php?error=2&portalId=".$_SESSION['portalSettings']['portalId']);
+							header("Location: index.php?error=2&portalId=".$_SESSION['portalSettings']['portalId']);
 						}					
 					}else{
 						//LOG::Entry
@@ -257,7 +257,7 @@
 						$logMessage = "REQUEST:FAILURE{3}[user_authn_failure];ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 						$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						
-						header("Location: /index.php?error=3&portalId=".$_SESSION['portalSettings']['portalId']);
+						header("Location: index.php?error=3&portalId=".$_SESSION['portalSettings']['portalId']);
 					}
 				}else{
 					//START-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
@@ -269,7 +269,7 @@
 					$logMessage = "REQUEST:FAILURE{4}[invalid_ldap_directory];ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					
-					header("Location: /index.php?error=4&portalId=".$_SESSION['portalSettings']['portalId']);
+					header("Location: index.php?error=4&portalId=".$_SESSION['portalSettings']['portalId']);
 				}
 			}else{
 				//LOG::Entry
@@ -277,7 +277,7 @@
 				$logMessage = "REQUEST:FAILURE{5}[no_valid_auth_directories];ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				header("Location: /index.php?error=5&portalId=".$_SESSION['portalSettings']['portalId']);
+				header("Location: index.php?error=5&portalId=".$_SESSION['portalSettings']['portalId']);
 			}
 		}
 	}else{
@@ -286,6 +286,6 @@
 		$logMessage = "REQUEST:FAILURE{7}[user_authz_failure];ACTION:SPONSORAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 		$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 		
-		header("Location: /index.php?error=7&portalId=".$_SESSION['portalSettings']['portalId']);
+		header("Location: index.php?error=7&portalId=".$_SESSION['portalSettings']['portalId']);
 	}
 ?>

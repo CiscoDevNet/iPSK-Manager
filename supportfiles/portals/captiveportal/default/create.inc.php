@@ -26,7 +26,7 @@
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
 		session_destroy();
-		header("Location: /index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}");
+		header("Location: index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}");
 		die();
 	}
 	
@@ -189,7 +189,7 @@
 		
 	$("#signOut").click(function(event) {
 		$.ajax({
-			url: "/logoff.php?portalId=$portalId",
+			url: "logoff.php?portalId=$portalId",
 			
 			data: {
 				logoff: true
@@ -197,7 +197,7 @@
 			type: "POST",
 			dataType: "html",
 			success: function (data) {
-				window.location = "/index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}";
+				window.location = "index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}";
 			}
 		});
 		
@@ -224,7 +224,7 @@
 	
 	function performCoA(){
 		$.ajax({
-			url: "/performcoa.php?portalId=$portalId",
+			url: "performcoa.php?portalId=$portalId",
 			
 			data: {
 				performcoa: true

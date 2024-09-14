@@ -34,7 +34,7 @@
 	if(!isset($_SESSION['identityPSKInstalling'])){
 		if(file_exists("../supportfiles/include/config.php")){
 			http_response_code(404);
-			header("Location: ./404.php");
+			header("Location: 404.php");
 			exit(0);
 		}
 	}
@@ -631,7 +631,7 @@ HTML;
 				$finalizeButtonScript
 				
 				function redirectToAdminPortal(){
-					window.location = "/";
+					window.location = "./";
 				}
 			</script>
 HTML;
@@ -665,13 +665,13 @@ HTML;
 		if(copy("/opt/ipsk-manager/config.php","../supportfiles/include/config.php")) {
 			unlink("installer.inc.php");
 			unlink("installer.php");
-			header("Location: /");
+			header("Location: ./");
 			exit(0);
 
 		} else {
 			session_destroy();
 			http_response_code(500);
-			header("Location: ./500.php");
+			header("Location: 500.php");
 			exit(0);
 		}
 	}else{

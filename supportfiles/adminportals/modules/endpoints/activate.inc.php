@@ -78,7 +78,7 @@ HTML;
 		//$("body").removeClass('modal-open');
 		
 		$.ajax({
-			url: "/ajax/getmodule.php",
+			url: "ajax/getmodule.php",
 			
 			data: {
 				module: $(this).attr('module'),

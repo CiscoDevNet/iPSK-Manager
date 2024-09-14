@@ -21,7 +21,7 @@
 
 	//Check if Configuration file exists, if not redirect to 404 Not Found
 	if(!file_exists("../supportfiles/include/config.php")){
-		header("Location: /404.php");
+		header("Location: 404.php");
 		die();
 	}
 	
@@ -123,7 +123,7 @@
 				$logMessage = "REQUEST:FAILURE[none_https_enforced];ACTION:PORTAL;HOSTNAME:".$_SERVER['SERVER_NAME'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				header ('Location: /404.php');
+				header ('Location: 404.php');
 				die();
 			}
 		}
@@ -136,7 +136,7 @@
 				$logMessage = "REQUEST:FAILURE[tcp_port_mismatch_enforce];ACTION:PORTAL;HOSTNAME:".$_SERVER['SERVER_NAME'].";TCPPORT:".$_SERVER['SERVER_PORT'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				header ('Location: /404.php');
+				header ('Location: 404.php');
 				die();
 			}
 		}
@@ -149,7 +149,7 @@
 				$logMessage = "REQUEST:FAILURE[hostname_mismatch_enforce];ACTION:PORTAL;HOSTNAME:".$_SERVER['SERVER_NAME'].";TCPPORT:".$_SERVER['SERVER_PORT'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				header ('Location: /404.php');
+				header ('Location: 404.php');
 				die();
 			}
 		}
@@ -170,7 +170,7 @@
 				$logMessage = "REQUEST:FAILURE[portal_file_not_found];ACTION:PORTAL;HOSTNAME:".$_SERVER['SERVER_NAME'].";TCPPORT:".$_SERVER['SERVER_PORT'].";REQUESTED-FILE:".$filename.";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				header ('Location: /404.php');
+				header ('Location: 404.php');
 				die();
 			}
 		}else{
@@ -179,7 +179,7 @@
 			$logMessage = "REQUEST:FAILURE[portal_instance_not_found];ACTION:PORTAL;HOSTNAME:".$_SERVER['SERVER_NAME'].";GUID:".$portalId.";";
 			$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-			header ('Location: /404.php');
+			header ('Location: 404.php');
 			die();
 		}
 	}elseif(isset($_GET['portal'])){
@@ -239,7 +239,7 @@
 				$logMessage = "FILEREQUEST:FAILURE[file_not_found];ACTION:PORTAL;HOSTNAME:".$_SERVER['SERVER_NAME'].";PORTAL-GET:".$_GET['portal'].";FILE-NAME:$filename;";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 			
-				header ("Location: /404.php");
+				header ("Location: 404.php");
 				die();
 			}
 		}else{
@@ -248,7 +248,7 @@
 			$logMessage = "REQUEST:FAILURE[portal_instance_not_found];ACTION:PORTAL;HOSTNAME:".$_SERVER['SERVER_NAME'].";PORTAL-GET:".$_GET['portal'].";";
 			$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 			
-			header ("Location: /404.php");
+			header ("Location: 404.php");
 		}
 	}else{
 		//LOG::Entry
@@ -256,6 +256,6 @@
 		$logMessage = "REQUEST:FAILURE[unknown_request];ACTION:PORTAL;HOSTNAME:".$_SERVER['SERVER_NAME'].";PORTAL-GET:".$_GET['portal'].";";
 		$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 			
-		header ("Location: /404.php");
+		header ("Location: 404.php");
 	}
 ?>
