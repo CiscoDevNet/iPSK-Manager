@@ -50,7 +50,7 @@
 	
 	if(!ipskLoginSessionCheck()){
 		session_destroy();
-		print "<script>window.location = \"/\"</script>";
+		print "<script>window.location = \"./\"</script>";
 	}else{
 		$ersCreds = $ipskISEDB->getISEERSSettings();
 	

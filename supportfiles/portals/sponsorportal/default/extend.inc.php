@@ -24,7 +24,7 @@
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
 		session_destroy();
-		print "<script>window.location = \"/index.php?portalId=$portalId\";</script>";
+		print "<script>window.location = \"index.php?portalId=$portalId\";</script>";
 		die();
 	}
 	
@@ -52,7 +52,7 @@
 				
 				print <<<HTML
 <script>
-	window.location = "/manage.php?portalId=$portalId";
+	window.location = "manage.php?portalId=$portalId";
 </script>
 HTML;
 			}else{
@@ -135,7 +135,7 @@ HTML;
 		$('.modal-backdrop').remove();
 		
 		$.ajax({
-			url: "/extend.php?portalId=$portalId",
+			url: "extend.php?portalId=$portalId",
 			
 			data: {
 				module: $(this).attr('module'),

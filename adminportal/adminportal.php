@@ -28,7 +28,7 @@
 			require("./installer.php");
 			exit(0);
 		}else{
-			header("Location: /404.php");
+			header("Location: 404.php");
 			die();
 		}
 	}
@@ -53,7 +53,7 @@
 	
 	if(!ipskLoginSessionCheck()){
 		session_destroy();
-		header("Location: /");
+		header("Location: ./");
 		die();
 	}
 	

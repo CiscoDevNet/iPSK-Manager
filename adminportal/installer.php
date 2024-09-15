@@ -34,7 +34,7 @@
 	if(!isset($_SESSION['identityPSKInstalling'])){
 		if(file_exists("../supportfiles/include/config.php")){
 			http_response_code(404);
-			header("Location: ./404.php");
+			header("Location: 404.php");
 			exit(0);
 		}
 	}
@@ -379,14 +379,15 @@ HTML;
 			
 			$ipskManagerAdminPassword = password_hash($_SESSION['adminpassword'], PASSWORD_DEFAULT);
 			
-			$dbConnection = new mysqli($_SESSION['dbhostname'], $_SESSION['rootusername'], $_SESSION['rootpassword']);
-			
-			if($dbConnection->connect_error) {
-				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>'MySQL Error: (".$dbConnection->connect_errno.") ".$dbConnection->connect_error."</div>";
-				goto Bail;
-			}else{
-				$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>MySQL Connection Successful</div>";
+			try {
+				$dbConnection = new mysqli($_SESSION['dbhostname'], $_SESSION['rootusername'], $_SESSION['rootpassword']);
 			}
+			catch (Exception $e) {
+				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>MySQL Error: ".$e."</div>";
+				goto Bail;
+			}
+		
+			$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>MySQL Connection Successful</div>";
 							
 			try {
 				if($dbConnection->select_db($_SESSION['databasename'])){
@@ -562,7 +563,10 @@ HTML;
 				$finalizeButton = '';
 				$finalizeButtonScript = '';
 				
-				$dbConnection->select_db("mysql");
+				try {
+					$dbConnection->select_db("mysql");
+				}
+				catch (Error $e ) {}
 				
 				if($dbCreateFlag){
 					$deleteDbQuery = sprintf("DROP DATABASE `%s`", $dbConnection->real_escape_string($_SESSION['databasename']));
@@ -631,7 +635,7 @@ HTML;
 				$finalizeButtonScript
 				
 				function redirectToAdminPortal(){
-					window.location = "/";
+					window.location = "./";
 				}
 			</script>
 HTML;
@@ -665,13 +669,13 @@ HTML;
 		if(copy("/opt/ipsk-manager/config.php","../supportfiles/include/config.php")) {
 			unlink("installer.inc.php");
 			unlink("installer.php");
-			header("Location: /");
+			header("Location: ./");
 			exit(0);
 
 		} else {
 			session_destroy();
 			http_response_code(500);
-			header("Location: ./500.php");
+			header("Location: 500.php");
 			exit(0);
 		}
 	}else{

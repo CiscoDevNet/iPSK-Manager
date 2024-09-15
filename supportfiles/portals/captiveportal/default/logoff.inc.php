@@ -27,5 +27,5 @@
 	$portalId = $_GET['portalId'];
 	$_SESSION = null;
 	session_destroy();
-	header("Location: /index.php?portalId=$portalId");
+	header("Location: index.php?portalId=$portalId");
 ?>

@@ -114,7 +114,7 @@
 								if($adminSettings['log-purge-interval'] != '') {
 									$ipskISEDB->purgeLogs($adminSettings['log-purge-interval']);
 								}
-								header("Location: /adminportal.php");
+								header("Location: adminportal.php");
 								die();
 							}
 						}
@@ -125,14 +125,14 @@
 					$logMessage = "REQUEST:FAILURE{1}[user_authz_failure];ACTION:ADMINAUTHZ;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					
-					header("Location: /index.php?error=1");
+					header("Location: index.php?error=1");
 				}else{
 					//LOG::Entry
 					$logData = $ipskISEDB->generateLogData(Array("authorizedGroups"=>$authorizedGroups), Array("sanitizedInput"=>$sanitizedInput));
 					$logMessage = "REQUEST:FAILURE{2}[no_authz_groups];ACTION:ADMINAUTHZ;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					
-					header("Location: /index.php?error=2");
+					header("Location: index.php?error=2");
 				}	
 			}else{
 				//LOG::Entry
@@ -140,7 +140,7 @@
 				$logMessage = "REQUEST:FAILURE{3}[user_authn_failure];ACTION:ADMINAUTHN;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					
-				header("Location: /index.php?error=3");
+				header("Location: index.php?error=3");
 			}
 		}else{
 			if(is_numeric($sanitizedInput["authDirectory"])){
@@ -182,7 +182,7 @@
 											if($adminSettings['log-purge-interval'] != '') {
 												$ipskISEDB->purgeLogs($adminSettings['log-purge-interval']);
 											}
-											header("Location: /adminportal.php");
+											header("Location: adminportal.php");
 											die();
 										}
 									}
@@ -192,7 +192,7 @@
 								$logMessage = "REQUEST:FAILURE{1}[user_authz_failure];ACTION:ADMINAUTHZ;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";".$authorizedGroups['count'].";";
 								$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						
-								header("Location: /index.php?error=1");
+								header("Location: index.php?error=1");
 								
 							}else{
 								//LOG::Entry
@@ -200,7 +200,7 @@
 								$logMessage = "REQUEST:FAILURE{2}[no_authz_groups];ACTION:ADMINAUTHZ;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 								$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 											
-								header("Location: /index.php?error=2");
+								header("Location: index.php?error=2");
 							}					
 						}else{
 							//LOG::Entry
@@ -208,7 +208,7 @@
 							$logMessage = "REQUEST:FAILURE{3}[user_authn_failure];ACTION:ADMINAUTHN;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 							$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 							
-							header("Location: /index.php?error=3");
+							header("Location: index.php?error=3");
 						}
 					}else{
 						//START-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
@@ -220,7 +220,7 @@
 						$logMessage = "REQUEST:FAILURE{4}[invalid_ldap_directory];ACTION:ADMINAUTHN;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 						$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						
-						header("Location: /index.php?error=4");
+						header("Location: index.php?error=4");
 					}
 				}else{
 					//LOG::Entry
@@ -228,7 +228,7 @@
 					$logMessage = "REQUEST:FAILURE{5}[no_valid_auth_directories];ACTION:ADMINAUTHN;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 					$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					
-					header("Location: /index.php?error=5");
+					header("Location: index.php?error=5");
 				}
 			}else{
 				//LOG::Entry
@@ -236,7 +236,7 @@
 				$logMessage = "REQUEST:FAILURE{6}[invalid_auth_directory_input];ACTION:ADMINAUTHN;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				header("Location: /index.php?error=6");
+				header("Location: index.php?error=6");
 			}
 		}
 	}else{
@@ -245,6 +245,6 @@
 		$logMessage = "REQUEST:FAILURE{7}[invalid_form_input];ACTION:ADMINAUTHN;USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";";
 		$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 		
-		header("Location: /index.php?error=7");
+		header("Location: index.php?error=7");
 	}
 ?>

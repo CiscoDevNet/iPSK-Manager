@@ -3,7 +3,7 @@ Options +FollowSymLinks
 
 DirectoryIndex index.php
 
-<IfModule mod_shib.c>
+<IfModule mod_shib>
   AuthType shibboleth
   ShibRequestSetting requireSession 1
   Require valid-user

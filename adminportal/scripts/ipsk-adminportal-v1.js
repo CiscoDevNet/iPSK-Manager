@@ -70,7 +70,7 @@ $(document).ready(function() {
 	
 	$("#signOut").click(function(event) {
 		$.ajax({
-			url: "/logoff.php",
+			url: "logoff.php",
 			
 			data: {
 				logoff: true
@@ -78,7 +78,7 @@ $(document).ready(function() {
 			type: "POST",
 			dataType: "html",
 			success: function (data) {
-				window.location = "/";
+				window.location = "./";
 			}
 		});
 		

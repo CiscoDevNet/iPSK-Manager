@@ -6,7 +6,7 @@ ErrorDocument 404 /404.php
 
 DirectoryIndex index.php
 
-<IfModule mod_shib.c>
+<IfModule mod_shib>
   AuthType shibboleth
   ShibRequestSetting requireSession 1
   Require valid-user

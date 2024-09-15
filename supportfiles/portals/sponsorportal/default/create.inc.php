@@ -31,12 +31,12 @@
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
 		session_destroy();
-		header("Location: /index.php?portalId=".$portalId);
+		header("Location: index.php?portalId=".$portalId);
 		die();
 	}
 	
 	if($_SESSION['portalAuthorization']['create'] == false){
-		header("Location: /manage.php?portalId=".$portalId);
+		header("Location: manage.php?portalId=".$portalId);
 		die();
 	}
 	
@@ -256,24 +256,24 @@
 	});
 	
 	$("#createAssoc").click(function() {
-		window.location.href = "/sponsor.php?portalId=$portalId&eg={$sanitizedInput['associationGroup']}";
+		window.location.href = "sponsor.php?portalId=$portalId&eg={$sanitizedInput['associationGroup']}";
 	});
 	
 	$("#bulkAssoc").click(function() {
-		window.location.href = "/bulk.php?portalId=$portalId";
+		window.location.href = "bulk.php?portalId=$portalId";
 	});
 	
 	$("#newAssoc").click(function() {
-		window.location.href = "/sponsor.php?portalId=$portalId&eg={$sanitizedInput['associationGroup']}";
+		window.location.href = "sponsor.php?portalId=$portalId&eg={$sanitizedInput['associationGroup']}";
 	});
 	
 	$("#manageAssoc").click(function() {
-		window.location.href = "/manage.php?portalId=$portalId";
+		window.location.href = "manage.php?portalId=$portalId";
 	});
 	
 	$("#signOut").click(function(event) {
 		$.ajax({
-			url: "/logoff.php?portalId=$portalId",
+			url: "logoff.php?portalId=$portalId",
 			
 			data: {
 				logoff: true
@@ -281,7 +281,7 @@
 			type: "POST",
 			dataType: "html",
 			success: function (data) {
-				window.location = "/index.php?portalId=$portalId";
+				window.location = "index.php?portalId=$portalId";
 			}
 		});
 		
