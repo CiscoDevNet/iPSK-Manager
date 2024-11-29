@@ -64,11 +64,11 @@ Identity PSK Manager enables the following features/functionality:
 
 - Bootstrap v5.3.3
 - jQuery v3.7.1
-- feathericon
+- feathericon v4.29.2
 - Chart JS v4.4.2
 - ClipBoard Copy v2.0.11
-- DataTables v2.0.5
-- PHPMailer v6.9.1
+- DataTables v2.1.8
+- PHPMailer v6.9.3
 
 **We would like to thank all the authors & contributers on the previously mentioned Tools & Frameworks!**
 
