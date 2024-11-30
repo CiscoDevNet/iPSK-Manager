@@ -137,6 +137,8 @@
 			'smtpFromAddress',
 			'smtpEncryption',
 			'samlUsernameVariable',	
+			'vlan',
+			'dacl',
 		];
 
 		$arguments = array(
@@ -322,6 +324,7 @@
 			'mntEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
 			'mntVerifySsl'	=>	FILTER_VALIDATE_BOOLEAN,
 			'fullAuthZUpdate'	=>	FILTER_VALIDATE_BOOLEAN,
+			'fullAuthZUpdateVLANdACL'	=>	FILTER_VALIDATE_BOOLEAN,
 			'adminPortalHostname'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
@@ -369,6 +372,12 @@
 			'ldapSSLCheck' => FILTER_VALIDATE_BOOLEAN,
 			'nestedGroups' => FILTER_VALIDATE_BOOLEAN,
 			'logDisplay' =>	FILTER_VALIDATE_INT,
+			'vlan'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  ),
+			'dacl'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  ),
 		);
 		
 		$mysanitizedInputs = filter_input_array(INPUT_POST, $arguments);

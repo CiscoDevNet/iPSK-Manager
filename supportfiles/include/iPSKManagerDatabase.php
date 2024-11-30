@@ -31,7 +31,7 @@
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 4;
+		public $requiredSchemaVersion = 5;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
 		public $systemConfigured;
@@ -341,7 +341,7 @@
 								$result[$row['keyName']] = $row['value'];
 							}
 						}
-						
+
 						return $result;
 					}else{
 						return false;
@@ -1108,7 +1108,7 @@
 		}
 
 		function getEndpointsByAuthZPolicy($id){
-			$query = "SELECT endpoints.id, endpoints.macAddress, endpointGroups.authzTemplateId FROM `endpoints` INNER JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id WHERE endpointGroups.authzTemplateId = '$id'";
+			$query = "SELECT endpoints.id, endpoints.macAddress, endpoints.createdBy, endpointGroups.authzTemplateId FROM `endpoints` INNER JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id WHERE endpointGroups.authzTemplateId = '$id'";
 			
 			$queryResult = $this->dbConnection->query($query);
 			
@@ -1120,6 +1120,7 @@
 					while($row = $queryResult->fetch_assoc()){
 						$endpointList[$itemCount]['id'] = $row['id'];
 						$endpointList[$itemCount]['macAddress'] = $row['macAddress'];
+						$endpointList[$itemCount]['createdBy'] = $row['createdBy'];
 						$endpointList[$itemCount]['authzTemplateId '] = $row['authzTemplateId'];
 						
 						$itemCount++;
@@ -2114,9 +2115,9 @@
 			}
 		}
 
-		function addAuthorizationTemplate($authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, $termLengthSeconds, $pskLength, $createdBy){
+		function addAuthorizationTemplate($authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, $termLengthSeconds, $pskLength, $vlan, $dacl, $createdBy){
 			
-			$query = sprintf("INSERT INTO authorizationTemplates (`authzPolicyName`, `authzPolicyDescription`, `ciscoAVPairPSK`, `termLengthSeconds`, `pskLength`, `createdBy`) VALUES('%s','%s','%s',%d,%d,'%s')", $this->dbConnection->real_escape_string($authzPolicyName), $this->dbConnection->real_escape_string($authzPolicyDescription), $this->dbConnection->real_escape_string($ciscoAVPairPSK), $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($pskLength), $this->dbConnection->real_escape_string($createdBy));
+			$query = sprintf("INSERT INTO authorizationTemplates (`authzPolicyName`, `authzPolicyDescription`, `ciscoAVPairPSK`, `termLengthSeconds`, `pskLength`, `vlan`, `dacl`, `createdBy`) VALUES('%s','%s','%s',%d,%d,'%s','%s','%s')", $this->dbConnection->real_escape_string($authzPolicyName), $this->dbConnection->real_escape_string($authzPolicyDescription), $this->dbConnection->real_escape_string($ciscoAVPairPSK), $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($pskLength), $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($createdBy));
 
 			try {
 				$queryResult = $this->dbConnection->query($query);
@@ -2710,9 +2711,9 @@
 			}
 		}
 		
-		function updateAuthorizationTemplate($authzId, $authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, $termLengthSeconds, $pskLength, $createdBy){
+		function updateAuthorizationTemplate($authzId, $authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, $termLengthSeconds, $pskLength, $vlan, $dacl, $createdBy){
 			
-			$query = sprintf("UPDATE `authorizationTemplates` SET `authzPolicyName`='%s', `authzPolicyDescription`='%s', `ciscoAVPairPSK`='%s', `termLengthSeconds`='%d', `pskLength`='%d' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($authzPolicyName), $this->dbConnection->real_escape_string($authzPolicyDescription), $this->dbConnection->real_escape_string($ciscoAVPairPSK), $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($pskLength), $this->dbConnection->real_escape_string($authzId));
+			$query = sprintf("UPDATE `authorizationTemplates` SET `authzPolicyName`='%s', `authzPolicyDescription`='%s', `ciscoAVPairPSK`='%s', `termLengthSeconds`='%d', `pskLength`='%d', `vlan`='%s', `dacl`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($authzPolicyName), $this->dbConnection->real_escape_string($authzPolicyDescription), $this->dbConnection->real_escape_string($ciscoAVPairPSK), $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($pskLength), $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($authzId));
 
 			try {
 				$queryResult = $this->dbConnection->query($query);
@@ -2906,6 +2907,20 @@
 			}
 		}
 
+		function updateEndpointVLANdACL($endpointId, $vlan, $dacl){
+			
+			$query = sprintf("UPDATE `endpoints` SET `vlan` = '%s', `dacl` = '%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($endpointId));
+			
+			try {
+				$queryResult = $this->dbConnection->query($query);
+				return true;
+			}
+			catch (Exception $e) {
+				//error_log("Caught Exception: $e");
+				return false;
+			}
+		}
+
 		function extendEndpoint($endpointId, $termLengthSeconds, $createdBy){
 			
 			$query = sprintf("UPDATE `endpoints` SET `accountExpired` = 'False', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($endpointId));
@@ -2927,6 +2942,30 @@
 			try {
 				$queryResult = $this->dbConnection->query($query);
 				return true;
+			}
+			catch (Exception $e) {
+				//error_log("Caught Exception: $e");
+				return false;
+			}
+		}
+
+		function getExpiringEndpoints($days = 5){
+			
+			$query = sprintf("SELECT macAddress,emailAddress FROM `endpoints` WHERE `expirationDate` != 0 AND (`expirationDate` < UNIX_TIMESTAMP(DATE_ADD(NOW(), INTERVAL %d DAY)) AND `expirationDate` > UNIX_TIMESTAMP(NOW()))",$this->dbConnection->real_escape_string($days));
+
+			try {
+				$queryResult = $this->dbConnection->query($query);
+				if($queryResult){
+					if($queryResult->num_rows > 0){
+						return $queryResult;
+					}
+					else {
+						return false;
+					}
+				}
+				else {
+					return false;
+				}
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3075,8 +3114,15 @@
 			}else{
 				$payloadData = '';
 			}
-				
-			$query = sprintf("INSERT INTO `logging` (`sessionID`, `fileName`, `functionName`, `className`,`classMethodName`, `lineNumber`, `message`, `logDataPayload`) VALUES('%s','%s','%s','%s','%s',%d,'%s','%s')", $_SESSION['sessionID'], $filename, $functionName, $className, $classMethodName, $lineNumber, $this->dbConnection->real_escape_string($message), $this->dbConnection->real_escape_string($payloadData));
+			
+			if (isset($_SESSION['sessionID'])) {
+				$session = $_SESSION['sessionID'];
+			}
+			else {
+				$session = "Console Session";
+			}
+
+			$query = sprintf("INSERT INTO `logging` (`sessionID`, `fileName`, `functionName`, `className`,`classMethodName`, `lineNumber`, `message`, `logDataPayload`) VALUES('%s','%s','%s','%s','%s',%d,'%s','%s')", $session, $filename, $functionName, $className, $classMethodName, $lineNumber, $this->dbConnection->real_escape_string($message), $this->dbConnection->real_escape_string($payloadData));
 			
 			
 			try {

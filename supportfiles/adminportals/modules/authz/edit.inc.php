@@ -126,15 +126,31 @@ $htmlbody = <<<HTML
 						$pageiPSKType
 					</select>
 				</div>
+				<div class="mb-3 input-group-sm fw-bold">
+					<label class="fw-bold" for="vlan">VLAN (optional): <a class="d-inline-block" data-bs-toggle="tooltip" title="" data-bs-original-title="Setting a VLAN is optional but doing so will place the VLAN attribute on any endpoint that this authorization template is assigned to. This can then be used in dynamic ISE authorization profile responses." data-bs-placement="right"><i data-feather="help-circle"></i></a></label>
+					<div class="mb-3 input-group-sm fw-bold">
+						<input type="text" class="form-control shadow" id="vlan" value="{$authorizationTemplate['vlan']}">
+					</div>
+				</div>
+				<div class="mb-3 input-group-sm fw-bold">
+					<label class="fw-bold" for="dacl">dACL (optional): <a class="d-inline-block" data-bs-toggle="tooltip" title="" data-bs-original-title="Setting a dACL is optional but doing so will place the dACL attribute on any endpoint that this authorization template is assigned to. This can then be used in dynamic ISE authorization profile responses." data-bs-placement="right"><i data-feather="help-circle"></i></a></label>
+					<div class="mb-3 input-group-sm fw-bold">
+						<input type="text" class="form-control shadow" id="dacl" value="{$authorizationTemplate['dacl']}">
+					</div>
+				</div>
 				<div class="row">
 					<div class="col m-2 shadow p-2 bg-white border border-primary">
-						<label class="fw-bold" for="viewPermission">Pre-Shared Key Change Options:</label>	
+						<label class="fw-bold" for="viewPermission">Pre-Shared Key, VLAN, dACL Change Options:</label>	
 						<div class="mb-3">
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input checkbox-update" base-value="1" value="" id="fullAuthZUpdate">
 								<label class="form-check-label" for="fullAuthZUpdate">Reset <strong>ALL</strong> Associated Endpoint's Pre-Shared Key</label>
 							</div>
-							<small id="viewPermissionBlock" class="form-text text-danger fw-bold">WARNING: This will reset <strong>ALL</strong> Endpoint's Pre-Shared Keys associated to this policy!!!</small>
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input checkbox-update" base-value="1" value="" id="fullAuthZUpdateVLANdACL">
+								<label class="form-check-label" for="fullAuthZUpdateVLANdACL">Reset <strong>ALL</strong> Associated Endpoint's VLANs and dACLs</label>
+							</div>
+							<small id="viewPermissionBlock" class="form-text text-danger fw-bold">WARNING: This will reset <strong>ALL</strong> Endpoint's Pre-Shared Keys, VLAN's, and dACL's associated to this policy!!!</small>
 						</div>
 					</div>
 				</div>
@@ -155,6 +171,11 @@ $htmlbody = <<<HTML
 
 	$(function() {	
 		feather.replace()
+
+		var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+		var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+  			return new bootstrap.Tooltip(tooltipTriggerEl)
+		})
 	});
 	
 	$("#keyType").change(function() {
@@ -232,7 +253,10 @@ $htmlbody = <<<HTML
 				pskLength: $("#pskLength").val(),
 				pskMode: $("#pskMode").val(),
 				pskType: $("#pskType").val(),
-				fullAuthZUpdate: $("#fullAuthZUpdate").val()
+				fullAuthZUpdate: $("#fullAuthZUpdate").val(),
+				fullAuthZUpdateVLANdACL: $("#fullAuthZUpdateVLANdACL").val(),
+				vlan: $("#vlan").val(),
+				dacl: $("#dacl").val()
 			},
 			type: "POST",
 			dataType: "html",

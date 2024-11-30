@@ -102,6 +102,18 @@ $htmlbody = <<<HTML
 				<option value="1">Unique PSK per User</option>
 			</select>
 		</div>
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="vlan">VLAN (optional): <a class="d-inline-block" data-bs-toggle="tooltip" title="" data-bs-original-title="Setting a VLAN is optional but doing so will place the VLAN attribute on any endpoint that this authorization template is assigned to. This can then be used in dynamic ISE authorization profile responses." data-bs-placement="right"><i data-feather="help-circle"></i></a></label>
+			<div class="mb-3 input-group-sm fw-bold">
+				<input type="text" class="form-control shadow" id="vlan" value="">
+			</div>
+		</div>
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="dacl">dACL (optional): <a class="d-inline-block" data-bs-toggle="tooltip" title="" data-bs-original-title="Setting a dACL is optional but doing so will place the dACL attribute on any endpoint that this authorization template is assigned to. This can then be used in dynamic ISE authorization profile responses." data-bs-placement="right"><i data-feather="help-circle"></i></a></label>
+			<div class="mb-3 input-group-sm fw-bold">
+				<input type="text" class="form-control shadow" id="dacl" value="">
+			</div>
+		</div>
 	  </div>
 	  <input type="hidden" id="pskMode" value="0">
       <div class="modal-footer">
@@ -118,6 +130,11 @@ $htmlbody = <<<HTML
 
 	$(function() {	
 		feather.replace()
+
+		var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+		var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+  			return new bootstrap.Tooltip(tooltipTriggerEl)
+		})
 	});
 	
 	$("#keyType").change(function() {
@@ -185,7 +202,10 @@ $htmlbody = <<<HTML
 				ciscoAVPairPSK: $("#ciscoAVPairPSK").val(),
 				pskLength: $("#pskLength").val(),
 				pskMode: $("#pskMode").val(),
-				pskType: $("#pskType").val()
+				pskType: $("#pskType").val(),
+				vlan: $("#vlan").val(),
+				dacl: $("#dacl").val()
+
 			},
 			type: "POST",
 			dataType: "html",
