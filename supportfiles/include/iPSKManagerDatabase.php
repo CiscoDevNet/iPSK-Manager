@@ -1434,7 +1434,7 @@
 		}
 
 		function getAuthorizationTemplatesbyEPGroupId($id){
-			$query = "SELECT authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, authorizationTemplates.pskLength, endpointGroups.groupName FROM `authorizationTemplates` INNER JOIN endpointGroups ON authorizationTemplates.id = endpointGroups.authzTemplateId WHERE endpointGroups.id = '$id'";
+			$query = "SELECT authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, authorizationTemplates.pskLength, authorizationTemplates.vlan, authorizationTemplates.dacl, endpointGroups.groupName FROM `authorizationTemplates` INNER JOIN endpointGroups ON authorizationTemplates.id = endpointGroups.authzTemplateId WHERE endpointGroups.id = '$id'";
 			
 			$queryResult = $this->dbConnection->query($query);
 		
@@ -1851,14 +1851,14 @@
 			}
 		}
 		
-		function addEndpoint($macAddress, $fullName, $description, $email, $psk, $expirationDate, $createdBy){
+		function addEndpoint($macAddress, $fullName, $description, $email, $psk, $vlan = null, $dacl = null, $expirationDate, $createdBy){
 			
 			$endpointQuery = sprintf("SELECT id FROM `endpoints` WHERE `macAddress` = '%s'", $this->dbConnection->real_escape_string($macAddress));
 			
 			$endpointQueryResult = $this->dbConnection->query($endpointQuery);
 			
 			if($endpointQueryResult->num_rows < 1){
-				$query = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `expirationDate`, `createdBy`) VALUES('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s')", $this->dbConnection->real_escape_string($macAddress), $this->dbConnection->real_escape_string($macAddress), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+				$query = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `vlan`, `dacl`, `expirationDate`, `createdBy`) VALUES('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s')", $this->dbConnection->real_escape_string($macAddress), $this->dbConnection->real_escape_string($macAddress), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
 			
 				$queryResult = $this->dbConnection->query($query);
 				
@@ -1870,7 +1870,7 @@
 			}else{
 				$endpoint = $endpointQueryResult->fetch_assoc();
 				
-				$query = sprintf("UPDATE `endpoints` SET `fullName`='%s', `description`='%s', `emailAddress`='%s', `pskValue`='%s', `expirationDate`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($endpoint['id']));
+				$query = sprintf("UPDATE `endpoints` SET `fullName`='%s', `description`='%s', `emailAddress`='%s', `pskValue`='%s', `vlan`='%s', `dacl`='%s', `expirationDate`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($endpoint['id']));
 			
 				$queryResult = $this->dbConnection->query($query);
 				
@@ -1882,7 +1882,7 @@
 			}
 		}
 		
-		function addBulkEndpoints($macAddress, $fullName, $description, $email, $psk, $expirationDate, $createdBy){
+		function addBulkEndpoints($macAddress, $fullName, $description, $email, $psk, $vlan = null, $dacl = null, $expirationDate, $createdBy){
 			$multiInput = false;
 			$multipsk = false;
 			
@@ -1918,24 +1918,24 @@
 						if($multiInput == true){
 							foreach($macAddress as $entry => $key){
 								if($multipsk){
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk[$entry], $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk[$entry], $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
 								}else{
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
 								}
 							}
 						}else{
 							foreach($macAddress as $entry => $key){
 								if($multipsk){
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk[$entry], $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk[$entry], $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
 								}else{
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
 								}
 							}
 						}
 						
 						$insertMacAddress = substr($insertMacAddress, 0, -1);
 						
-						$bulkQuery = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `expirationDate`, `createdBy`) VALUES%s", $insertMacAddress);
+						$bulkQuery = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `vlan`, `dacl`, `expirationDate`, `createdBy`) VALUES%s", $insertMacAddress);
 						
 						$bulkQueryResult = $this->dbConnection->query($bulkQuery);
 						
@@ -2001,24 +2001,24 @@
 						if($multiInput == true){
 							foreach($macAddress as $entry => $key){
 								if($multipsk){
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk[$entry], $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk[$entry], $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
 								}else{
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
 								}
 							}
 						}else{
 							foreach($macAddress as $entry => $key){
 								if($multipsk){
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk[$entry], $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk[$entry], $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
 								}else{
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
 								}
 							}
 						}
 						
 						$insertMacAddress = substr($insertMacAddress, 0, -1);
 						
-						$bulkQuery = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `expirationDate`, `createdBy`) VALUES%s", $insertMacAddress);
+						$bulkQuery = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `vlan`, `dacl`, `expirationDate`, `createdBy`) VALUES%s", $insertMacAddress);
 						
 						$bulkQueryResult = $this->dbConnection->query($bulkQuery);
 						
@@ -2874,14 +2874,14 @@
 			}
 		}
 
-		function updateEndpoint($endpointId, $fullName, $description, $email, $createdBy, $psk = null, $expirationDate = null){
+		function updateEndpoint($endpointId, $fullName, $description, $email, $createdBy, $psk = null, $vlan = null, $dacl = null, $expirationDate = null){
 			
 			if($psk == null && $expirationDate == null){
-				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($endpointId));
+				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `vlan` = '%s', `dacl` = '%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($endpointId));
 			}elseif($psk != null && $expirationDate == null){
-				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($endpointId));
+				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s', `vlan` = '%s', `dacl` = '%s'  WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($endpointId));
 			}else{
-				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s', `accountExpired` = 'False', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($expirationDate), $this->dbConnection->real_escape_string($endpointId));
+				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s', `vlan` = '%s', `dacl` = '%s', `accountExpired` = 'False', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($expirationDate), $this->dbConnection->real_escape_string($endpointId));
 			}
 			try {
 				$queryResult = $this->dbConnection->query($query);
