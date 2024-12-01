@@ -83,6 +83,7 @@ HTML;
 	
 	//Added Database Scheme Update Modal Dialog	for update to DB
 	if($ipskISEDB->check_dbSchemaUpdates()){
+		$newInstalationNotice = '';
 		$schema = $ipskISEDB->getGlobalSetting("db-schema", "version");
 		$requiredSchema = $ipskISEDB->get_requiredSchemaVersion();
 		$databaseSchemeUpdate = <<< HTML
@@ -105,8 +106,42 @@ HTML;
 			</div>
 		</div>
 HTML;
-	}else{
+	}elseif ($ipskISEDB->check_newInstall()){
+		
 		$databaseSchemeUpdate = "";
+		$newInstalationNotice = <<< HTML
+		<div class="modal fade" id="newInstallDetected" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header shadow alert alert-warning">
+						<h5 class="modal-title fw-bold" id="modalLongTitle">New Installation Detected</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+						</button>
+					</div>
+					<div class="modal-body">
+					<p class="h6">
+    					Welcome to iPSK Manager!
+    					<br /><br />
+    					To ensure a smooth setup, it is important to follow a specific sequence during the initial configuration. Failing to do so may cause some menus to be unavailable.
+    					<br /><br />
+    					Begin by editing the relevant fields in the <span class="fw-bold">Platform Configuration</span> section. Next, configure any <span class="fw-bold">LDAP Servers</span> and define <span class="fw-bold">User Groups</span>
+    					<br /><br />
+    					After that, set up <span class="fw-bold">Wireless Networks</span> followed by <span class="fw-bold">Authorization Templates</span>, <span class="fw-bold">Endpoint Grouping</span> and <span class="fw-bold">Portal Groups</span> in that order.
+    					<br /><br />
+    					Once these configurations are complete, you can proceed to configure <span class="fw-bold">Portals</span> and finally add any <span class="fw-bold">Managed iPSK Endpoints</span>
+						<br /><br />
+					</p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Ok</button>
+					</div>
+				</div>
+			</div>
+		</div>
+HTML;
+	}else {
+		$databaseSchemeUpdate = "";
+		$newInstalationNotice = "";
 	}
 ?><!doctype html>
 <html lang="en">
@@ -205,7 +240,8 @@ HTML;
 				<div id="mainContent" class="float-rounded mx-auto shadow-lg p-4 bg-white">
 				
 				</div>
-				<div id="adminPortalNotifications">	
+				<div id="adminPortalNotifications">
+					<?php print $newInstalationNotice;?>
 					<?php print $databaseSchemeUpdate;?>
 				</div>
 			</main>
