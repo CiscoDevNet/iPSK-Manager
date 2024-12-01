@@ -163,35 +163,56 @@
 		}
 
 		function check_newInstall(){
+			
 			$query = 'SELECT COUNT(id) as count FROM `endpoints`';
-			
 			$queryResult = $this->dbConnection->query($query);
-			
-			if($queryResult == 0){
-				
-				$query = 'SELECT COUNT(id) as count FROM `wirelessNetworks`';
-				$queryResult = $this->dbConnection->query($query);
-				
-				if($queryResult == 0){
-				
-					$query = 'SELECT COUNT(id) as count FROM `sponsorPortals`';
+
+			if($queryResult){
+				$row = $queryResult->fetch_assoc();
+				$count = $row['count'] ?? 0;
+
+				if ((int)$count === 0) {
+
+					$query = 'SELECT COUNT(id) as count FROM `wirelessNetworks`';
 					$queryResult = $this->dbConnection->query($query);
-				
-					if($queryResult == 0){
-						return true;
-					}
-					else {
+
+					if($queryResult){
+
+						$row = $queryResult->fetch_assoc(); 
+						$count = $row['count'] ?? 0; 
+
+						if ((int)$count === 0) {
+
+							$query = 'SELECT COUNT(id) as count FROM `sponsorPortals`';
+							$queryResult = $this->dbConnection->query($query);
+
+							if($queryResult){
+
+								$row = $queryResult->fetch_assoc();
+								$count = $row['count'] ?? 0; 
+
+								if ((int)$count === 0) {
+									return true;
+								}else {
+									return false;
+								}
+							}else {
+								return false;
+							}
+						}else {
+							return false;
+						}
+					}else {
 						return false;
 					}
+				}else {
+						return false;
 				}
-				else {
-					return false;
-				}
-			}else{
+			}else {
 				return false;
 			}
 		}
-		
+
 		function set_encryptionKey($key){
 			if(!$this->encryptionKey){
 				$this->encryptionKey = $key;
