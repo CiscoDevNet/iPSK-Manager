@@ -260,7 +260,7 @@ HTML;
 		<script>
 			var failure;
 			
-			$("#noPortalGroup").modal();
+			$("#noPortalGroup").modal('show');
 
 			$(function() {	
 				feather.replace()

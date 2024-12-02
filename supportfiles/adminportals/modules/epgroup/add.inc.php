@@ -165,7 +165,7 @@ HTML;
 		<script>
 			var failure;
 			
-			$("#noAuthorizationTemplates").modal();
+			$("#noAuthorizationTemplates").modal('show');
 
 			$(function() {	
 				feather.replace()
