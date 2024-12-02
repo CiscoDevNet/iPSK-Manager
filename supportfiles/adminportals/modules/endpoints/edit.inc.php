@@ -21,9 +21,10 @@
 	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction'] && isset($sanitizedInput['fullName']) && isset($sanitizedInput['emailAddress']) && isset($sanitizedInput['endpointDescription']) && isset($sanitizedInput['editAssociation']) && isset($sanitizedInput['associationGroup'])){
 		if($_SESSION['editAssociationEndpointId'] == $sanitizedInput['id']){
 			$endpoint = $ipskISEDB->getEndpointByAssociationId($sanitizedInput['id']);
-		
+			
+			$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
+
 			if($sanitizedInput['editAssociation'] == 1){
-				$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 				
 				if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
 					$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
@@ -48,15 +49,15 @@
 					$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
 				}
 
-				$ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $duration);
+				$ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration);
 				$ipskISEDB->deleteEndpointAssociationbyId($sanitizedInput['id']);
 				$ipskISEDB->addEndpointAssociation($endpoint['endpointId'], $endpoint['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']);
 				
 			}elseif($sanitizedInput['editPSK'] == 1){
 				$randomPSK = "psk=".$sanitizedInput['presharedKey'];
-				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK);
+				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
 			}else{
-				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID']);
+				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], null, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
 			}
 			
 			unset($_SESSION['editAssociationEndpointId']);

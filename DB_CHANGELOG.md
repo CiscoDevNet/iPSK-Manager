@@ -123,3 +123,43 @@ OR
 > mysql -u <USER> -p < schemaupdate-v4.sql
 > ```
 5) Enter password when prompted
+
+Database Changes (11/29/2024) - v5
+------
+
+### Changed
+- Added columns to endpoints table to support VLAN and dACL assignment
+- Added columns to authorizationTemplates table to support VLAN and dACL assignment
+- Update the to following Stored Procedure to send VLAN and dACL assignments
+  - iPSK_AttributeFetch
+
+**WARNING: This update affects the stored procedures used by Cisco ISE's ODBC Connection to Query for Endpoints**
+
+Updates to the data tables require running the included `schemaupdate-v5.sql` update script against the database.
+1) Download and update the `schemaupdate-v5.sql` file with your environment specific variables as per README
+> ```
+> /* INSTALLATION README -----------------------------------------------------------
+> *  Replace the following values below with your specific installation information
+> *  Refer to 'DONOTDELETE-iPSKManager-Install.txt' for you environment details
+> *
+> * A total of two(2) entries need updating in this SQL file:
+> *
+> *		<ISE_DB_NAME> = MySQL iPSK Manager Database Name
+> *			Example: USE `iPSKManager`;
+> * 			
+> *		<ISE_DB_USERNAME> MySQL Username for Cisco ISE ODBC Connection
+> *			Example: CREATE DEFINER=`ciscoise`@`%` PROC...
+> *--------------------------------------------------------------------------------
+> */
+> ```
+2) Login to the CLI of the Server running MySQL
+3) Change to the directory where `schemaupdate-v5.sql` is located
+4) Execute the script with 'root' or a user with 'ALTER TABLE' Privileges
+> ```
+> mysql -u root -p < schemaupdate-v5.sql
+> ```
+OR
+> ```
+> mysql -u <USER> -p < schemaupdate-v5.sql
+> ```
+5) Enter password when prompted

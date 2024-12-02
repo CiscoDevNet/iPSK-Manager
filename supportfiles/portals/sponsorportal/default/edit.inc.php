@@ -30,8 +30,9 @@
 		if($_SESSION['editAssociationEndpointId'] == $sanitizedInput['id']){
 			$endpoint = $ipskISEDB->getEndpointByAssociationId($sanitizedInput['id']);
 		
+			$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
+			
 			if($sanitizedInput['editAssociation'] == 1){
-				$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 				
 				if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
 					$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
@@ -56,7 +57,7 @@
 					$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
 				}
 
-				$ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $duration);
+				$ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK,  $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration);
 				$ipskISEDB->deleteEndpointAssociationbyId($sanitizedInput['id']);
 				$ipskISEDB->addEndpointAssociation($endpoint['endpointId'], $endpoint['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']);
 				
@@ -71,7 +72,7 @@
 							if($endPointPermissions[$idxId]['advancedPermissions'] & 1024){
 								$randomPSK = "psk=".$sanitizedInput['ciscoAVPairPSK'];
 					
-								$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK);
+								$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
 							}
 						}
 					}
@@ -80,7 +81,7 @@
 				//Revoke previously generated PSK for Enduser
 				unset($_SESSION['temp']);
 			}else{
-				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID']);
+				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], null, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
 			}
 			
 			unset($_SESSION['editAssociationEndpointId']);

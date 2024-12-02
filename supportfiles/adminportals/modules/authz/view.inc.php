@@ -89,6 +89,18 @@ $htmlbody = <<<HTML
 				<span class="input-group-text fw-bold shadow" id="basic-addon1"><a id="showpassword" href="#"><span id="passwordfeather" data-feather="eye"></span></a></span>
 			</div>
 		</div>
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="vlan">VLAN:</label>
+			<div class="mb-3 input-group-sm fw-bold">
+				<input type="text" class="form-control shadow" id="vlan" value="{$authorizationTemplate['vlan']}" readonly>
+			</div>
+		</div>
+		<div class="mb-3 input-group-sm fw-bold">
+			<label class="fw-bold" for="dacl">dACL:</label>
+			<div class="mb-3 input-group-sm fw-bold">
+				<input type="text" class="form-control shadow" id="dacl" value="{$authorizationTemplate['dacl']}" readonly>
+			</div>
+		</div>
 		<label class="fw-bold" for="createdDate">Date Created:</label>
 		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="createdDate" value="{$authorizationTemplate['createdDate']}" readonly>

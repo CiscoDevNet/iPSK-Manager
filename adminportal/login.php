@@ -61,7 +61,10 @@
 
 	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
 	$samlLogin = (isset($samlSettings['enabled'])) ? $samlSettings['enabled'] : false;
-	$samlUsernameField = ($samlSettings['usernamefield'] != '') ? $samlSettings['usernamefield'] : 'REMOTE_USER';
+	
+	if ($samlLogin) {
+		$samlUsernameField = ($samlSettings['usernamefield'] != '') ? $samlSettings['usernamefield'] : 'REMOTE_USER';
+	}
 	
 	if ($samlLogin == true && $samlSettings['headers'] == true) {
 		$requestHeaders = getallheaders();
@@ -111,7 +114,7 @@
 								
 								$ipskISEDB->addUserCacheEntry($_SESSION['logonSID'],$_SESSION['userPrincipalName'],$_SESSION['sAMAccountName'],$_SESSION['logonDN'], $systemSID);
 								$adminSettings = $ipskISEDB->getGlobalClassSetting("admin-portal");
-								if($adminSettings['log-purge-interval'] != '') {
+								if(isset($adminSettings['log-purge-interval']) && $adminSettings['log-purge-interval'] != '') {
 									$ipskISEDB->purgeLogs($adminSettings['log-purge-interval']);
 								}
 								header("Location: adminportal.php");

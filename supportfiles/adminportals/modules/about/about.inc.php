@@ -35,7 +35,7 @@
 	if (extension_loaded('sodium')){ $platformDetails .=  "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span> PHP Extension <strong>'sodium'</strong> Installed</div>";}else{ $platformDetails .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span> PHP Extension <strong>'sodium'</strong> is NOT Installed</div>";}
 	if (extension_loaded('json')){ $platformDetails .=  "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span> PHP Extension <strong>'json'</strong> Installed</div>";}else{ $platformDetails .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span> PHP Extension <strong>'json'</strong> is NOT Installed</div>";}
 
-	$platformDetails .= "<div>iPSK Manager Database Scheme Version: <strong>".$ipskISEDB->get_dbSchemaVersion()."</strong></div>";
+	$platformDetails .= "<div>iPSK Manager Database Schema Version: <strong>".$ipskISEDB->get_dbSchemaVersion()."</strong></div>";
 
 ?>
 

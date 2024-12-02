@@ -62,7 +62,7 @@
 			$wifiSsid = $wirelessNetwork['ssidName'];
 		}
 		
-		if($endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $duration, $_SESSION['logonSID'])){
+		if($endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID'])){
 			
 			//LOG::Entry
 			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));

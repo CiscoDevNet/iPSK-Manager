@@ -352,7 +352,7 @@ HTML;
 		<script>
 			var failure;
 			
-			$("#missingDependencies").modal();
+			$("#missingDependencies").modal('show');
 
 			$(function() {	
 				feather.replace()

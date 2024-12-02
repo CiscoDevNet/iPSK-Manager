@@ -66,8 +66,16 @@ HTML;
 			}
 		}
 
+		if(!isset($sanitizedInput['vlan'])) {
+			$sanitizedInput['vlan'] = '';
+		}
+
+		if(!isset($sanitizedInput['dacl'])) {
+			$sanitizedInput['dacl'] = '';
+		}
+
 		if(!$failure){
-			$ipskISEDB->addAuthorizationTemplate($sanitizedInput['authzPolicyName'], $sanitizedInput['authzPolicyDescription'], $psk, $sanitizedInput['termLengthSeconds'], $sanitizedInput['pskLength'], $_SESSION['logonSID']);
+			$ipskISEDB->addAuthorizationTemplate($sanitizedInput['authzPolicyName'], $sanitizedInput['authzPolicyDescription'], $psk, $sanitizedInput['termLengthSeconds'], $sanitizedInput['pskLength'], $sanitizedInput['vlan'], $sanitizedInput['dacl'], $_SESSION['logonSID']);
 			
 		}
 	}

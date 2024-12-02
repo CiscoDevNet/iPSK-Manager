@@ -30,6 +30,11 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Portal Groups
 - Customizable Sponsor & Captive Portals
 
+**What's New (November 2024)**
+- [Upcoming expiring endpoint email](#expiring-endpoint-email)
+- [VLAN and dACL attributes](#vlan-and-dacl-attributes)
+- New installation guidance popup after login
+
 **What's New (July 2024)**
 - [GUI Logging Enhancements](#gui-logging)
 
@@ -459,6 +464,15 @@ Logging via GUI can be enabled by editing the **'additionalmenus.json'** file in
 To view logs for the past hour, simply click on the 'System Logging' menu. From there, you can adjust the log display by selecting different time ranges available in the navigation bar options. 
 
 Note: Rest of the logging settings are under Platform Configuration > Advanced Settings and Logging Settings
+
+## Expiring Endpoint Email
+The expire-endpoints-cron-example.php script has been updated to support sending an email to the owners of endpoints with a list of devices that are about to expire. You can configure the number of days before expiration to start emailing the owners. The frequency of emails sent to owners depends on how often you schedule the script to run as a cron job before the endpoint expires.
+
+## VLAN and dACL Attributes
+Authorization Templates now include two optional fields: VLAN and dACL. If these fields are set, endpoints added will have a VLAN and/or dACL assigned, which can be referenced from ISE via the ODBC stored procedure call. These values can be used in Authorization Profiles to create a single dynamic Authorization Profile.
+
+The addition of VLAN and dACL also enables the use of iPSK Manager for wired connections that utilize MAB (Mac Authentication Bypass) to assign VLAN and/or dACL values to a wired device. When using this for a wired connection, you would ignore the returned iPSK value in ISE.
+
 ## Use non-SSL port for admin and end user portal
 It is recommended to use SSL for security and main section of the document describes how to enable SSL. However, if no certificate is available, port 80 request to admin portal can be used by creating a file called '80.conf' with following content and placed in '/etc/apache2/sites-enabled' directory: 
 ```

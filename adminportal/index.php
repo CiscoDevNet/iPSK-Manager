@@ -99,8 +99,10 @@
 			}
 		}
 	}
+
+	$samlLogin = (isset($samlSettings['enabled'])) ? $samlSettings['enabled'] : false;
 	
-    if (!isset($_GET['error']) && $samlSettings['enabled'] == true) {
+    if (!isset($_GET['error']) && $samlLogin == true) {
 		header("Location: login.php");
 		die();
 	}else{

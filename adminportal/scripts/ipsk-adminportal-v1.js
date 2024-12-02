@@ -84,7 +84,11 @@ $(document).ready(function() {
 		
 		event.preventDefault();
 	});
-	
+
+	if($("#newInstallDetected").length){
+		$("#newInstallDetected").modal('show');
+	}
+
 	if($("#databaseUpdateDetected").length){
 		$("#databaseUpdateDetected").modal('show');
 	}

@@ -65,9 +65,17 @@ HTML;
 				$psk = "*userrandom*";
 			}
 		}
+
+		if(!isset($sanitizedInput['vlan'])) {
+			$sanitizedInput['vlan'] = '';
+		}
+
+		if(!isset($sanitizedInput['dacl'])) {
+			$sanitizedInput['dacl'] = '';
+		}
 		
 		if(!$failure){
-			$ipskISEDB->updateAuthorizationTemplate($sanitizedInput['id'], $sanitizedInput['authzPolicyName'], $sanitizedInput['authzPolicyDescription'], $psk, $sanitizedInput['termLengthSeconds'], $sanitizedInput['pskLength'], $_SESSION['logonSID']);
+			$ipskISEDB->updateAuthorizationTemplate($sanitizedInput['id'], $sanitizedInput['authzPolicyName'], $sanitizedInput['authzPolicyDescription'], $psk, $sanitizedInput['termLengthSeconds'], $sanitizedInput['pskLength'], $sanitizedInput['vlan'], $sanitizedInput['dacl'],$_SESSION['logonSID']);
 		
 			if($sanitizedInput['fullAuthZUpdate'] == true){
 				$endpointsToUpdate = $ipskISEDB->getEndpointsByAuthZPolicy($sanitizedInput['id']);
@@ -78,10 +86,32 @@ HTML;
 							$ipskISEDB->updateEndpointPsk($endpointsToUpdate[$itemCount]['id'], "psk=".$psk);
 						}
 					}else{
-						for($itemCount = 0; $itemCount < $endpointsToUpdate['count']; $itemCount++){
-							$ipskISEDB->updateEndpointPsk($endpointsToUpdate[$itemCount]['id'], "psk=".$ipskISEDB->generateRandomPassword($sanitizedInput['pskLength']));
+						if($sanitizedInput['pskType'] == 0) {
+							for($itemCount = 0; $itemCount < $endpointsToUpdate['count']; $itemCount++){
+								$ipskISEDB->updateEndpointPsk($endpointsToUpdate[$itemCount]['id'], "psk=".$ipskISEDB->generateRandomPassword($sanitizedInput['pskLength']));
+							}
+						}else{
+							$users = array_unique(array_column($endpointsToUpdate, 'createdBy'));
+
+							foreach ($users as $user) {
+								$randompsk = $ipskISEDB->generateRandomPassword($sanitizedInput['pskLength']);
+								foreach ($endpointsToUpdate as $entry) {
+									if ($entry['createdBy'] == $user) {
+										$ipskISEDB->updateEndpointPsk($entry['id'], "psk=".$randompsk);
+									}
+								}
+							}
 						}
 					}			
+				}
+			}
+			if($sanitizedInput['fullAuthZUpdateVLANdACL'] == true){
+				$endpointsToUpdate = $ipskISEDB->getEndpointsByAuthZPolicy($sanitizedInput['id']);
+				
+				if($endpointsToUpdate){
+					for($itemCount = 0; $itemCount < $endpointsToUpdate['count']; $itemCount++){
+						$ipskISEDB->updateEndpointVLANdACL($endpointsToUpdate[$itemCount]['id'], $sanitizedInput['vlan'], $sanitizedInput['dacl']);
+					}
 				}
 			}
 		}
