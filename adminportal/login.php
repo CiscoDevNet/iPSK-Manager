@@ -62,7 +62,7 @@
 	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
 	$samlLogin = (isset($samlSettings['enabled'])) ? $samlSettings['enabled'] : false;
 	
-	if ($samLogin) {
+	if ($samlLogin) {
 		$samlUsernameField = ($samlSettings['usernamefield'] != '') ? $samlSettings['usernamefield'] : 'REMOTE_USER';
 	}
 	
