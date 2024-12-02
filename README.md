@@ -33,6 +33,7 @@ Identity PSK Manager enables the following features/functionality:
 **What's New (November 2024)**
 - [Upcoming expiring endpoint email](#expiring-endpoint-email)
 - [VLAN and dACL attributes](#vlan-and-dacl-attributes)
+- New installation guidance popup after login
 
 **What's New (July 2024)**
 - [GUI Logging Enhancements](#gui-logging)
