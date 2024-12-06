@@ -25,7 +25,7 @@
 	// CONFIG BEGIN
 	
 	// Change path to where you installed iPSK Manager
-	$ipskManagerPath = "/Users/nick/Documents/GitHub/iPSK-Manager";
+	$ipskManagerPath = "/path/to/iPSK-Manager";
 
 	// Enable/Disable Expire Endpoint Process
 	$expireEndpoints = false;
