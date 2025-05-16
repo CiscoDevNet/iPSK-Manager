@@ -1,6 +1,6 @@
 # Identity PSK Manager - Database Change Log
 
-Current Database Schema Version : **4**
+Current Database Schema Version : **6**
 
 All changes to this Sample Codes Database will be documented here:
 
@@ -161,5 +161,42 @@ Updates to the data tables require running the included `schemaupdate-v5.sql` up
 OR
 > ```
 > mysql -u <USER> -p < schemaupdate-v5.sql
+> ```
+5) Enter password when prompted
+
+Database Changes (5/16/2025) - v6
+------
+
+### Changed
+- Reapplication of schema changes in v5 for issue with fresh installs and missing db items due to missing create functions in installation code
+
+**WARNING: This update affects the stored procedures used by Cisco ISE's ODBC Connection to Query for Endpoints**
+
+Updates to the data tables require running the included `schemaupdate-v6.sql` update script against the database.
+1) Download and update the `schemaupdate-v6.sql` file with your environment specific variables as per README
+> ```
+> /* INSTALLATION README -----------------------------------------------------------
+> *  Replace the following values below with your specific installation information
+> *  Refer to 'DONOTDELETE-iPSKManager-Install.txt' for you environment details
+> *
+> * A total of two(2) entries need updating in this SQL file:
+> *
+> *		<ISE_DB_NAME> = MySQL iPSK Manager Database Name
+> *			Example: USE `iPSKManager`;
+> * 			
+> *		<ISE_DB_USERNAME> MySQL Username for Cisco ISE ODBC Connection
+> *			Example: CREATE DEFINER=`ciscoise`@`%` PROC...
+> *--------------------------------------------------------------------------------
+> */
+> ```
+2) Login to the CLI of the Server running MySQL
+3) Change to the directory where `schemaupdate-v6.sql` is located
+4) Execute the script with 'root' or a user with 'ALTER TABLE' Privileges
+> ```
+> mysql -u root -p < schemaupdate-v6.sql
+> ```
+OR
+> ```
+> mysql -u <USER> -p < schemaupdate-v6.sql
 > ```
 5) Enter password when prompted

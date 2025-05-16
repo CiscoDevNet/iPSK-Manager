@@ -441,6 +441,19 @@ HTML;
 				$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Tables Created Successfully</div>";
 			}
 
+			for($sqlCount = 0; $sqlCount < count($sqlTrigger); $sqlCount++){
+				if(!$dbConnection->query($sqlTrigger[$sqlCount])){
+					$actionValid = false;
+				}				
+			}
+			
+			if(!$actionValid){
+				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Trigger Creation Failure</div>";
+				goto Bail;
+			}else{
+				$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Triggers Created Successfully</div>";
+			}
+
 			for($sqlCount = 0; $sqlCount < count($sqlAlterTable); $sqlCount++){
 				if(!$dbConnection->query($sqlAlterTable[$sqlCount])){
 					$actionValid = false;
