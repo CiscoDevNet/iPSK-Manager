@@ -1370,7 +1370,7 @@
 		}
 		
 		function getEndPointAssociationById($endpointGroupId){
-			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.createdDate as epCreatedDate, endpointGroups.id as epGroupId, endpointGroups.groupName as epGroupName, endpoints.macAddress, endpoints.expirationDate, endpoints.accountExpired, endpoints.accountEnabled, endpoints.fullName, endpoints.description, endpoints.pskValue, endpoints.lastAccessed, endpoints.emailAddress, endpointAssociations.createdDate FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId WHERE endpointAssociations.id = '$endpointGroupId' LIMIT 1";
+			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.createdDate as epCreatedDate, endpointGroups.id as epGroupId, endpointGroups.groupName as epGroupName, endpoints.macAddress, endpoints.expirationDate, endpoints.accountExpired, endpoints.accountEnabled, endpoints.fullName, endpoints.description, endpoints.pskValue, endpoints.lastAccessed, endpoints.emailAddress, endpointAssociations.createdDate, endpoints.vlan, endpoints.dacl FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId WHERE endpointAssociations.id = '$endpointGroupId' LIMIT 1";
 			
 			$queryResult = $this->dbConnection->query($query);
 			
