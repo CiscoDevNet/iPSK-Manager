@@ -46,27 +46,30 @@
 			if(!isset($trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']])){
 				//Check if User is authorized for Bulk Create on EndPoint Group
 				if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 2048){
-					$userEPCount = $ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']);
-					if($userEPCount < $_SESSION['authorizedEPGroups'][$count]['maxDevices'] || $_SESSION['authorizedEPGroups'][$count]['maxDevices'] == 0){
-				
-						if($_SESSION['authorizedEPGroups'][$count]['termLengthSeconds'] == 0){
-							$termLength = "No Expiry";
-						}else{
-							$termLength = ($_SESSION['authorizedEPGroups'][$count]['termLengthSeconds'] / 60 / 60 / 24) . " Days";
-						}
-						
-						if($_SESSION['authorizedEPGroups'][$count]['ciscoAVPairPSK'] == "*userrandom*"){
-							$keyType = "Randomly Chosen per User";
-						}elseif($_SESSION['authorizedEPGroups'][$count]['ciscoAVPairPSK'] == "*devicerandom*"){
-							$keyType = "Randomly Chosen per Device";
-						}else{
-							$keyType = "Common PSK";
-						}
-						
-						$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']."\">".$_SESSION['authorizedEPGroups'][$count]['groupName']."</option>";
-						$trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']] = true;
-						$pageValid = true;
+					$userEPCount = $ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']);				
+					if($_SESSION['authorizedEPGroups'][$count]['termLengthSeconds'] == 0){
+						$termLength = "No Expiry";
+					}else{
+						$termLength = ($_SESSION['authorizedEPGroups'][$count]['termLengthSeconds'] / 60 / 60 / 24) . " Days";
 					}
+					
+					if($_SESSION['authorizedEPGroups'][$count]['ciscoAVPairPSK'] == "*userrandom*"){
+						$keyType = "Randomly Chosen per User";
+					}elseif($_SESSION['authorizedEPGroups'][$count]['ciscoAVPairPSK'] == "*devicerandom*"){
+						$keyType = "Randomly Chosen per Device";
+					}else{
+						$keyType = "Common PSK";
+					}
+					
+					$disableOption = '';
+					if ($userEPCount >= $_SESSION['authorizedEPGroups'][$count]['maxDevices'] && $_SESSION['authorizedEPGroups'][$count]['maxDevices'] != 0) {
+						$disableOption = 'disabled'; 
+					}
+
+					
+					$pageData['endpointGroupList'] .= "<option data-keytype=\"$keyType\" data-term=\"$termLength\" value=\"".$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']."\" $disableOption>".$_SESSION['authorizedEPGroups'][$count]['groupName']."</option>";
+					$trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']] = true;
+					$pageValid = true;
 				}
 			}
 		}
