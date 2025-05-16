@@ -47,7 +47,7 @@
 	}
 
 	if($sponsorLogins){
-		for ($x = 1; $x <= 7; $x++) { 
+		for ($x = 0; $x < 7; $x++) {
 			$set = false;
 
 			while($row = $sponsorLogins->fetch_assoc()){
@@ -67,14 +67,14 @@
 			mysqli_data_seek($sponsorLogins,0);
 		}
 	} else {
-		for ($x = 1; $x <= 7; $x++) { 
+		for ($x = 0; $x < 7; $x++) {
 			$sponsorChartLabel .= "'".date('Y-m-d', strtotime('-'.$x.' days'))."',";
 			$sponsorChartData .= "0,";
 		}
 	}
 
 	if($captiveLogins){
-		for ($x = 1; $x <= 7; $x++) { 
+		for ($x = 0; $x < 7; $x++) {
 			$set = false;
 
 			while($row = $captiveLogins->fetch_assoc()){
@@ -94,14 +94,14 @@
 			mysqli_data_seek($captiveLogins,0);
 		}
 	} else {
-		for ($x = 1; $x <= 7; $x++) { 
+		for ($x = 0; $x < 7; $x++) {
 			$captiveChartLabel .= "'".date('Y-m-d', strtotime('-'.$x.' days'))."',";
 			$captiveChartData .= "0,";
 		}
 	}
 
 	if($adminLogins){
-		for ($x = 1; $x <= 7; $x++) { 
+		for ($x = 0; $x < 7; $x++) {
 			$set = false;
 
 			while($row = $adminLogins->fetch_assoc()){
@@ -121,14 +121,14 @@
 			mysqli_data_seek($adminLogins,0);
 		}
 	} else {
-		for ($x = 1; $x <= 7; $x++) { 
+		for ($x = 0; $x < 7; $x++) {
 			$adminChartLabel .= "'".date('Y-m-d', strtotime('-'.$x.' days'))."',";
 			$adminChartData .= "0,";
 		}
 	}
 
 	if($addedEndpoints){
-		for ($x = 1; $x <= 7; $x++) { 
+		for ($x = 0; $x < 7; $x++) {
 			$set = false;
 
 			while($row = $addedEndpoints->fetch_assoc()){
@@ -148,7 +148,7 @@
 			mysqli_data_seek($addedEndpoints,0);
 		}
 	} else {
-		for ($x = 1; $x <= 7; $x++) { 
+		for ($x = 0; $x < 7; $x++) {
 			$addedEndpointsChartLabel .= "'".date('Y-m-d', strtotime('-'.$x.' days'))."',";
 			$addedEndpointsChartData .= "0,";
 		}
