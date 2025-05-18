@@ -2932,7 +2932,7 @@
 
 		function updateEndpointVLANdACL($endpointId, $vlan, $dacl){
 			
-			$query = sprintf("UPDATE `endpoints` SET `vlan` = '%s', `dacl` = '%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($endpointId));
+			$query = sprintf("UPDATE `endpoints` SET `vlan` = '%s', `dacl` = '%s' WHERE `id` = %d", $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($endpointId));
 			
 			try {
 				$queryResult = $this->dbConnection->query($query);
