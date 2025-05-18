@@ -2158,7 +2158,7 @@
 			
 			try {
 				$queryResult = $this->dbConnection->query($query);
-				return true;
+				return $this->dbConnection->insert_id;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
