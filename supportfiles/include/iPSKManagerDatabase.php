@@ -31,7 +31,7 @@
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 5;
+		public $requiredSchemaVersion = 6;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
 		public $systemConfigured;
