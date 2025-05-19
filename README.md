@@ -30,6 +30,11 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Portal Groups
 - Customizable Sponsor & Captive Portals
 
+**What's New (May 2025)**
+- Various bug fixes and minor enhancements
+- Bumped several supporting library versions
+- Database Schema Update (v6)
+
 **What's New (November 2024)**
 - [Upcoming expiring endpoint email](#expiring-endpoint-email)
 - [VLAN and dACL attributes](#vlan-and-dacl-attributes)
