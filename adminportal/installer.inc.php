@@ -392,7 +392,7 @@ END
 SQL;
 
 	$sqlTrigger[0] = <<< SQL
-CREATE TRIGGER `lastupdate_before_update_trigger` BEFORE UPDATE ON `endpoints` FOR EACH ROW BEGIN
+CREATE TRIGGER DEFINER=`{$_SESSION['dbusername']}`@`%` `lastupdate_before_update_trigger` BEFORE UPDATE ON `endpoints` FOR EACH ROW BEGIN
     SET NEW.lastUpdated = NOW();
 END
 SQL;

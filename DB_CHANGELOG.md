@@ -179,11 +179,14 @@ Updates to the data tables require running the included `schemaupdate-v6.sql` up
 > *  Replace the following values below with your specific installation information
 > *  Refer to 'DONOTDELETE-iPSKManager-Install.txt' for you environment details
 > *
-> * A total of two(2) entries need updating in this SQL file:
+> * A total of three(3) entries need updating in this SQL file:
 > *
 > *		<ISE_DB_NAME> = MySQL iPSK Manager Database Name
 > *			Example: USE `iPSKManager`;
 > * 			
+> *		<IPSK_DB_USERNAME> =  MySQL Username for iPSK Manager
+> *			Example: CREATE DEFINER=`ipskmgr`@`%` PROC...
+> *
 > *		<ISE_DB_USERNAME> MySQL Username for Cisco ISE ODBC Connection
 > *			Example: CREATE DEFINER=`ciscoise`@`%` PROC...
 > *--------------------------------------------------------------------------------

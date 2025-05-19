@@ -21,10 +21,13 @@
  *	Replace the following values below with your specific installation information
  *  Refer to 'DONOTDELETE-iPSKManager-Install.txt' for your environment details
  *
- *  A total of two(2) entries needs updating in this SQL file:
+ *  A total of three(3) entries needs updating in this SQL file:
  *
  *		<ISE_DB_NAME> = MySQL iPSK Manager Database Name
  *			Example: USE `iPSKManager`;
+ *
+ *		<IPSK_DB_USERNAME> =  MySQL Username for iPSK Manager
+ *			Example: CREATE DEFINER=`ipskmgr`@`%` PROC...
  *
  *		<ISE_DB_USERNAME> =  MySQL Username for Cisco ISE ODBC Connection
  *			Example: CREATE DEFINER=`ciscoise`@`%` PROC...
@@ -51,7 +54,7 @@ DROP TRIGGER IF EXISTS `lastupdate_before_update_trigger`;
 --
 
 DELIMITER $$
-CREATE TRIGGER `lastupdate_before_update_trigger` BEFORE UPDATE ON `endpoints` FOR EACH ROW BEGIN
+CREATE DEFINER=`<IPSK_DB_USERNAME>`@`%` TRIGGER `lastupdate_before_update_trigger` BEFORE UPDATE ON `endpoints` FOR EACH ROW BEGIN
     SET NEW.lastUpdated = NOW();
 END
 $$
