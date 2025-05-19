@@ -386,8 +386,13 @@
 		if (is_iterable($mysanitizedInputs)) {
 			foreach ($mysanitizedInputs as $key => $value) {
 				if (in_array($key, $stringKeysToSanitize)) {
-					$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value), ENT_QUOTES, 'UTF-8');
-				} 
+					if (!in_array($key, ['password', 'confirmpassword', 'ersPassword', 'mntPassword', 'smtpPassword'])) {
+						$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value), ENT_QUOTES, 'UTF-8');
+					} else {
+						// Just trim to remove whitespace, preserve all characters
+						$mysanitizedInputs[$key] = trim($value);
+					}
+				}
 			}
 		}
 
