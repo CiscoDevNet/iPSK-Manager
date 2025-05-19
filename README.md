@@ -30,6 +30,11 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Portal Groups
 - Customizable Sponsor & Captive Portals
 
+**What's New (May 2025)**
+- Various bug fixes and minor enhancements
+- Bumped several supporting library versions
+- Database Schema Update (v6)
+
 **What's New (November 2024)**
 - [Upcoming expiring endpoint email](#expiring-endpoint-email)
 - [VLAN and dACL attributes](#vlan-and-dacl-attributes)
@@ -67,13 +72,13 @@ Identity PSK Manager enables the following features/functionality:
 
 **Tools & Frameworks:**
 
-- Bootstrap v5.3.3
+- Bootstrap v5.3.6
 - jQuery v3.7.1
 - feathericon v4.29.2
-- Chart JS v4.4.2
+- Chart JS v4.4.9
 - ClipBoard Copy v2.0.11
-- DataTables v2.1.8
-- PHPMailer v6.9.3
+- DataTables v2.3.1
+- PHPMailer v6.10.0
 
 **We would like to thank all the authors & contributers on the previously mentioned Tools & Frameworks!**
 

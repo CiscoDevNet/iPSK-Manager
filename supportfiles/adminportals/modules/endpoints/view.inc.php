@@ -76,6 +76,14 @@ $htmlbody = <<<HTML
 		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="epGroupName" value="{$endPointAssociation['epGroupName']}" readonly>
 		</div>
+		<label class="fw-bold" for="vlan">VLAN</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<input type="text" class="form-control shadow" id="vlan" value="{$endPointAssociation['vlan']}" readonly>
+		</div>
+		<label class="fw-bold" for="dacl">dACL</label>
+		<div class="mb-3 input-group-sm fw-bold">
+			<input type="text" class="form-control shadow" id="dacl" value="{$endPointAssociation['dacl']}" readonly>
+		</div>
 		<div class="row">
 			<div class="col">
 				<label class="fw-bold" for="expirationDate">Expiration Date:</label>
