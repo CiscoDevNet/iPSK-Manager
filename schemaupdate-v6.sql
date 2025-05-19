@@ -99,4 +99,10 @@ END
 $$
 DELIMITER ;
 
+-- --------------------------------------------------------
+--
+-- Update Identity PSK Manager Database Scheme Version
+--
+UPDATE `settings` SET `value` = '6' WHERE `page` = 'global' AND `settingClass` = 'db-schema' AND `keyName` = 'version';
+
 COMMIT;
