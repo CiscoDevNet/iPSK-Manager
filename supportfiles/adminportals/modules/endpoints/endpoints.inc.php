@@ -23,7 +23,7 @@
 	
 	$associationList = $ipskISEDB->getEndPointAssociations();
 	$pageStart = 0;
-	$pageEnd = $associationList['count'];
+	$pageEnd = (isset($associationList['count'])) ? $associationList['count'] : 0;
 		
 	if($associationList){
 		if($associationList['count'] > 0){
@@ -130,7 +130,6 @@
 			dataType: "html",
 			success: function (data) {
 				$('#popupcontent').html(data);
-				//alert("success");
 			}
 		});
 		
