@@ -140,7 +140,8 @@
 
 		function getGroupsForMember($ldap_conn, $member_dn, $already_seen = []) {
 			$groups = [];
-		
+			// fix to escape the member_dn for when it contains special characters
+			$member_dn = ldap_escape($member_dn, '', LDAP_ESCAPE_FILTER);
 			// Search for groups that the member belongs to
 			$result = ldap_search($ldap_conn, $this->ldapBaseDN, '(member=' . $member_dn . ')', ['dn']);
 			$entries = ldap_get_entries($ldap_conn, $result);
