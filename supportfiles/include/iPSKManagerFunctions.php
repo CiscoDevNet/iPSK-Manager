@@ -171,38 +171,38 @@
 			'confirmaction'	=>	FILTER_VALIDATE_INT,
 			'wirelessSSID'	=>	FILTER_VALIDATE_INT,
 			'ssidName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'ssidDescription'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'authzPolicyName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'authzPolicyDescription'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'termLengthSeconds'	=>	FILTER_VALIDATE_INT,
 			'ciscoAVPairPSK'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'pskLength'	=>	FILTER_VALIDATE_INT,
 			'pskType'	=>	FILTER_VALIDATE_INT,
 			'pskMode'	=>	FILTER_VALIDATE_INT,
 			'epGroupName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'epGroupDescription'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'authzTemplate'	=>	FILTER_VALIDATE_INT,
 			'notificationPermission'	=>	FILTER_VALIDATE_INT,
 			'maxDevices'	=>	FILTER_VALIDATE_INT,
 			'sponsorGroupName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'sponsorGroupDescription'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'sponsorGroupAuthType'	=>	FILTER_VALIDATE_INT,
 			'sponsorGroupType'	=>	FILTER_VALIDATE_INT,
@@ -217,22 +217,22 @@
 			'viewPermission'	=>	FILTER_VALIDATE_INT,
 			'resetPskCheck'	=>	FILTER_VALIDATE_INT,
 			'groupName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'groupDn'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'portalName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'authzProfileName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'description'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'hostname'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'tcpPort'	=>	FILTER_VALIDATE_INT,
 			'permission'	=>	FILTER_VALIDATE_INT,
@@ -244,34 +244,34 @@
 									 }
 								),
 			'userName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'fullName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'email'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'password'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'confirmpassword'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'adConnectionName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'adServer'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'adDomain'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'adUsername'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'adBaseDN'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'adSecure'	=>	FILTER_VALIDATE_INT,
 			'directoryType' =>	FILTER_VALIDATE_INT,
@@ -281,72 +281,72 @@
 			'logPurgeInterval'	=>	FILTER_VALIDATE_INT,
 			'usePortalDescription'	=>	FILTER_VALIDATE_INT,
 			'presharedKey'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'emailAddress'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'macAddress'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'endpointDescription'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'fullName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'hostname'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'protocol'	=>	FILTER_VALIDATE_INT,
 			'portalPort'	=>	FILTER_VALIDATE_INT,
 			'ersHost'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'ersUsername'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'ersPassword'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'smtpPassword'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'ersEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
 			'ersVerifySsl'	=>	FILTER_VALIDATE_BOOLEAN,
 			'mntHost'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'mntHostSecondary'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'mntUsername'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'mntPassword'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'mntEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
 			'mntVerifySsl'	=>	FILTER_VALIDATE_BOOLEAN,
 			'fullAuthZUpdate'	=>	FILTER_VALIDATE_BOOLEAN,
 			'fullAuthZUpdateVLANdACL'	=>	FILTER_VALIDATE_BOOLEAN,
 			'adminPortalHostname'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'strict-hostname'	=>	FILTER_VALIDATE_BOOLEAN,
 			'redirect-hostname'	=>	FILTER_VALIDATE_BOOLEAN,
 			'smtpHost'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'smtpPort'	=>	FILTER_VALIDATE_INT,
 			'smtpUsername'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'smtpFromAddress'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'smtpEncryption'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'smtpEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
 			'portalPskEditEnabled'	=>	FILTER_VALIDATE_BOOLEAN,
@@ -371,17 +371,17 @@
 			'samlLdapSource' => FILTER_VALIDATE_BOOLEAN,
 			'samlHeaders' => FILTER_VALIDATE_BOOLEAN,
 			'samlUsernameVariable'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'samlLdapSourceDirectory' => FILTER_VALIDATE_INT,
 			'ldapSSLCheck' => FILTER_VALIDATE_BOOLEAN,
 			'nestedGroups' => FILTER_VALIDATE_BOOLEAN,
 			'logDisplay' =>	FILTER_VALIDATE_INT,
 			'vlan'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'dacl'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 		);
 		
@@ -415,7 +415,7 @@
 			'data-set'	=>	array('filter' => FILTER_VALIDATE_REGEXP, 'flags' => '' , 'options' => array('regexp' => $dataDataSetRegEx)),
 			'pskLength'	=>	FILTER_VALIDATE_INT,
 			'authzProfileName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
-								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
+								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			  'groupUuid'	=>	array('filter'    => FILTER_VALIDATE_REGEXP,
 			  'flags'     => '' ,
