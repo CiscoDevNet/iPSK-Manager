@@ -23,6 +23,7 @@
 		$ipskISEDB->setGlobalSetting("admin-portal","admin-portal-strict-hostname", $sanitizedInput['strict-hostname']);
 		$ipskISEDB->setGlobalSetting("admin-portal","redirect-on-hostname-match", $sanitizedInput['redirect-hostname']);
 		$ipskISEDB->setGlobalSetting("admin-portal","log-purge-interval", $sanitizedInput['logPurgeInterval']);
+		$ipskISEDB->setGlobalSetting("admin-portal","use-portal-description", $sanitizedInput['usePortalDescription']);
 		
 		print true;
 	}elseif($sanitizedInput['module-action'] == "ldap"){

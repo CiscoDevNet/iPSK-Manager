@@ -40,6 +40,19 @@
 		header("Location: manage.php?portalId=".$portalId);
 		die();
 	}
+
+	$adminSettings = $ipskISEDB->getGlobalClassSetting("admin-portal");
+	if(isset($adminSettings['use-portal-description'])){
+		if($adminSettings['use-portal-description'] == 1) {
+			$pageDescription = $portalSettings['description'];
+		}
+		else {
+			$pageDescription = "Manage Identity Pre-Shared Keys (\"iPSK\") Associations";
+		}
+	}
+	else {
+		$pageDescription = "Manage Identity Pre-Shared Keys (\"iPSK\") Associations";
+	}
 	
 	if(is_array($_SESSION['authorizedEPGroups'])){
 		$pageData['endpointGroupList'] .= '<select name="associationGroup" id="associationGroup" class="form-select mb-2 shadow">';
@@ -148,7 +161,7 @@
 					</div>
 					<div class="col-6">
 						<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">{$portalSettings['portalName']}</h4>
-						<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 border-bottom-0 fst-italic">Manage Identity Pre-Shared Keys ("iPSK") Associations</h6>
+						<h6 class="text-center card-header bg-primary text-white pt-0 border-top-0 border-bottom-0 fst-italic">{$pageDescription}</h6>
 					</div>
 					<div class="col text-end">
 						<a id="signOut" class="nav-link text-white" href="#">Sign out</a>		

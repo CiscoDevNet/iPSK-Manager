@@ -98,6 +98,19 @@
 		$adminPortalSettings['redirect-on-hostname-match-value'] = "0";
 	}
 
+	if(isset($adminPortalSettings['use-portal-description'])){
+		if($adminPortalSettings['use-portal-description'] == 1){
+			$adminPortalSettings['use-portal-description'] = " checked";
+			$adminPortalSettings['use-portal-description'] = "1";
+		}else{
+			$adminPortalSettings['use-portal-description'] = "";
+			$adminPortalSettings['use-portal-description'] = "0";
+		}
+	}else{
+		$adminPortalSettings['use-portal-description'] = "";
+		$adminPortalSettings['use-portal-description'] = "0";
+	}
+
 	if(isset($ldapSettings['ldap-ssl-check'])){
 		if($ldapSettings['ldap-ssl-check'] == 1){
 			$ldapSettings['ldap-ssl-check'] = " checked";
@@ -432,6 +445,7 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 				'logPurgeInterval': $("#logPurgeInterval").val(),
 				'strict-hostname': $("#strictHostname").val(),
 				'redirect-hostname': $("#redirectOnHostname").val(),
+				'usePortalDescription': $("#usePortalDescription").val(),
 				'ldapSSLCheck': $("#ldapSSLCheck").val(),
 				'nestedGroups': $("#nestedGroups").val(),
 				'samlEnabled': $("#samlEnabled").val(),
