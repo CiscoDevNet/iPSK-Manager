@@ -275,6 +275,7 @@
 			'editAssociation'	=>	FILTER_VALIDATE_INT,
 			'editPSK'	=>	FILTER_VALIDATE_INT,
 			'logPurgeInterval'	=>	FILTER_VALIDATE_INT,
+			'usePortalDescription'	=>	FILTER_VALIDATE_INT,
 			'presharedKey'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
