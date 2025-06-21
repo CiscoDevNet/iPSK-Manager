@@ -230,12 +230,10 @@
 									</div>
 								</div>					
 								<div class="card-body input-group-sm">
-									<div class="overflow-auto row text-start">
-										<div class="col shadow mx-auto bg-white">
-										{$pageData['pageNotice']}
-											<div class="table-responsive">
-												{$pageData['endpointAssociationList']}
-											</div>	
+									<div class="row text-start">
+										<div class="col mx-auto bg-white">
+											{$pageData['pageNotice']}
+											{$pageData['endpointAssociationList']}
 										</div>
 									</div>
 								</div>
