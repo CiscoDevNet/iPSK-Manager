@@ -45,7 +45,7 @@
 		<div class="card-header bg-primary text-white">License Information</div>
           <div class="card-body">
             <p class="card-text">
-              Copyright 2024 Cisco Systems, Inc. or its affiliates
+              Copyright 2025 Cisco Systems, Inc. or its affiliates
               <br>
               <br>
               Licensed under the Apache License, Version 2.0 (the "License");
