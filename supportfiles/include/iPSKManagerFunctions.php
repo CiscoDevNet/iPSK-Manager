@@ -238,7 +238,11 @@
 			'permission'	=>	FILTER_VALIDATE_INT,
 			'groupType'	=>	FILTER_VALIDATE_INT,
 			'authDirectory'	=>	FILTER_VALIDATE_INT,
-			'inputUsername'	=> FILTER_SANITIZE_EMAIL,
+			'inputUsername' => array('filter'	=>	FILTER_CALLBACK,
+									 'options'	=>	function ($value) {
+										return preg_replace('/[^a-zA-Z0-9@._+\- ]/', '', $value); // notice the added space at the end
+									 }
+								),
 			'userName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW & FILTER_FLAG_STRIP_HIGH & FILTER_FLAG_STRIP_BACKTICK
 								  ),
