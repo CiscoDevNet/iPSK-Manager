@@ -50,7 +50,7 @@ print <<< HTML
 						<label class="form-check-label" for="redirectOnHostname">Redirect to Portal on Hostname Match</label>
 					</div>
 					<div class="form-check">
-						<input type="checkbox" class="form-check-input checkbox-update generaltab" base-value="1" value="{$adminPortalSettings['use-portal-description']}" id="usePortalDescription"{$adminPortalSettings['use-portal-description']}>
+						<input type="checkbox" class="form-check-input checkbox-update generaltab" base-value="1" value="{$adminPortalSettings['use-portal-description-value']}" id="usePortalDescription"{$adminPortalSettings['use-portal-description']}>
 						<label class="form-check-label" for="usePortalDescription">Use Portal Description on Sponsor Portal Pages</label>
 					</div>
 				</div>

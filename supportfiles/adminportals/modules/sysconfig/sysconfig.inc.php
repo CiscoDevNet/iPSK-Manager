@@ -101,14 +101,14 @@
 	if(isset($adminPortalSettings['use-portal-description'])){
 		if($adminPortalSettings['use-portal-description'] == 1){
 			$adminPortalSettings['use-portal-description'] = " checked";
-			$adminPortalSettings['use-portal-description'] = "1";
+			$adminPortalSettings['use-portal-description-value'] = "1";
 		}else{
 			$adminPortalSettings['use-portal-description'] = "";
-			$adminPortalSettings['use-portal-description'] = "0";
+			$adminPortalSettings['use-portal-description-value'] = "0";
 		}
 	}else{
 		$adminPortalSettings['use-portal-description'] = "";
-		$adminPortalSettings['use-portal-description'] = "0";
+		$adminPortalSettings['use-portal-description-value'] = "0";
 	}
 
 	if(isset($ldapSettings['ldap-ssl-check'])){
