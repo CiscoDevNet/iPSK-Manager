@@ -223,7 +223,7 @@
 				</div>
 			</div>
 			<div class="card-footer text-center">
-			Copyright &copy; 2024 Cisco and/or its affiliates.
+			Copyright &copy; 2025 Cisco and/or its affiliates.
 		</div>
 		</div>
 	</div>

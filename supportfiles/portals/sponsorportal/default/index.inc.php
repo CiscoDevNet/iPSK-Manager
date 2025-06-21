@@ -71,7 +71,7 @@ if(isset($_GET['error'])){
 				</form>
 			</div>
 			<div class="card-footer bg-light">
-				Copyright &copy; 2024 Cisco and/or its affiliates.
+				Copyright &copy; 2025 Cisco and/or its affiliates.
 			</div>
 		</div>
 	</body>

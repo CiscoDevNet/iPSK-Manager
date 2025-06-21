@@ -750,7 +750,7 @@ HTML;
 		</div>
 		<h1 class="h3 mt-2 mb-4 fw-normal">iPSK Manager Installer</h1>
 		<?php print $installerOutput;?>
-		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2024 Cisco and/or its affiliates.</p>
+		<p class="mt-5 mb-0 text-muted">Copyright &copy; 2025 Cisco and/or its affiliates.</p>
 	</div>
   </body>
 </html>

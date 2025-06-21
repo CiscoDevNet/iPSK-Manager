@@ -264,7 +264,7 @@
 			
 			$macAddressesString
 			
-			<div style="background-color: #1ba0d7;"><h3><p style="color: #ffffff; text-align: center;">Copyright &copy; 2024 Cisco and/or its affiliates.</p></h3></div>
+			<div style="background-color: #1ba0d7;"><h3><p style="color: #ffffff; text-align: center;">Copyright &copy; 2025 Cisco and/or its affiliates.</p></h3></div>
 		</div>
 		<div style="width: 20%; float: right;">&nbsp;</div>
 	</body>	
