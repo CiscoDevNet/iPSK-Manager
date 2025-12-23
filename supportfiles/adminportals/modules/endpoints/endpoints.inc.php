@@ -216,10 +216,11 @@
 		}
 
 		$("#endpoint-table thead #endpoint-table-filter input").on( 'keyup change', function () {
-        table
-            .column( $(this).parent().parent().index()+':visible' )
-            .search( this.value )
-            .draw();
+			var columnIndex = $(this).closest('th').index();
+			table
+				.column( columnIndex )
+				.search( this.value )
+				.draw();
     	} );
 
 		// Hide columns after keyup change event registered
