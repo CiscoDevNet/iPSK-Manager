@@ -1,6 +1,6 @@
 # Identity PSK Manager - Database Change Log
 
-Current Database Schema Version : **6**
+Current Database Schema Version : **7**
 
 All changes to this Sample Codes Database will be documented here:
 
@@ -203,3 +203,26 @@ OR
 > mysql -u <USER> -p < schemaupdate-v6.sql
 > ```
 5) Enter password when prompted
+
+Database Changes (12/15/2025) - v7
+------
+
+### Changed
+- Updated stored procedure `iPSK_AttributeFetch` to return a new column `subscriberName` (format `subscriber:username=<value>`) to improve WLC username visibility; derived from `fullName` with fallbacks to `description` or `createdBy`.
+- Added support for supplying alternate DB credentials in the admin portal when running schema updates if the configured app DB user cannot create routines with the required DEFINER.
+
+**WARNING: This update affects the stored procedures used by Cisco ISE's ODBC Connection to Query for Endpoints**
+
+Updates to the stored procedures require running the included migration `supportfiles/db/migrations/v7__attribute_fetch_subscriber_name.sql`.
+1) Update the migration tokens with your environment values:
+> ```
+> {{DB_NAME}}          = MySQL iPSK Manager Database Name (e.g., iPSKManager)
+> {{ISE_DB_USERNAME}}  = MySQL Username for Cisco ISE ODBC Connection (e.g., ciscoise)
+> ```
+2) Apply the migration:
+   - Preferred: Use the Admin Portal schema update modal and click **Apply Database Updates**. If prompted for credentials, provide a DB user with rights to create routines/definers (commonly the ISE DB user).
+   - Manual: Run the SQL via CLI with a user that can create routines:
+> ```
+> mysql -u <USER> -p < v7__attribute_fetch_subscriber_name.sql
+> ```
+3) Enter password when prompted

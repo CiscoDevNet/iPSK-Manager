@@ -148,11 +148,11 @@ BEGIN
 	CASE @formattedMAC
 	WHEN '*' THEN
 		SET result=0;
-		SELECT 'Empty' AS fullName, 'Empty' AS emailAddress, 'Empty' AS createdBy, 'Empty' AS description, '0' AS expirationDate, 'False' AS accountExpired, 'EMPTY' AS pskValue, 'EMPTY' as pskValuePlain, 'Empty' AS vlan, 'Empty' AS dacl;
+		SELECT 'Empty' AS fullName, 'Empty' AS emailAddress, 'Empty' AS createdBy, 'Empty' AS description, '0' AS expirationDate, 'False' AS accountExpired, 'EMPTY' AS pskValue, 'EMPTY' as pskValuePlain, 'Empty' AS vlan, 'Empty' AS dacl, 'subscriber:username=Empty' AS subscriberName;
 	ELSE
 	  IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC) THEN
 		SET result=0;
-		SELECT fullName,emailAddress,createdBy,description,expirationDate,accountExpired,pskValue, RIGHT(pskValue, LENGTH(pskValue) - 4) as pskValuePlain,vlan,dacl FROM endpoints WHERE endpoints.macAddress = @formattedMAC;
+		SELECT fullName,emailAddress,createdBy,description,expirationDate,accountExpired,pskValue, RIGHT(pskValue, LENGTH(pskValue) - 4) as pskValuePlain,vlan,dacl, CONCAT('subscriber:username=', COALESCE(NULLIF(fullName,''), NULLIF(description,''), createdBy)) AS subscriberName FROM endpoints WHERE endpoints.macAddress = @formattedMAC;
 	  ELSE
 		SET result=1;
 	  END IF;
