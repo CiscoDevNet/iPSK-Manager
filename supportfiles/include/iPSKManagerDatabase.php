@@ -28,10 +28,13 @@
  *@contributor	Drew Betz (anbetz@cisco.com)
  *@contributor	Nick Ciesinski (nciesins@cisco.com)
  */
+
+	include_once(__DIR__."/iPSKManagerMigration.php");
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 6;
+		public $requiredSchemaVersion = 7;
+		public $autoMigrationBaselineVersion = 6;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
 		public $systemConfigured;
@@ -44,6 +47,7 @@
 		private $dbPassword;
 		private $dbDatabase;
 		private $encryptionKey;
+		private $migrationPath;
 		
 		private $dbConnection;
 	
@@ -52,6 +56,7 @@
 			$this->dbUsername = $username;
 			$this->dbPassword = $password;
 			$this->dbDatabase = $database;
+			$this->migrationPath = (realpath(__DIR__."/../db/migrations") !== false) ? realpath(__DIR__."/../db/migrations") : __DIR__."/../db/migrations";
 			
 			if($hostname != null && $username != null && $password != null && $database != null){
 				$this->dbConnection = new mysqli($hostname, $username, $password, $database);
@@ -154,12 +159,106 @@
 			return $this->requiredSchemaVersion;
 		}
 
+		function set_dbSchemaVersion($version){
+			$version = (int)$version;
+			$this->dbSchemaVersion = $version;
+
+			$updateStmt = $this->dbConnection->prepare("UPDATE `settings` SET `value` = ? WHERE `page` = 'global' AND `settingClass` = 'db-schema' AND `keyName` = 'version' LIMIT 1");
+			
+			if($updateStmt){
+				$updateStmt->bind_param("i", $version);
+				$updateStmt->execute();
+				
+				if($updateStmt->affected_rows == 0){
+					$insertStmt = $this->dbConnection->prepare("INSERT INTO `settings` (`page`, `settingClass`, `keyName`, `value`) VALUES ('global', 'db-schema', 'version', ?)");
+					
+					if($insertStmt){
+						$insertStmt->bind_param("i", $version);
+						$insertStmt->execute();
+						$insertStmt->close();
+					}
+				}
+				
+				$updateStmt->close();
+			}
+		}
+
 		function check_dbSchemaUpdates(){
 			if($this->requiredSchemaVersion > $this->dbSchemaVersion){
 				return true;
 			}else{
 				return false;
 			}
+		}
+
+		function get_migrationReplacements($extraReplacements = Array()){
+			$replacements = Array(
+				"{{DB_NAME}}" => $this->dbDatabase,
+				"{{APP_DB_USERNAME}}" => $this->dbUsername
+			);
+
+			if(isset($_SERVER['IPSK_DB_USERNAME']) && $_SERVER['IPSK_DB_USERNAME'] != ""){
+				$replacements["{{IPSK_DB_USERNAME}}"] = $_SERVER['IPSK_DB_USERNAME'];
+			}
+
+			if(isset($_SERVER['ISE_DB_USERNAME']) && $_SERVER['ISE_DB_USERNAME'] != ""){
+				$replacements["{{ISE_DB_USERNAME}}"] = $_SERVER['ISE_DB_USERNAME'];
+			}
+
+			if(is_array($extraReplacements) && count($extraReplacements) > 0){
+				$replacements = array_merge($replacements, $extraReplacements);
+			}
+
+			return $replacements;
+		}
+
+		function getMigrationManager($extraReplacements = Array()){
+			return new iPSKManagerMigration($this->dbConnection, $this->dbDatabase, $this->migrationPath, $this->get_migrationReplacements($extraReplacements));
+		}
+
+		function getPendingSchemaMigrations($targetVersion = null){
+			$migrationRunner = $this->getMigrationManager();
+			$currentVersion = max((int)$this->dbSchemaVersion, (int)$this->autoMigrationBaselineVersion);
+			$target = ($targetVersion != null) ? (int)$targetVersion : (int)$this->requiredSchemaVersion;
+
+			return $migrationRunner->getPendingMigrations($currentVersion, $target);
+		}
+
+		function runSchemaMigrations($targetVersion = null){
+			$response = Array(
+				"success" => true,
+				"applied" => Array(),
+				"error" => "",
+				"targetVersion" => ($targetVersion != null) ? (int)$targetVersion : (int)$this->requiredSchemaVersion
+			);
+
+			$migrationRunner = $this->getMigrationManager();
+			$currentVersionRaw = (int)$this->dbSchemaVersion;
+			$baselineVersion = (int)$this->autoMigrationBaselineVersion;
+
+			if($currentVersionRaw < $baselineVersion){
+				$response["success"] = false;
+				$response["error"] = "Automatic migrations begin at schema version ".$baselineVersion.". Please apply earlier updates manually.";
+				return $response;
+			}
+
+			$currentVersion = max($currentVersionRaw, $baselineVersion);
+			$pendingMigrations = $migrationRunner->getPendingMigrations($currentVersion, $response["targetVersion"]);
+
+			foreach($pendingMigrations as $migration){
+				$execResult = $migrationRunner->executeMigration($migration);
+
+				if(!$execResult["success"]){
+					$response["success"] = false;
+					$response["error"] = $execResult["error"];
+					return $response;
+				}
+
+				$this->set_dbSchemaVersion($migration["version"]);
+				$response["applied"][] = $migration["filename"];
+			}
+
+			return $response;
 		}
 
 		function check_newInstall(){
