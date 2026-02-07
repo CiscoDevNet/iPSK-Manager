@@ -80,12 +80,50 @@ HTML;
 	}
 	
 	$adminMenuSetting = $ipskISEDB->getGlobalSetting("menu-config", "adminMenu");
+	$currentSchemaVersion = $ipskISEDB->get_dbSchemaVersion();
+	$pendingSchemaMigrations = $ipskISEDB->getPendingSchemaMigrations();
+	$autoMigrationsAvailable = (is_array($pendingSchemaMigrations) && count($pendingSchemaMigrations) > 0 && $currentSchemaVersion >= $ipskISEDB->autoMigrationBaselineVersion);
 	
 	//Added Database Scheme Update Modal Dialog	for update to DB
 	if($ipskISEDB->check_dbSchemaUpdates()){
 		$newInstalationNotice = '';
 		$schema = $ipskISEDB->getGlobalSetting("db-schema", "version");
 		$requiredSchema = $ipskISEDB->get_requiredSchemaVersion();
+		$migrationList = Array();
+
+		if($autoMigrationsAvailable){
+			foreach($pendingSchemaMigrations as $migrationEntry){
+				$migrationList[] = "v".$migrationEntry['version'];
+			}
+			$migrationVersions = implode(", ", $migrationList);
+			$autoMigrationContent = <<< HTML
+						<div class="alert alert-info">
+							Automatic migrations available for {$migrationVersions}. Earlier updates (v1-v6) remain manual.
+						</div>
+						<div class="d-flex align-items-center mb-2">
+							<button type="button" class="btn btn-primary shadow" id="runDbMigrations">Apply Database Updates</button>
+							<div class="ms-2 small text-muted">Applies bundled SQL migrations directly.</div>
+						</div>
+						<div id="dbMigrationCreds" class="card card-body p-2 border d-none">
+							<div class="fw-semibold mb-1">Use alternate DB credentials (e.g., ISE DB user)</div>
+							<div class="row g-2">
+								<div class="col-12 col-md-6">
+									<label for="dbAltUsername" class="form-label mb-0 small">DB Username</label>
+									<input id="dbAltUsername" type="text" class="form-control form-control-sm" autocomplete="username">
+								</div>
+								<div class="col-12 col-md-6">
+									<label for="dbAltPassword" class="form-label mb-0 small">DB Password</label>
+									<input id="dbAltPassword" type="password" class="form-control form-control-sm" autocomplete="current-password">
+								</div>
+							</div>
+							<div class="small text-muted mt-1">Credentials are used once to run the migration and are not stored.</div>
+						</div>
+						<div id="dbMigrationStatus" class="alert alert-info mt-2 d-none"></div>
+HTML;
+		}else{
+			$autoMigrationContent = "";
+		}
+
 		$databaseSchemeUpdate = <<< HTML
 		<div class="modal fade" id="databaseUpdateDetected" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered" role="document">
@@ -98,6 +136,7 @@ HTML;
 					</div>
 					<div class="modal-body">
 						<p class="h5" style="text-decoration: underline;">Database Schema Update Required:</p><br /><p class="h6">Your Schema Version: {$schema}<br />Required Schema Version: {$requiredSchema}<br /><br />Please review Database Change Log @ </p><p><a href="https://github.com/CiscoDevNet/iPSK-Manager/blob/master/DB_CHANGELOG.md">(GitHub) /CiscoDevNet/iPSK-Manager/blob/master/DB_CHANGELOG.md</a></p>
+{$autoMigrationContent}
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary shadow" data-bs-dismiss="modal">Ok</button>

@@ -30,6 +30,10 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Portal Groups
 - Customizable Sponsor & Captive Portals
 
+**What's New (December 2025)**
+- Database schema update flow enhanced (admin portal can prompt for alternate DB credentials when routine creation requires elevated rights)
+- New SQL change file: `supportfiles/db/migrations/v7__attribute_fetch_subscriber_name.sql` adds `subscriberName` to `iPSK_AttributeFetch` for WLC username visibility
+
 **What's New (May 2025)**
 - Various bug fixes and minor enhancements
 - Bumped several supporting library versions
@@ -460,6 +464,9 @@ admin@ubuntu:~$ cd /var/www/iPSK-Manager
 admin@ubuntu:~$ sudo git pull
 ```
 4. After the repository is pulled open a web browser to the URL of the Admin Portal of iPSK Manager.  The installer script will detect your config.php in the backup directory (/opt/ipsk-manager) and automatically copy it, remove the installation files, and redirect you to the login screen.  At this point your iPSK Manager installation has been updated.
+5. If a database schema update is required, a modal will appear. Click **Apply Database Updates** to run the bundled migration scripts.
+6. If the configured DB user cannot create routines with the required permissions, the modal will reveal fields for alternate DB credentials. Enter a user with the needed rights (commonly the ISE DB user) and re-run. Credentials are used one time and not stored.
+
 
 ## GUI Logging
 Logging via GUI can be enabled by editing the **'additionalmenus.json'** file in **/var/www/iPSK-Manager/supportfiles/adminportals/modules/** directory. Change the "menuEnabled" flag at the end to 1 (default is 0) as shown below and refresh admin GUI and you will see 'System Logging' option visible just below 'About' settings. 

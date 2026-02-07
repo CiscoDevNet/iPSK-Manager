@@ -92,6 +92,69 @@ $(document).ready(function() {
 	if($("#databaseUpdateDetected").length){
 		$("#databaseUpdateDetected").modal('show');
 	}
+
+	if($("#runDbMigrations").length){
+		$("#runDbMigrations").on('click', function(event){
+			event.preventDefault();
+
+			var $button = $(this);
+			var $status = $("#dbMigrationStatus");
+			var altUser = $("#dbAltUsername").val();
+			var altPass = $("#dbAltPassword").val();
+			var postData = {};
+
+			if(altUser !== "" || altPass !== ""){
+				postData.dbuser = altUser;
+				postData.dbpass = altPass;
+			}
+
+			$button.prop('disabled', true);
+
+			if($status.length){
+				$status.removeClass('d-none alert-danger alert-success').addClass('alert-info');
+				$status.text('Applying database migrations...');
+			}
+
+			$.ajax({
+				url: "ajax/runmigrations.php",
+				type: "POST",
+				dataType: "json",
+				data: postData,
+				success: function (response) {
+					if($status.length){
+						$status.removeClass('alert-info alert-danger').addClass('alert-success');
+
+						if(response.applied && response.applied.length > 0){
+							$status.text('Migrations applied: ' + response.applied.join(', '));
+						}else{
+							$status.text('No migrations were applied.');
+						}
+					}
+
+					setTimeout(function(){ window.location.reload(); }, 1200);
+				},
+				error: function (xhr) {
+					var errorMessage = 'Migration failed. Please check logs.';
+
+					if(xhr.responseJSON && xhr.responseJSON.error){
+						errorMessage = xhr.responseJSON.error;
+					}
+
+					if($status.length){
+						$status.removeClass('alert-info alert-success').addClass('alert-danger');
+						$status.text(errorMessage);
+					}
+
+					if($("#dbMigrationCreds").length){
+						$("#dbMigrationCreds").removeClass('d-none');
+					}
+				},
+				complete: function (){
+					$button.prop('disabled', false);
+				}
+			});
+		});
+	}
 });	
 
 function formFieldValidation(){
