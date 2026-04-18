@@ -31,6 +31,7 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Sponsor & Captive Portals
 
 **What's New (April 2026)**
+- Added install detection if running in Podman
 - Various bug fixes 
 
 **What's New (December 2025)**
