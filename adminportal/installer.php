@@ -102,7 +102,7 @@ TEXT;
 		$upgrade = true;
 	}
 	
-	if(is_file("/.dockerenv")) {
+	if(is_file("/.dockerenv") || is_file("/run/.containerenv")) {
 		$inContainer = true;
 	}
 
