@@ -45,10 +45,15 @@ require("../supportfiles/include/phpmailer/SMTP.php");
 			else {
 				$mail->SMTPAuth = false;
 			}
-			if($smtpSettings['smtp-encryption'] == 'STARTTLS') {
+			$smtpEncryption = strtoupper(trim((string)$smtpSettings['smtp-encryption']));
+			if($smtpEncryption == 'NONE') {
+				//Prevent PHPMailer from automatically upgrading to STARTTLS when encryption is explicitly disabled.
+				$mail->SMTPAutoTLS = false;
+			}
+			if($smtpEncryption == 'STARTTLS') {
 				$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 			}
-			if($smtpSettings['smtp-encryption'] == 'TLS') {
+			if($smtpEncryption == 'TLS') {
 				$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
 			}
 			$mail->Port = $smtpSettings['smtp-port'];
