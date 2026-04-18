@@ -1991,18 +1991,10 @@
 				}
 			}else{
 				$endpoint = $endpointQueryResult->fetch_assoc();
-				
-				$query = sprintf("UPDATE `endpoints` SET `fullName`='%s', `description`='%s', `emailAddress`='%s', `pskValue`='%s', `vlan`='%s', `dacl`='%s', `expirationDate`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($endpoint['id']));
-			
-				$queryResult = $this->dbConnection->query($query);
-				
-				if($queryResult){
-					return $endpoint['id'];
-				}else{
-					return false;
-				}
+				//Duplicate MAC detected; do not mutate the existing endpoint record.
+				return $endpoint['id'];
 			}
-		}
+			}
 		
 		function addBulkEndpoints($macAddress, $fullName, $description, $email, $psk, $vlan = null, $dacl = null, $expirationDate, $createdBy){
 			$multiInput = false;
