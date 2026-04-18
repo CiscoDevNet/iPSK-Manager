@@ -30,6 +30,9 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Portal Groups
 - Customizable Sponsor & Captive Portals
 
+**What's New (April 2026)**
+- Various bug fixes 
+
 **What's New (December 2025)**
 - Database schema update flow enhanced (admin portal can prompt for alternate DB credentials when routine creation requires elevated rights)
 - New SQL change file: `supportfiles/db/migrations/v7__attribute_fetch_subscriber_name.sql` adds `subscriberName` to `iPSK_AttributeFetch` for WLC username visibility
