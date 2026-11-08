@@ -3041,7 +3041,7 @@
 
 			try {
 				$queryResult = $this->dbConnection->query($query);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");

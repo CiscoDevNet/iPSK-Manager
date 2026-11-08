@@ -107,7 +107,7 @@ The Documentation and Guides available from these tools, contained the details n
 
 ## iPSK Manager Installation
 
-#### Ubuntu 22.04.x LTS or 24.04.x LTS
+#### Ubuntu 22.04.x LTS, 24.04.x LTS, or 26.04.x LTS
 
 1. After installing Ubuntu OS, make sure the system is up-to-date:
 ```

@@ -18,18 +18,36 @@
  *limitations under the License.
  */
 	
-	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction'] && is_numeric($sanitizedInput['termLengthSeconds'])){
+	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction']){
 		
-		if($_SESSION['extendEndpointMaxTerm'] == 0  && $sanitizedInput['termLengthSeconds'] == 0){
-			$endPointAssociation = $ipskISEDB->extendEndpoint($sanitizedInput['id'], $sanitizedInput['termLengthSeconds'] + time(), $_SESSION['logonSID']);
-		}elseif($_SESSION['extendEndpointMaxTerm'] != 0  && $sanitizedInput['termLengthSeconds'] == 0){
-			$endPointAssociation = $ipskISEDB->extendEndpoint($sanitizedInput['id'], $_SESSION['extendEndpointMaxTerm'] + time(), $_SESSION['logonSID']);
-		}elseif($_SESSION['extendEndpointMaxTerm'] >= $sanitizedInput['termLengthSeconds']){
-			$endPointAssociation = $ipskISEDB->extendEndpoint($sanitizedInput['id'], $sanitizedInput['termLengthSeconds'] + time(), $_SESSION['logonSID']);
+		$endpointAssociationId = $ipskISEDB->getEndPointAssociationByEndpoint($sanitizedInput['id']);
+		// Reload the group limit for this endpoint; another form may have changed the session.
+		$endpoint = $endpointAssociationId ? $ipskISEDB->getEndpointByAssociationId($endpointAssociationId) : false;
+		if(!$endpoint){
+			print "<script>alert('Unable to load the endpoint. Reopen the extension dialog and try again.');</script>";
+			return;
 		}
-		
-		unset($_SESSION['extendEndpointMaxTerm']);
-		
+
+		$maxTerm = $endpoint['termLengthSeconds'];
+		$requestedTerm = $sanitizedInput['termLengthSeconds'];
+		if(!is_numeric($requestedTerm) || $requestedTerm < 0){
+			print "<script>alert('Select a valid access term.');</script>";
+			return;
+		}
+		if($maxTerm != 0 && $requestedTerm > $maxTerm){
+			print "<script>alert('The selected access term exceeds the endpoint group limit. Reopen the extension dialog and select a shorter term.');</script>";
+			return;
+		}
+
+		// A zero selection uses the group maximum; a zero maximum means no expiration.
+		$extensionTerm = $requestedTerm == 0 ? $maxTerm : $requestedTerm;
+		$expirationDate = $extensionTerm == 0 ? 0 : time() + $extensionTerm;
+		$endPointAssociation = $ipskISEDB->extendEndpoint($sanitizedInput['id'], $expirationDate, $_SESSION['logonSID']);
+		if(!$endPointAssociation){
+			print "<script>alert('Unable to extend the endpoint. Please try again.');</script>";
+			return;
+		}
+
 		print <<<HTML
 <script>
 		$.ajax({
@@ -62,14 +80,18 @@ HTML;
 		
 		$endpoint = $ipskISEDB->getEndpointByAssociationId($sanitizedInput['id']);
 		
+		if(!$endpoint){
+			print "<script>alert('Unable to load the endpoint. Refresh the page and try again.');</script>";
+			return;
+		}
+
 		for($count = 0; $count < $termLenList['count']; $count++){
-			if($endpoint['termLengthSeconds'] == $termLenList[$count]['value']){
-				$pageTermLengthList .= '<option value="'.$termLenList[$count]['value'].'" selected>'.$termLenList[$count]['text'].'</option>';
-				$_SESSION['extendEndpointMaxTerm'] = $termLenList[$count]['value'];
-				break;
-			}else{
-				$pageTermLengthList .= '<option value="'.$termLenList[$count]['value'].'">'.$termLenList[$count]['text'].'</option>';
+			$termValue = $termLenList[$count]['value'];
+			if($endpoint['termLengthSeconds'] != 0 && ($termValue == 0 || $termValue > $endpoint['termLengthSeconds'])){
+				continue;
 			}
+			$selected = $endpoint['termLengthSeconds'] == $termValue ? ' selected' : '';
+			$pageTermLengthList .= '<option value="'.$termValue.'"'.$selected.'>'.$termLenList[$count]['text'].'</option>';
 		}
 	
 		print <<<HTML
