@@ -105,6 +105,7 @@
 			
 				//Create CURL object to prepare the HTTP(s) call
 				$curlCall = curl_init();
+                curl_setopt($curlCall, CURLOPT_RETURNTRANSFER, true);
 				
 				//Set the request URL in the CURL object
 				curl_setopt($curlCall, CURLOPT_URL, $requestURL);
@@ -124,7 +125,6 @@
 				if($restMethod == "GET"){
 					
 					//Method: GET
-					curl_setopt($curlCall, CURLOPT_RETURNTRANSFER, true);
 					
 				}elseif($restMethod == "POST"){
 					
@@ -136,14 +136,12 @@
 					
 					//Method: DELETE
 					curl_setopt($curlCall, CURLOPT_CUSTOMREQUEST, "DELETE");
-					curl_setopt($curlCall, CURLOPT_RETURNTRANSFER, true);
 				
 				}elseif($restMethod == "PUT"){
 					
 					//Method: PUT
 					curl_setopt($curlCall, CURLOPT_POSTFIELDS, $data);
 					curl_setopt($curlCall, CURLOPT_CUSTOMREQUEST, "PUT");
-					curl_setopt($curlCall, CURLOPT_RETURNTRANSFER, true);
 				
 				}else{
 					//Method Not Found 				
