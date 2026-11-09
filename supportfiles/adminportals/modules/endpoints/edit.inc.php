@@ -29,35 +29,11 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 			
 			$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 
-			if($sanitizedInput['editAssociation'] == 1){
-				
-				if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
-					$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-					$randomPSK = "psk=".$randomPassword;
-				}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
-					$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'], $endpoint['createdBy']);
-					if(!$userPsk){
-						$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-						$randomPSK = "psk=".$randomPassword;
-					}else{
-						$randomPassword = $userPsk;
-						$randomPSK = "psk=".$randomPassword;
-					}
-				}else{
-					$randomPassword = $endpointGroupAuthorization['ciscoAVPairPSK'];
-					$randomPSK = "psk=".$randomPassword;
-				}
-				
-				if($endpointGroupAuthorization['termLengthSeconds'] == 0){
-					$duration = $endpointGroupAuthorization['termLengthSeconds'];
-				}else{
-					$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
-				}
+            if($sanitizedInput['editAssociation'] == 1){
+                if (!$ipskISEDB->moveEndpointAssociation($sanitizedInput['id'], $sanitizedInput['associationGroup'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], false)) {
+                    http_response_code(400); print '<p class="text-danger">Unable to move endpoint. Check destination permissions and owner quota.</p>'; return;
+                }
 
-				$ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration);
-				$ipskISEDB->deleteEndpointAssociationbyId($sanitizedInput['id']);
-				$ipskISEDB->addEndpointAssociation($endpoint['endpointId'], $endpoint['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']);
-				
 			}elseif($sanitizedInput['editPSK'] == 1){
 				if (!ipskValidPsk($sanitizedInput['presharedKey'] ?? null)) {
                     http_response_code(400); print '<p class="text-danger">PSK must be 8–63 printable ASCII characters or 64 hexadecimal digits.</p>'; return;

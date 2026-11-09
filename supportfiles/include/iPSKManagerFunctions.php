@@ -322,7 +322,7 @@ function ipskTakePendingImport($token) {
             $incoming >= 0 && ($maximum == 0 || $count + $incoming <= $maximum);
     }
 
-    function ipskCreationGrant($database, $groupId, $permission = 512) {
+    function ipskCreationGrant($database, $groupId, $permission = 512, $quotaOwner = null, $incoming = 1) {
         if (!filter_var($groupId, FILTER_VALIDATE_INT) || $groupId < 1 || empty($_SESSION['portalSettings']['id'])) return false;
         $groups = $database->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'], $_SESSION['authorizationGroups'] ?? []);
         $_SESSION['authorizedEPGroups'] = $groups ?: ['count' => 0];
@@ -334,8 +334,8 @@ function ipskTakePendingImport($token) {
         }
         if (!$grant) return false;
         if ($permission === 2048) $grant['maxDevices'] = $grant['bulkMaxDevices'] ?? $grant['maxDevices'];
-        $count = $database->getUserEndpointCount($groupId, $_SESSION['logonSID']);
-        if (!ipskQuotaAvailable($count, $grant['maxDevices'])) return false;
+        $count = $database->getUserEndpointCount($groupId, $quotaOwner ?? $_SESSION['logonSID']);
+        if (!ipskQuotaAvailable($count, $grant['maxDevices'], $incoming)) return false;
         return $grant;
     }
 

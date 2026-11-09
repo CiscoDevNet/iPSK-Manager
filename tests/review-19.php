@@ -27,7 +27,7 @@ $db->addEndpoint('AA:BB:CC:DD:EE:FF', "O'Connor", '', '', $secret, "v'lan", "d'a
 $insert=end($c->calls);
 verify(in_array($secret,$insert[1],true) && !str_contains($insert[0],$secret), 'Secret not preserved as bound data');
 $db->addEndpointAssociation(42,'AA:BB:CC:DD:EE:FF',1,"user'sid");
-verify(end($c->calls)[1] === [42,'AA:BB:CC:DD:EE:FF',1,"user'sid"], 'Association values not bound');
+verify(end($c->calls)[1] === [1,42,'AA:BB:CC:DD:EE:FF'], 'Association values not bound');
 $db->addBulkEndpoints(['AA:BB:CC:DD:EE:01','AA:BB:CC:DD:EE:02'], 'Name', '', '', [$secret,$secret], '', '', 0, 'sid');
 foreach ($c->calls as [$sql,$values]) verify(substr_count($sql,'?') === count($values), 'Placeholder count mismatch');
 echo "PASS review 19: reject malformed GUIDs and bind portal, endpoint and association values\n";

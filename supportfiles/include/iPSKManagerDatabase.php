@@ -34,7 +34,7 @@
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 10;
+		public $requiredSchemaVersion = 11;
 		public $autoMigrationBaselineVersion = 6;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
@@ -985,42 +985,19 @@
 			}
 		}
 		
-		function getUserEndpointCount($endpointGroupId, $sid){
-			
-			if(isset($endpointGroupId) && isset($sid)){
-				
-				$queryValues = [$endpointGroupId, $sid];
-				$query = "SELECT endpoints.createdBy, COUNT(endpointAssociations.epGroupId) as deviceCount FROM endpointAssociations INNER JOIN endpoints ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.epGroupId = ? AND endpoints.createdBy = ? GROUP BY endpoints.createdBy";
-				
-				$queryResult = $this->preparedQuery($query, $queryValues);
-				
-				if($queryResult){
-					if($queryResult->num_rows > 0){
-						$row = $queryResult->fetch_assoc();
-						
-						if($row['createdBy'] == $sid){
-							return (int)$row['deviceCount'];
-						}else{
-							return false;
-						}
-					}else{
-						return 0;
-					}
-				}else{
-					return false;
-				}
-			}else{
-				return false;
-			}
-			
-		}
-		
+        function getUserEndpointCount($endpointGroupId, $sid) {
+            if (!isset($endpointGroupId, $sid)) return false;
+            // Locking read observes committed usage even inside a larger request transaction.
+            $result = $this->preparedQuery('SELECT a.id FROM endpointAssociations a JOIN endpoints e ON e.id=a.endpointId WHERE a.epGroupId=? AND e.createdBy=? LOCK IN SHARE MODE', [$endpointGroupId,$sid]);
+            return $result ? $result->num_rows : false;
+        }
+
 		function getUserPreSharedKey($endpointGroupId, $sid){
 			
 			if(isset($endpointGroupId) && isset($sid)){
 				
 				$queryValues = [$endpointGroupId, $sid];
-				$query = "SELECT endpoints.createdBy, COUNT(endpointAssociations.epGroupId) as deviceCount, endpoints.pskValue FROM endpointAssociations INNER JOIN endpoints ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.epGroupId = ? AND endpoints.createdBy = ? GROUP BY endpoints.createdBy, endpoints.pskValue";
+				$query = "SELECT endpoints.createdBy, COUNT(endpointAssociations.epGroupId) as deviceCount, endpoints.pskValue FROM endpointAssociations INNER JOIN endpoints ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.epGroupId = ? AND endpoints.createdBy = ? GROUP BY endpoints.createdBy, endpoints.pskValue LOCK IN SHARE MODE";
 				
 				$queryResult = $this->preparedQuery($query, $queryValues);
 				
@@ -1700,6 +1677,34 @@
 
         function __destruct() { $this->abortPortalEnrollment(); }
 
+        function moveEndpointAssociation($associationId, $groupId, $fullName, $description, $email, $actor, $portal = false) {
+            $lookup = 'SELECT a.*, e.createdBy AS owner FROM endpointAssociations a JOIN endpoints e ON e.id=a.endpointId WHERE a.id=?';
+            $result = $this->preparedQuery($lookup, [$associationId]);
+            $before = $result ? $result->fetch_assoc() : false;
+            if (!$before) return false;
+            $lock = 'ipsk-quota-'.substr(hash('sha256', $this->dbDatabase.'|'.$before['owner'].'|'.$groupId),0,53);
+            $acquired = $this->preparedQuery('SELECT GET_LOCK(?, 10) AS acquired', [$lock]);
+            if (!$acquired || (int)$acquired->fetch_assoc()['acquired'] !== 1) return false;
+            $this->atomicLocks[] = $lock;
+            return $this->atomic(function () use ($lookup, $before, $associationId, $groupId, $fullName, $description, $email, $actor, $portal) {
+                $result = $this->preparedQuery($lookup.' FOR UPDATE', [$associationId]);
+                $endpoint = $result ? $result->fetch_assoc() : false;
+                if (!$endpoint || $endpoint['owner'] !== $before['owner']) return false;
+                if ($portal && (!ipskEndpointPermission($this, $associationId, 256) || !ipskCreationGrant($this, $groupId, 512, $endpoint['owner'], $endpoint['epGroupId'] == $groupId ? 0 : 1))) return false;
+                $policy = $this->getAuthorizationTemplatesbyEPGroupId($groupId);
+                if (!$policy) return false;
+                if ($policy['ciscoAVPairPSK'] === '*userrandom*') {
+                    $key = $this->getUserPreSharedKey($groupId, $endpoint['owner']) ?: $this->generateRandomPassword($policy['pskLength']);
+                } elseif ($policy['ciscoAVPairPSK'] === '*devicerandom*') {
+                    $key = $this->generateRandomPassword($policy['pskLength']);
+                } else { $key = $policy['ciscoAVPairPSK']; }
+                $expiry = (int)$policy['termLengthSeconds'] === 0 ? 0 : time() + (int)$policy['termLengthSeconds'];
+                if (!$this->updateEndpoint($endpoint['endpointId'], $fullName, $description, $email, $actor, 'psk='.$key, $policy['vlan'], $policy['dacl'], $expiry)) return false;
+                return $this->preparedQuery('UPDATE endpointAssociations SET epGroupId=?, createdBy=? WHERE id=?', [$groupId,$endpoint['owner'],$associationId]);
+            });
+        }
+
+        private $atomicLocks = [];
         private $atomicDepth = 0;
         private $queryFailed = false;
 
@@ -1718,6 +1723,11 @@
                 if ($this->lastError === '') $this->lastError = 'Changes could not be saved. No changes from this operation were committed.';
                 if ($outer) { try { $this->dbConnection->rollback(); } catch (Throwable $ignored) {} }
                 return false;
+            } finally {
+                if ($outer) {
+                    $locks = array_unique($this->atomicLocks); $this->atomicLocks = [];
+                    foreach ($locks as $lock) $this->preparedQuery('SELECT RELEASE_LOCK(?)', [$lock]);
+                }
             }
         }
 
@@ -2428,10 +2438,10 @@
             if ($macAddress === false) return false;
 			
 			$queryValues = [];
-			$query = "INSERT INTO endpointAssociations (`endpointId`, `macAddress`, `epGroupID`, `createdBy`) VALUES(?,?,?,?)";
+			$query = "INSERT INTO endpointAssociations (`endpointId`, `macAddress`, `epGroupID`, `createdBy`) SELECT id,macAddress,?,createdBy FROM endpoints WHERE id=? AND macAddress=?";
 			
 			try {
-				$queryResult = $this->preparedQuery($query, [$endpointId, $macAddress, $epGroupID, $createdBy]);
+				$queryResult = $this->preparedQuery($query, [$epGroupID, $endpointId, $macAddress]);
 				return $queryResult !== false;
 			}
 			catch (Exception $e) {

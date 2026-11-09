@@ -38,7 +38,7 @@
 		
 			if (!$endpoint) { http_response_code(404); return; }
             if ($sanitizedInput['editAssociation'] == 1) {
-                if (!ipskCreationGrant($ipskISEDB, $sanitizedInput['associationGroup'])) {
+                if (!ipskCreationGrant($ipskISEDB, $sanitizedInput['associationGroup'], 512, $endpoint['createdBy'], $endpoint['epGroupId'] == $sanitizedInput['associationGroup'] ? 0 : 1)) {
                     http_response_code(403);
                     print 'You are not authorized to use the destination group.';
                     return;
@@ -49,35 +49,11 @@
             }
             $endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 			
-			if($sanitizedInput['editAssociation'] == 1){
-				
-				if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
-					$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-					$randomPSK = "psk=".$randomPassword;
-				}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
-					$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'], $endpoint['createdBy']);
-					if(!$userPsk){
-						$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-						$randomPSK = "psk=".$randomPassword;
-					}else{
-						$randomPassword = $userPsk;
-						$randomPSK = "psk=".$randomPassword;
-					}
-				}else{
-					$randomPassword = $endpointGroupAuthorization['ciscoAVPairPSK'];
-					$randomPSK = "psk=".$randomPassword;
-				}
-				
-				if($endpointGroupAuthorization['termLengthSeconds'] == 0){
-					$duration = $endpointGroupAuthorization['termLengthSeconds'];
-				}else{
-					$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
-				}
+            if($sanitizedInput['editAssociation'] == 1){
+                if (!$ipskISEDB->moveEndpointAssociation($sanitizedInput['id'], $sanitizedInput['associationGroup'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], true)) {
+                    http_response_code(400); print '<p class="text-danger">Unable to move endpoint. Check destination permissions and owner quota.</p>'; return;
+                }
 
-				$ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK,  $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration);
-				$ipskISEDB->deleteEndpointAssociationbyId($sanitizedInput['id']);
-				$ipskISEDB->addEndpointAssociation($endpoint['endpointId'], $endpoint['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']);
-				
 			}elseif($sanitizedInput['editPSK'] == 1){
                 if (!ipskEndpointPermission($ipskISEDB, $sanitizedInput['id'], 256 | 1024)
                     || !ipskConsumeGeneratedPsk($sanitizedInput['id'], $ipskISEDB->getEndPointAuthorizationPolicy($sanitizedInput['id']), $sanitizedInput['ciscoAVPairPSK'] ?? null)) {

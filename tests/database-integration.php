@@ -167,6 +167,45 @@ try {
         verify($callPlain('AA:BB:CC:DD:EE:FF','incorrect')!==0 && $callPlain('00:00:00:00:00:01','000000000001')!==0,'Unknown/wrong password accepted');
     }
     echo "PASS review 29 integration: fresh/migrated plain MAC authentication honors suspension, preserves expiry semantics\n";
+    $db->updateAuthorizationTemplate($template,'Move policy','','*userrandom*',0,12,'','','fixture');
+    $db->addEndpointGroup('Move target','',$template,0,'fixture');$target=(int)$c->insert_id;
+    $peer=$db->addEndpoint('AA:BB:CC:00:47:01','Owner peer','','','psk=OwnerTargetKey','','',0,$sid);
+    verify($db->addEndpointAssociation($peer,'AA:BB:CC:00:47:01',$target,'actor'),'Owner peer association');
+    verify($db->addEndpointAssociation($id,'AA:BB:CC:DD:EE:FF',$group,'actor'),'Move source association');$association=(int)$c->insert_id;
+    verify($c->query('SELECT createdBy FROM endpointAssociations WHERE id='.$association)->fetch_row()[0]===$sid,'New association ignores canonical owner');
+    $db->addSponsorGroupEPGMapping([$group,$target],$sponsor,'fixture');
+    $db->addSponsorInternalGroupMapping([2],$sponsor,1|2|256|512|1024,'fixture');
+    $db->addSponsorGroupPortalMapping([$sponsor],1,'fixture');
+    $c->query('UPDATE sponsorGroups SET maxDevices=2 WHERE id='.(int)$sponsor);
+    $moveViaHandler=function($portal,$destination)use($db,$association){
+        $_SESSION=validSession()+['adminAuthorized'=>true,'logonSID'=>'actor','portalSettings'=>['id'=>1],'authorizationGroups'=>['count'=>1,['groupDn'=>'CN=AdminFixture']],'editAssociationEndpointId'=>$association];
+        http_response_code(200);
+        $input=['id'=>$association,'confirmaction'=>1,'fullName'=>'Moved owner device','emailAddress'=>'owner@example.test','endpointDescription'=>'Moved','editAssociation'=>1,'associationGroup'=>$destination,'editPSK'=>0];
+        $path=__DIR__.'/../supportfiles/'.($portal?'portals/sponsorportal/default':'adminportals/modules/endpoints').'/edit.inc.php';
+        ob_start();$ok=ipskRenderDatabaseOperation($db,$path,['ipskISEDB'=>$db,'sanitizedInput'=>$input,'portalId'=>'fixture']);$output=ob_get_clean();return $ok;
+    };
+    verify($moveViaHandler(false,$target),'Admin move failed');
+    verify($db->getUserEndpointCount($target,$sid)===2 && $db->getUserEndpointCount($target,'actor')===0,'Admin move transferred quota ownership');
+    verify($db->getUserPreSharedKey($target,$sid)==='OwnerTargetKey','Move lost owner per-user key');
+    verify($moveViaHandler(true,$group),'Authorized sponsor move failed');
+    $after=$c->query('SELECT a.createdBy AS associationOwner,e.createdBy AS endpointOwner,a.epGroupId FROM endpointAssociations a JOIN endpoints e ON e.id=a.endpointId WHERE a.id='.$association)->fetch_assoc();
+    verify($after['associationOwner']===$sid && $after['endpointOwner']===$sid && (int)$after['epGroupId']===(int)$group,'Sponsor move changed owner or association ID');
+    $c->query('UPDATE sponsorGroups SET maxDevices=1 WHERE id='.(int)$sponsor);
+    verify(!$moveViaHandler(true,$target),'Destination owner quota ignored');
+    $before=$c->query('SELECT * FROM endpoints WHERE id='.(int)$id)->fetch_assoc();
+    $c->query("CREATE TRIGGER review_fail_move BEFORE UPDATE ON endpointAssociations FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Injected move failure'");
+    verify(!$moveViaHandler(false,$target),'Failed move reported success');
+    verify($c->query('SELECT * FROM endpoints WHERE id='.(int)$id)->fetch_assoc()===$before,'Failed move partially updated endpoint');
+    $c->query('DROP TRIGGER review_fail_move');
+    $c->query("UPDATE endpointAssociations SET createdBy='legacy-actor' WHERE id=".$association);
+    verify($db->runSchemaMigrations(11)['success'],'Owner reconciliation migration failed');
+    verify($c->query('SELECT createdBy FROM endpointAssociations WHERE id='.$association)->fetch_row()[0]===$sid,'Legacy owner mismatch not reconciled');
+    $c->query('UPDATE sponsorGroupInternalMapping SET groupPermissions=257 WHERE sponsorGroupId='.(int)$sponsor);
+    $_SESSION['logonSID']=$sid;
+    verify($db->getEndPointAssociationPermissions($association,['count'=>1,['groupDn'=>'CN=AdminFixture']],1)!==false,'Owner lost own-only visibility');
+    $_SESSION['logonSID']='actor';
+    verify($db->getEndPointAssociationPermissions($association,['count'=>1,['groupDn'=>'CN=AdminFixture']],1)===false,'Actor acquired own-only visibility');
+    echo "PASS review 47 integration: admin/sponsor moves preserve owner, own-key/quota, stable ID; failure rollback and legacy repair\n";
     echo "PASS migration integration: resolves existing definer without environment and replaces routine successfully\n";
     echo "PASS database integration: real schema, prepared queries, literal secrets, settings, group lookup, bulk insert IDs\n";
 } finally {
