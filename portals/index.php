@@ -114,6 +114,7 @@
 	if($getPortalId != "" && $getPortal != ""){
 		$portalId = $_GET['portalId'];
 		$portalSettings = $ipskISEDB->getPortalByGuid($portalId);
+        if (!$portalSettings) { http_response_code(404); return; }
 		
 		//Check Portal HTTPS Enforcement
 		if($portalSettings['enforceSecure'] && $portalSettings['portalSecure']){
@@ -159,6 +160,10 @@
                 $_SESSION = ['creationTime' => time()];
             }
             $_SESSION['portalSettings'] = $portalSettings;
+            if (ipskLoginSessionCheck() && !ipskRefreshPortalAuthorization($ipskISEDB, $portalSettings['id'])) {
+                http_response_code(403);
+                return;
+            }
 			
 			$filename = ipskPortalRoute($portalSettings['portalModule'], $portalSettings['portalTemplate'], $getPortal);
 			if($filename !== false && file_exists($filename)){

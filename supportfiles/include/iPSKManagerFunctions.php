@@ -94,6 +94,33 @@
 
 
 
+
+    function ipskRefreshPortalAuthorization($database, $portalId) {
+        $grants = $database->getPortalAuthGroups($portalId);
+        $matched = []; $bits = 0;
+        foreach ($grants ?: [] as $grant) {
+            if (!is_array($grant) || !in_array($grant['groupDn'], $_SESSION['memberOf'] ?? [], true)) continue;
+            $matched[] = $grant;
+            $bits |= $grant['groupPermissions'];
+        }
+        if (!$matched) { ipskResetIdentity(); return false; }
+        $matched['count'] = count($matched);
+        $_SESSION['authorizationGroups'] = $matched;
+        foreach (['create'=>512,'bulkcreate'=>2048,'viewall'=>4,'viewgroup'=>2,'viewowned'=>1,'viewallPSK'=>12,'viewgroupPSK'=>10,'viewownedPSK'=>9] as $name=>$mask) {
+            $_SESSION['portalAuthorization'][$name] = false;
+            foreach ($matched as $grant) {
+                if (is_array($grant) && ($grant['groupPermissions'] & $mask) === $mask) $_SESSION['portalAuthorization'][$name] = true;
+            }
+        }
+        $_SESSION['portalAuthorization']['viewallDn'] = '';
+        foreach ($matched as $grant) {
+            if (is_array($grant) && ($grant['groupPermissions'] & 4)) $_SESSION['portalAuthorization']['viewallDn'] = $grant['groupDn'];
+        }
+        $_SESSION['authorizedEPGroups'] = $database->getEndPointGroupAuthorizations($portalId, $matched) ?: ['count'=>0];
+        $_SESSION['authorizedWirelessNetworks'] = $database->getPortalWirelessNetworkAuthorization($portalId, $matched);
+        return true;
+    }
+
     function ipskEndpointPermission($database, $associationId, $action = 0) {
         $permissions = $database->getEndPointAssociationPermissions($associationId, $_SESSION['authorizationGroups'] ?? [], $_SESSION['portalSettings']['id']);
         $endpoint = false;

@@ -12,6 +12,14 @@ try {
     eval(implode("\n", $matches[0]));
     foreach (array_merge($sqlTable, $sqlAlterTable, $sqlConstraint) as $sql) $c->query($sql);
     $db = connectionFor($c);
+    $c->query("INSERT INTO sponsorPortalTypes (id,portalTypeName,portalTypeDescription,portalClass,portalModule) VALUES (1,'Fixture','Fixture','core','sponsorportal')");
+    $c->query("INSERT INTO sponsorPortals (portalName,description,portalId,portalType,enabled,visible,portalHostname,authenticationDirectory,createdBy) VALUES ('Fixture','','00112233-4455-6677-8899-aabbccddeeff',1,1,1,'fixture','0','fixture')");
+    verify($db->getPortalByGuid('00112233-4455-6677-8899-aabbccddeeff') !== false, 'Active portal unavailable');
+    $c->query('UPDATE sponsorPortals SET visible=0');
+    verify($db->getPortalByGuid('00112233-4455-6677-8899-aabbccddeeff') === false, 'Deleted portal still usable');
+    $c->query('UPDATE sponsorPortals SET visible=1,enabled=0');
+    verify($db->getPortalByGuid('00112233-4455-6677-8899-aabbccddeeff') === false, 'Disabled portal still usable');
+
     $sid = "user'sid";
     verify($db->getUserEndpointCount(99, $sid) === 0, 'New user must have zero quota usage');
     $psk = "psk=O'Connor&\\quote";
