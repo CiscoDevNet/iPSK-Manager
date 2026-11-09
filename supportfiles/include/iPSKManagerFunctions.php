@@ -202,6 +202,11 @@
         return false;
     }
 
+    function ipskQuotaAvailable($count, $maximum, $incoming = 1) {
+        return $count !== false && is_numeric($count) && $count >= 0 && is_numeric($maximum) && $maximum >= 0 &&
+            $incoming >= 0 && ($maximum == 0 || $count + $incoming <= $maximum);
+    }
+
     function ipskCreationGrant($database, $groupId, $permission = 512) {
         if (!filter_var($groupId, FILTER_VALIDATE_INT) || $groupId < 1 || empty($_SESSION['portalSettings']['id'])) return false;
         $groups = $database->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'], $_SESSION['authorizationGroups'] ?? []);
@@ -214,7 +219,7 @@
         }
         if (!$grant) return false;
         $count = $database->getUserEndpointCount($groupId, $_SESSION['logonSID']);
-        if ($count === false || ($grant['maxDevices'] != 0 && $count >= $grant['maxDevices'])) return false;
+        if (!ipskQuotaAvailable($count, $grant['maxDevices'])) return false;
         return $grant;
     }
 

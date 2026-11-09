@@ -63,7 +63,7 @@
 			if(!isset($trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']])){
 				//Check if User is authorized for Create on EndPoint Group
 				if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 512){
-					if($ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']) < $_SESSION['authorizedEPGroups'][$count]['maxDevices']){
+					if(ipskQuotaAvailable($ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']), $_SESSION['authorizedEPGroups'][$count]['maxDevices'])){
 						if($_SESSION['authorizedEPGroups'][$count]['termLengthSeconds'] == 0){
 							$termLength = "No Expiry";
 						}else{
