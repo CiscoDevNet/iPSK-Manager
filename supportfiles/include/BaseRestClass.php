@@ -68,7 +68,7 @@
 		}
 		
 		function set_SSLVerifyPeer($sslVerifypeer) {
-			$this->restSSLVerify = $sslVerifypeer;
+			$this->restSSLVerifyPeer = (bool)$sslVerifypeer;
 		}
 		
 		function get_SSLVerifyPeer() {
@@ -112,11 +112,10 @@
 				//Set the SSL peer verification in the CURL object
 				curl_setopt($curlCall, CURLOPT_SSL_VERIFYPEER, $this->restSSLVerifyPeer );
 				
-				//Set the SSL status verification in the CURL object
-				curl_setopt($curlCall, CURLOPT_SSL_VERIFYSTATUS, $this->restSSLVerifyPeer );
+				// Certificate chain and hostname checks do not require optional OCSP stapling.
 
 				//Set the SSL host verification in the CURL object
-				curl_setopt($curlCall, CURLOPT_SSL_VERIFYHOST, $this->restSSLVerifyPeer );
+				curl_setopt($curlCall, CURLOPT_SSL_VERIFYHOST, $this->restSSLVerifyPeer ? 2 : 0 );
 				
 				//Set the Headers for the request in the CURL object
 				curl_setopt($curlCall, CURLOPT_HTTPHEADER, $restCallHeader);
