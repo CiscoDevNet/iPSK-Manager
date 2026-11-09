@@ -34,7 +34,7 @@
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 9;
+		public $requiredSchemaVersion = 10;
 		public $autoMigrationBaselineVersion = 6;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
@@ -197,16 +197,18 @@
 				$replacements = array_merge($replacements, $extraReplacements);
 			}
 
-            if (!isset($replacements['{{ISE_DB_DEFINER}}'])) {
+            foreach (['{{ISE_DB_DEFINER}}'=>'iPSK_AttributeFetch','{{PLAIN_MAC_DEFINER}}'=>'iPSK_AuthMACPlain'] as $token=>$routine) {
+            if (!isset($replacements[$token])) {
                 if (!empty($_SERVER['ISE_DB_USERNAME'])) {
-                    $replacements['{{ISE_DB_DEFINER}}'] = '`'.str_replace('`','``',$_SERVER['ISE_DB_USERNAME']).'`@`%`';
+                    $replacements[$token] = '`'.str_replace('`','``',$_SERVER['ISE_DB_USERNAME']).'`@`%`';
                 } else {
-                    $result = $this->preparedQuery("SELECT DEFINER FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=? AND ROUTINE_NAME='iPSK_AttributeFetch' AND ROUTINE_TYPE='PROCEDURE'", [$this->dbDatabase]);
+                    $result = $this->preparedQuery("SELECT DEFINER FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=? AND ROUTINE_NAME=? AND ROUTINE_TYPE='PROCEDURE'", [$this->dbDatabase, $routine]);
                     $row = $result ? $result->fetch_assoc() : false;
                     if ($row && ($at = strrpos($row['DEFINER'], '@')) !== false) {
-                        $replacements['{{ISE_DB_DEFINER}}'] = '`'.str_replace('`','``',substr($row['DEFINER'],0,$at)).'`@`'.str_replace('`','``',substr($row['DEFINER'],$at+1)).'`';
+                        $replacements[$token] = '`'.str_replace('`','``',substr($row['DEFINER'],0,$at)).'`@`'.str_replace('`','``',substr($row['DEFINER'],$at+1)).'`';
                     }
                 }
+            }
             }
             return $replacements;
 		}

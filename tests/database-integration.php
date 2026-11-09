@@ -129,6 +129,21 @@ try {
     verify(!$db->runSchemaMigrations(9)['success'] && $db->dbSchemaVersion===8,'Duplicate migration claimed success');
     $c->query('DELETE FROM internalUsers WHERE id='.(int)$duplicateUser);
     verify($db->runSchemaMigrations(9)['success'],'Resolved duplicate migration did not recover');
+    // Exercise both fresh-install and migrated routines against actual MariaDB results.
+    preg_match('/\$sqlProcedure\[1\] = <<< SQL\n(.*?)\nSQL;/s', $source, $plainMatch);
+    $plainSql=preg_replace('/CREATE DEFINER=.*? PROCEDURE/', 'CREATE PROCEDURE', $plainMatch[1]);
+    $callPlain=function($mac,$password)use($c){$s=$c->prepare('CALL iPSK_AuthMACPlain(?,?)');$s->bind_param('ss',$mac,$password);$s->execute();$result=$s->get_result()->fetch_row();while($s->more_results()){$s->next_result();}$s->close();return (int)$result[0];};
+    foreach (['fresh','migrated'] as $mode) {
+        $c->query('DROP PROCEDURE IF EXISTS iPSK_AuthMACPlain');
+        $c->query($mode==='fresh'?$plainSql:str_replace(' AND endpoints.accountEnabled = 1','',$plainSql));
+        if($mode==='migrated')verify($db->runSchemaMigrations(10)['success'],'Suspension migration failed');
+        foreach ([0,time()-100,time()+10000] as $expiry) foreach ([0,1] as $enabled) {
+            $c->query('UPDATE endpoints SET accountEnabled='.$enabled.',expirationDate='.$expiry.' WHERE id='.(int)$id);
+            verify(($callPlain('aa-bb-cc-dd-ee-ff','aabbccddeeff')===0)===(bool)$enabled,'Plain auth ignores suspension or changes expiration semantics');
+        }
+        verify($callPlain('AA:BB:CC:DD:EE:FF','incorrect')!==0 && $callPlain('00:00:00:00:00:01','000000000001')!==0,'Unknown/wrong password accepted');
+    }
+    echo "PASS review 29 integration: fresh/migrated plain MAC authentication honors suspension, preserves expiry semantics\n";
     echo "PASS migration integration: resolves existing definer without environment and replaces routine successfully\n";
     echo "PASS database integration: real schema, prepared queries, literal secrets, settings, group lookup, bulk insert IDs\n";
 } finally {
