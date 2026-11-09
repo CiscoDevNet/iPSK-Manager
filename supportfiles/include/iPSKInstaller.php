@@ -17,3 +17,14 @@ function ipskCleanupInstallation($connection, $settings, $created) {
     }
     return $results;
 }
+
+function ipskWriteInstallerConfig($path, $contents) {
+    $temporary = @tempnam(dirname($path), '.ipsk-config-');
+    if ($temporary === false) { return false; }
+    try {
+        if (@file_put_contents($temporary, $contents, LOCK_EX) !== strlen($contents)) { return false; }
+        @chmod($temporary, 0600);
+        // Publish only a complete file, and never overwrite a preexisting configuration.
+        return @link($temporary, $path);
+    } finally { @unlink($temporary); }
+}

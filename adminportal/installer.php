@@ -382,6 +382,8 @@ HTML;
 			
 			$ipskManagerAdminPassword = password_hash($_SESSION['adminpassword'], PASSWORD_DEFAULT);
 			
+            try {
+
 			try {
 				$dbConnection = new mysqli($_SESSION['dbhostname'], $_SESSION['rootusername'], $_SESSION['rootpassword']);
 			}
@@ -416,7 +418,7 @@ HTML;
 			$dbConnection->select_db($_SESSION['databasename']);
 			$actionValid = true;
 			
-			include_once("installer.inc.php");
+			include(__DIR__."/installer.inc.php");
 			
 			for($sqlCount = 0; $sqlCount < count($sqlProcedure); $sqlCount++){
 				if(!$dbConnection->query($sqlProcedure[$sqlCount])){
@@ -557,7 +559,7 @@ HTML;
 				$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Creation of Cisco ISE MySQL User Permissions Successful</div>";
 			}			
 			
-			if(!file_put_contents("../supportfiles/include/config.php", $configurationFile)){
+			if(!ipskWriteInstallerConfig(__DIR__."/../supportfiles/include/config.php", $configurationFile)){
 				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Error creating config.php file</div>";
 				goto Bail;
 			}else{
@@ -569,6 +571,10 @@ HTML;
 				}
 			}
 			
+            } catch (Throwable $e) {
+                $installProgress .= '<div class="text-danger">Installation step failed: '.htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</div>';
+            }
+
 			Bail:
 			
 			if($_SESSION['installSuccess']){
