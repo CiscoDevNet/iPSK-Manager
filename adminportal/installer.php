@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__."/../supportfiles/include/iPSKInstaller.php";
 
 /**
  *@license
@@ -578,41 +579,11 @@ HTML;
 				$finalizeButton = '';
 				$finalizeButtonScript = '';
 				
-				try {
-					$dbConnection->select_db("mysql");
-				}
-				catch (Error $e ) {}
-				
-				if($dbCreateFlag){
-					$deleteDbQuery = sprintf("DROP DATABASE `%s`", $dbConnection->real_escape_string($_SESSION['databasename']));
+                $cleanupResults = ipskCleanupInstallation($dbConnection ?? null, $_SESSION, ['database'=>$dbCreateFlag, 'manager'=>$managerUserCreateFlag, 'ise'=>$iseUserCreateFlag]);
+                foreach ($cleanupResults as $resource=>$success) {
+                    $installProgress .= '<div>'.htmlspecialchars($resource).' Cleanup '.($success ? 'Successful' : 'Failure — manual cleanup required').'</div>';
+                }
 
-					if(!$dbConnection->query($deleteDbQuery)){
-						$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Database Installation Cleanup Failure</div>";
-					}else{
-						$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Database Installation Cleanup Successful</div>";
-					}
-				}
-				
-				if($managerUserCreateFlag){
-					$deleteDbQuery = sprintf("DROP USER `%s`", $dbConnection->real_escape_string($_SESSION['databasename']));
-					
-					if(!$dbConnection->query($deleteDbQuery)){
-						$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Database User Cleanup Failure</div>";
-					}else{
-						$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Database User Cleanup Successful</div>";
-					}
-				}
-				
-				if($iseUserCreateFlag){
-					$deleteDbQuery = sprintf("DROP USER `%s`", $dbConnection->real_escape_string($_SESSION['iseusername']));
-					
-					if(!$dbConnection->query($deleteDbQuery)){
-						$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>ISE Database User Cleanup Failure</div>";
-					}else{
-						$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>ISE Database User Cleanup Successful</div>";
-					}
-				}		
-		
 				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>iPSK Manager Installation Failure</div>";
 					
 				$finalErrorText = '<p class="text-danger"><strong>The installation failed to finish correctly. Please re-run the installation again.</strong></p>';

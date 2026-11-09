@@ -1,0 +1,5 @@
+<?php
+require __DIR__.'/review-bootstrap.php';require __DIR__.'/../supportfiles/include/iPSKInstaller.php';
+foreach([false,true] as $throw){$db=new class($throw){public $calls=[];function __construct(public $fail){}function real_escape_string($s){return addslashes($s);}function query($q){$this->calls[]=$q;if($this->fail && str_starts_with($q,'DROP DATABASE'))throw new RuntimeException('No drop permission');return true;}};
+$r=ipskCleanupInstallation($db,['databasename'=>'different-db','dbusername'=>'app-user','iseusername'=>'ise-user'],['database'=>true,'manager'=>true,'ise'=>true]);verify($db->calls===["DROP DATABASE `different-db`","DROP USER 'app-user'@'%'","DROP USER 'ise-user'@'%'"] && $r['Database User'] && $r['ISE Database User'],'Wrong account removed or independent cleanup skipped');$db->calls=[];ipskCleanupInstallation($db,['databasename'=>'existing','dbusername'=>'existing','iseusername'=>'existing'],[]);verify($db->calls===[],'Preexisting resources removed');}
+echo "PASS review 36: rollback targets exact created accounts/host and independently attempts cleanup\n";
