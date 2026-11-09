@@ -136,6 +136,7 @@
                 }
             } catch (Throwable $error) {
                 $result['error'] = 'Migration failed: '.$error->getMessage();
+                try { $this->dbConnection->rollback(); } catch (Throwable $rollbackError) {}
                 foreach ($dropped as $name=>$unused) {
                     if (!isset($backups[$name])) continue;
                     try {

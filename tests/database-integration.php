@@ -27,7 +27,7 @@ try {
     verify($id > 0, 'Insert ID lost');
     $row = $c->query('SELECT * FROM endpoints')->fetch_assoc();
     verify($row['pskValue'] === $psk && $row['createdBy'] === $sid && $row['dacl'] === "acl's", 'Special characters changed');
-    verify($db->addEndpoint('AA:BB:CC:DD:EE:FF', 'Other', '', '', 'psk=otherkey', '', '', 0, $sid) == $id, 'Duplicate lookup broken');
+    verify($db->addEndpoint('aa-bb-cc-dd-ee-ff', 'Other', '', '', 'psk=otherkey', '', '', 0, $sid) == $id, 'Duplicate lookup broken');
     $db->setGlobalSetting("fixture's", "key's", "value's");
     verify($db->getGlobalSetting("fixture's", "key's") === "value's", 'Settings insert roundtrip');
     $db->setGlobalSetting("fixture's", "key's", "updated's");
@@ -96,6 +96,17 @@ try {
     verify($upgrade['success'],'Routine upgrade failed: '.$upgrade['error']);
     $routine=$c->query('SHOW CREATE PROCEDURE iPSK_AttributeFetch')->fetch_assoc();
     verify(str_contains($routine['Create Procedure'],'subscriberName'),'Routine replacement missing subscriberName');
+    $c->query("INSERT INTO endpoints (macAddress,password,expirationDate,fullName,description,emailAddress,pskValue,createdBy) VALUES ('aa-bb-cc-dd-ee-ff','aabbccddeeff',0,'Collision','','','psk=validkey','fixture')");
+    $collisionId=$c->insert_id;
+    $v8=$runner->getMigrations()[1];
+    verify(!$runner->executeMigration($v8)['success'],'Canonical collision migration must fail before updates');
+    verify($c->query('SELECT macAddress FROM endpoints WHERE id='.(int)$id)->fetch_row()[0]==='AA:BB:CC:DD:EE:FF','Failed migration changed data');
+    $c->query('DELETE FROM endpoints WHERE id='.(int)$collisionId);
+    $c->query("UPDATE endpoints SET macAddress='aabbccddeeff' WHERE id=".(int)$id);
+    $db->dbSchemaVersion=7;
+    $migrationResult=$db->runSchemaMigrations(8);
+    verify($migrationResult['success'] && $migrationResult['currentVersion']===8,'Canonical migration failed: '.$migrationResult['error']);
+    verify($c->query('SELECT macAddress FROM endpoints WHERE id='.(int)$id)->fetch_row()[0]==='AA:BB:CC:DD:EE:FF','Legacy MAC not normalized');
     echo "PASS migration integration: resolves existing definer without environment and replaces routine successfully\n";
     echo "PASS database integration: real schema, prepared queries, literal secrets, settings, group lookup, bulk insert IDs\n";
 } finally {

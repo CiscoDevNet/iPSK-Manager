@@ -33,7 +33,7 @@
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 7;
+		public $requiredSchemaVersion = 8;
 		public $autoMigrationBaselineVersion = 6;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
@@ -2125,6 +2125,8 @@
 		}
 		
 		function addEndpoint($macAddress, $fullName, $description, $email, $psk, $vlan, $dacl, $expirationDate, $createdBy){
+            $macAddress = ipskCanonicalMac($macAddress);
+            if ($macAddress === false) return false;
 			
             $endpointQueryValues = [];
             $endpointQuery = "SELECT id FROM `endpoints` WHERE `macAddress` = ?";
@@ -2150,6 +2152,9 @@
 			}
 		
 		function addBulkEndpoints($macAddress, $fullName, $description, $email, $psk, $vlan, $dacl, $expirationDate, $createdBy){
+            if (!is_array($macAddress)) return false;
+            $macAddress = array_map('ipskCanonicalMac', $macAddress);
+            if (in_array(false, $macAddress, true)) { $this->lastError='Invalid MAC address in import.'; return false; }
             $this->lastError = '';
             $seen = [];
             foreach (is_array($macAddress) ? $macAddress : [] as $mac) {
@@ -2387,6 +2392,8 @@
 		}
 		
 		function addEndpointAssociation($endpointId, $macAddress, $epGroupID, $createdBy){
+            $macAddress = ipskCanonicalMac($macAddress);
+            if ($macAddress === false) return false;
 			
 			$queryValues = [];
 			$query = "INSERT INTO endpointAssociations (`endpointId`, `macAddress`, `epGroupID`, `createdBy`) VALUES(?,?,?,?)";

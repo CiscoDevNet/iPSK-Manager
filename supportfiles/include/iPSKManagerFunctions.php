@@ -133,6 +133,11 @@
         }
     }
 
+    function ipskCanonicalMac($mac) {
+        if (!is_string($mac) || !preg_match('/\A(?:[0-9a-f]{12}|(?:[0-9a-f]{2}:){5}[0-9a-f]{2}|(?:[0-9a-f]{2}-){5}[0-9a-f]{2})\z/iD',$mac)) return false;
+        return implode(':',str_split(strtoupper(str_replace([':', '-'],'',$mac)),2));
+    }
+
     function ipskPortalParameters($input) {
         $out = [];
         foreach (['client_mac', 'sessionId', 'redirect'] as $key) {
