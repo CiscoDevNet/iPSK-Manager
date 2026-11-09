@@ -83,6 +83,7 @@
 							if($csvHeader){
 								if(count($csvHeader) == 4){
 									$validHeaders = 0;
+                                    $fieldMapping = [];
 									
 									foreach($csvHeader as $entry => $data){
 										if(strtolower(trim($data)) == "macaddress"){ $validHeaders++; $fieldMapping['macaddress'] = $entry;}
@@ -92,7 +93,7 @@
 									}
 									
 									//Process CSV Contents if valid Headers are found
-									if($validHeaders == 4){
+									if($validHeaders == 4 && count($fieldMapping) === 4){
 										$entryCount = 0;
 										$filtereditems = 0;
 										$invalidItems = 0;
