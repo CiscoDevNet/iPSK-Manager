@@ -82,13 +82,14 @@ TEXT;
 			}
 		}
 		
-		//Limit the maximum length to 64 Characters
+		if ($alphabet === '') { throw new InvalidArgumentException('Password alphabet must not be empty'); }
+			//Limit the maximum length to 64 Characters
 		if($length > 64){ $length = 64;}
 		
 		$generatedPsk = "";
 		//Loop through and select random characters from the alphabet
 		for($char = 0; $char < $length; $char++){
-			$generatedPsk .= substr($alphabet, random_int(0,strlen($alphabet)) - 1, 1);
+			$generatedPsk .= substr($alphabet, random_int(0,strlen($alphabet) - 1), 1);
 		}
 
 		return $generatedPsk;
