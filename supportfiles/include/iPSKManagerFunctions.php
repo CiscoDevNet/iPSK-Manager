@@ -76,6 +76,17 @@
 	}
 	
 
+
+    function ipskResetIdentity() {
+        // Only navigation context survives a new authentication attempt.
+        $_SESSION = array_intersect_key($_SESSION ?? [], array_flip(['creationTime', 'sessionID', 'portalSettings', 'portalGET']));
+        $_SESSION['authenticationGranted'] = false;
+        $_SESSION['authorizationGranted'] = false;
+        $_SESSION['loggedIn'] = false;
+        $_SESSION['portalAuthorization'] = array_fill_keys(['viewall', 'viewgroup', 'viewowned', 'create', 'bulkcreate', 'viewallPSK', 'viewgroupPSK', 'viewownedPSK'], false);
+        $_SESSION['portalAuthorization']['viewallDn'] = '';
+    }
+
     function ipskAdminSessionCheck() {
         return ipskLoginSessionCheck() && ($_SESSION['adminAuthorized'] ?? false) === true;
     }

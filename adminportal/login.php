@@ -31,7 +31,7 @@
 	include("../supportfiles/include/BaseLDAPClass.php");
 	
 	ipskSessionHandler('admin');
-    unset($_SESSION['adminAuthorized']);
+    ipskResetIdentity();
 	
 	if(isset($_POST['logoff'])){
 		$_SESSION = null;

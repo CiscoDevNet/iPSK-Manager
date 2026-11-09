@@ -626,6 +626,7 @@
 		}
 
 		function authenticateInternalUser($username,$password,$saml = false){
+            ipskResetIdentity();
 			
 			$passwordVerify = false;
 			

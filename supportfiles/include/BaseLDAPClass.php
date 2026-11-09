@@ -163,6 +163,7 @@
 	
 
 		function authenticateUser($username, $password, $saml = false, $nestedGroup = false){
+            ipskResetIdentity();
 
 			if ($this->sslDisableVerify) {
 				ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);

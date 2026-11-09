@@ -20,6 +20,7 @@
 	
 	
 	//Perform Login
+    ipskResetIdentity();
 	$_SESSION['portalAuthorization']['viewall'] = false;
 	$_SESSION['portalAuthorization']['viewallDn'] = "";
 	$_SESSION['portalAuthorization']['viewgroup'] = false;
