@@ -27,7 +27,8 @@
 */
 	
 	ini_set('display_errors', 'Off');
-	session_start();
+	require_once __DIR__.'/../supportfiles/include/iPSKManagerFunctions.php';
+    ipskSessionHandler('installer');
 	
 	//Check if Configuration file exists, if it does return error 404 when trying to access installer
 	//Ignore if we are currently running the installer on the system

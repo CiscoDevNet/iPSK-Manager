@@ -35,7 +35,7 @@
 	function ipskSessionHandler($scope = "portal"){
 		
         // Separate cookies even when the virtual hosts share PHP session storage.
-        session_name($scope === 'admin' ? 'IPSKADMIN' : 'IPSKPORTAL');
+        session_name(['admin'=>'IPSKADMIN','installer'=>'IPSKINSTALLER'][$scope] ?? 'IPSKPORTAL');
         session_start([
             'use_strict_mode' => 1,
             'use_only_cookies' => 1,
@@ -43,6 +43,7 @@
             'cookie_secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
             'cookie_samesite' => 'Lax',
         ]);
+        ipskProtectRequest();
 
 		if(!isset($_SESSION['creationTime'])) {
 			$_SESSION['creationTime'] = time();
@@ -95,6 +96,42 @@
 
 
 
+
+
+    function ipskCsrfToken() {
+        if (empty($_SESSION['csrfToken'])) $_SESSION['csrfToken'] = bin2hex(random_bytes(32));
+        return $_SESSION['csrfToken'];
+    }
+
+    function ipskCsrfValid($token) {
+        return is_string($token) && isset($_SESSION['csrfToken']) && hash_equals($_SESSION['csrfToken'], $token);
+    }
+
+    function ipskCsrfHtml($html, $token) {
+        $field = '<input type="hidden" name="csrfToken" value="'.ipskHtml($token).'">';
+        $html = preg_replace('/(<form\b[^>]*\bmethod=["\']?post["\']?[^>]*>)/i', '$1'.$field, $html);
+        $json = json_encode($token, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        $script = '<script>(function(){const token='.$json.';const open=XMLHttpRequest.prototype.open;const send=XMLHttpRequest.prototype.send;XMLHttpRequest.prototype.open=function(method,url){this.ipskCsrfOrigin=new URL(url,location.href).origin===location.origin;this.ipskCsrfMethod=method.toUpperCase();return open.apply(this,arguments);};XMLHttpRequest.prototype.send=function(){if(this.ipskCsrfOrigin&&!/^(GET|HEAD|OPTIONS)$/.test(this.ipskCsrfMethod)){this.setRequestHeader("X-CSRF-Token",token);}return send.apply(this,arguments);};})();</script>';
+        return preg_replace('/(<head\b[^>]*>)/i', '$1'.$script, $html, 1);
+    }
+
+    function ipskProtectRequest() {
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        if (!in_array($method, ['GET','HEAD','OPTIONS'], true) &&
+            !ipskCsrfValid($_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrfToken'] ?? null)) {
+            http_response_code(403);
+            exit('The security token is missing or expired. Reload the page and try again.');
+        }
+        $token = ipskCsrfToken();
+        if (PHP_SAPI !== 'cli') {
+            ob_start(function ($html) use ($token) {
+                foreach (headers_list() as $header) {
+                    if (stripos($header, 'Content-Type:') === 0 && stripos($header, 'text/html') === false) return $html;
+                }
+                return ipskCsrfHtml($html, $token);
+            });
+        }
+    }
 
     function ipskPortalParameters($input) {
         $out = [];

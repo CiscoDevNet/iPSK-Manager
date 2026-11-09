@@ -104,6 +104,12 @@
 	//echo $getPortal;
 	//die();
 	$sessionData = $_SESSION;
+    if (in_array($getPortal, ['create.php','bulkimport.php','bulkupdate.php','fileupload.php','performcoa.php','logoff.php'], true) &&
+        ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+        http_response_code(405);
+        header('Allow: POST');
+        return;
+    }
 	
 	if($getPortalId != "" && $getPortal != ""){
 		$portalId = $_GET['portalId'];
