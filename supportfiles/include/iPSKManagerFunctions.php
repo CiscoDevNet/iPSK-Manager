@@ -36,7 +36,13 @@
 		
         // Separate cookies even when the virtual hosts share PHP session storage.
         session_name($scope === 'admin' ? 'IPSKADMIN' : 'IPSKPORTAL');
-        session_start();
+        session_start([
+            'use_strict_mode' => 1,
+            'use_only_cookies' => 1,
+            'cookie_httponly' => 1,
+            'cookie_secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'cookie_samesite' => 'Lax',
+        ]);
 
 		if(!isset($_SESSION['creationTime'])) {
 			$_SESSION['creationTime'] = time();
@@ -76,6 +82,13 @@
 	}
 	
 
+
+    function ipskRotateSession() {
+        if (session_status() === PHP_SESSION_ACTIVE && !session_regenerate_id(true)) {
+            ipskResetIdentity();
+            throw new RuntimeException('Unable to establish a secure session');
+        }
+    }
 
     function ipskResetIdentity() {
         // Only navigation context survives a new authentication attempt.

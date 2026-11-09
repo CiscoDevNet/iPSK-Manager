@@ -243,7 +243,8 @@
 							$_SESSION['logonSID'] = convertBinSID($entries[0]['objectsid'][0]);
 							$_SESSION['logonDN'] = $userDN;
 							$_SESSION['logonDomain'] = $this->ldapDomain;
-							$_SESSION['authenticationGranted'] = true;
+							ipskRotateSession();
+                            $_SESSION['authenticationGranted'] = true;
 							$_SESSION['authenticationTimestamp'] = time();
 							$_SESSION['logonTime'] = time();
 							$_SESSION['loggedIn'] = true;
@@ -265,7 +266,8 @@
 							$_SESSION['logonSID'] = $entries[0]['uid'][0]."-".$this->ldapDomain;
 							$_SESSION['logonDN'] = $userDN;
 							$_SESSION['logonDomain'] = $this->ldapDomain;
-							$_SESSION['authenticationGranted'] = true;
+							ipskRotateSession();
+                            $_SESSION['authenticationGranted'] = true;
 							$_SESSION['authenticationTimestamp'] = time();
 							$_SESSION['logonTime'] = time();
 							$_SESSION['loggedIn'] = true;

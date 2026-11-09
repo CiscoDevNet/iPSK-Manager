@@ -674,7 +674,8 @@
 						$_SESSION['logonSID'] = $user['sid'];
 						$_SESSION['logonDN'] = $user['dn'];
 						$_SESSION['logonDomain'] = "System.Local";
-						$_SESSION['authenticationGranted'] = true;
+						ipskRotateSession();
+                            $_SESSION['authenticationGranted'] = true;
 						$_SESSION['authenticationTimestamp'] = time();
 						$_SESSION['logonTime'] = time();
 						$_SESSION['loggedIn'] = true;
