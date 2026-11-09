@@ -1249,7 +1249,7 @@
 						}
 						$queryData['count'] = $listCount;
 						
-						return $queryData;
+						return ipskMergeGroupGrants($queryData);
 					}else{
 						return false;
 					}

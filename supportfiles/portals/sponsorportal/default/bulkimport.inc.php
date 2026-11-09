@@ -72,7 +72,7 @@
 	
 	for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++) {
 		if($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'] == $sanitizedInput['associationGroup']){
-			$epGroupMax = $_SESSION['authorizedEPGroups'][$count]['maxDevices'];
+			$epGroupMax = $_SESSION['authorizedEPGroups'][$count]['bulkMaxDevices'];
 		}
 	}
 	

@@ -75,7 +75,7 @@
 					}
 					
 					$disableOption = '';
-					if ($userEPCount >= $_SESSION['authorizedEPGroups'][$count]['maxDevices'] && $_SESSION['authorizedEPGroups'][$count]['maxDevices'] != 0) {
+					if ($userEPCount >= $_SESSION['authorizedEPGroups'][$count]['bulkMaxDevices'] && $_SESSION['authorizedEPGroups'][$count]['bulkMaxDevices'] != 0) {
 						$disableOption = 'disabled'; 
 					}
 

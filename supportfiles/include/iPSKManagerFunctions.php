@@ -202,6 +202,32 @@
         return false;
     }
 
+
+    function ipskMergeGroupGrants($rows) {
+        $groups = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) continue;
+            $id = $row['endpointGroupId'];
+            if (!isset($groups[$id])) $groups[$id] = $row + ['createMaximum'=>null,'bulkMaximum'=>null];
+            $groups[$id]['groupPermissions'] |= $row['groupPermissions'];
+            foreach ([512=>'createMaximum',2048=>'bulkMaximum'] as $permission=>$field) {
+                if (!($row['groupPermissions'] & $permission)) continue;
+                $old = $groups[$id][$field]; $new = (int)$row['maxDevices'];
+                $groups[$id][$field] = $old === null ? $new : (($old === 0 || $new === 0) ? 0 : max($old,$new));
+            }
+        }
+        $result=[];
+        foreach ($groups as $row) {
+            $row['maxDevices'] = $row['createMaximum'] ?? 0;
+            $row['bulkMaxDevices'] = $row['bulkMaximum'] ?? 0;
+            $row['viewPermissions'] = $row['groupPermissions'] & 15;
+            $row['advancedPermissions'] = $row['groupPermissions'] & 2032;
+            $result[]=$row;
+        }
+        $result['count']=count($result);
+        return $result;
+    }
+
     function ipskQuotaAvailable($count, $maximum, $incoming = 1) {
         return $count !== false && is_numeric($count) && $count >= 0 && is_numeric($maximum) && $maximum >= 0 &&
             $incoming >= 0 && ($maximum == 0 || $count + $incoming <= $maximum);
@@ -218,6 +244,7 @@
             }
         }
         if (!$grant) return false;
+        if ($permission === 2048) $grant['maxDevices'] = $grant['bulkMaxDevices'] ?? $grant['maxDevices'];
         $count = $database->getUserEndpointCount($groupId, $_SESSION['logonSID']);
         if (!ipskQuotaAvailable($count, $grant['maxDevices'])) return false;
         return $grant;
