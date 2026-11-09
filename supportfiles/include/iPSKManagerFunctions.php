@@ -161,6 +161,10 @@
         return http_build_query(['portalId'=>$portalId] + $parameters, '', '&', PHP_QUERY_RFC3986);
     }
 
+    function ipskUsername($value) {
+        return is_string($value) && trim($value) !== '' && preg_match('/\A[^\x00-\x1f\x7f]{1,255}\z/uD',$value) ? $value : false;
+    }
+
     function ipskPskPlain($stored) {
         return strncmp($stored, 'psk=', 4) === 0 ? substr($stored, 4) : $stored;
     }
@@ -455,7 +459,7 @@
 			'authDirectory'	=>	FILTER_VALIDATE_INT,
 			'inputUsername' => array('filter'	=>	FILTER_CALLBACK,
 									 'options'	=>	function ($value) {
-										return preg_replace('/[^a-zA-Z0-9@._+\- ]/', '', $value); // notice the added space at the end
+										return ipskUsername($value);
 									 }
 								),
 			'userName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
@@ -616,6 +620,9 @@
 			}
 		}
 
+        foreach (['inputUsername','userName'] as $key) {
+            if (array_key_exists($key,$_POST)) $mysanitizedInputs[$key] = ipskUsername($_POST[$key]);
+        }
         // Secrets are validated as secrets, never trimmed, stripped or HTML-encoded before storage.
         foreach (['password','confirmpassword','ersPassword','mntPassword','smtpPassword','adPassword','ciscoAVPairPSK','presharedKey'] as $key) {
             if (array_key_exists($key,$_POST)) $mysanitizedInputs[$key] = is_string($_POST[$key]) ? $_POST[$key] : false;

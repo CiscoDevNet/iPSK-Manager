@@ -184,12 +184,12 @@
 
 				if($this->directoryType == 0) {
 					if(strpos($username,"@")){
-						$filter = '(userPrincipalName='.$username.')';
+						$filter = '(userPrincipalName='.ldap_escape($username, '', LDAP_ESCAPE_FILTER).')';
 					}elseif(strpos($username,"\\")){
 						$username = substr($username,strpos($username,"\\") + 1);
-						$filter = '(sAMAccountName='.$username.')';
+						$filter = '(sAMAccountName='.ldap_escape($username, '', LDAP_ESCAPE_FILTER).')';
 					}else{
-						$filter = '(sAMAccountName='.$username.')';
+						$filter = '(sAMAccountName='.ldap_escape($username, '', LDAP_ESCAPE_FILTER).')';
 					}
 				
 					$attributes = array("name", "mail", "samaccountname", "objectSid", "memberof", "userPrincipalName");
@@ -197,9 +197,9 @@
 
 				if($this->directoryType == 1) {
 					if(strpos($username,"@")){
-						$filter = '(mail='.$username.')';
+						$filter = '(mail='.ldap_escape($username, '', LDAP_ESCAPE_FILTER).')';
 					}else{
-						$filter = '(uid='.$username.')';
+						$filter = '(uid='.ldap_escape($username, '', LDAP_ESCAPE_FILTER).')';
 					}
 				
 					$attributes = array("sn", "givenName", "mail", "cn", "memberof", "uid");
