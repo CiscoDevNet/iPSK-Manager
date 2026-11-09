@@ -26,6 +26,12 @@
 		die();
 	}
 	
+    if (!ipskEndpointPermission($ipskISEDB, $sanitizedInput['id'] ?? 0)) {
+        http_response_code(403);
+        print 'You are not authorized to view this endpoint.';
+        return;
+    }
+
 	$viewPSKPermission = false;
 
 	$endPointAssociation = $ipskISEDB->getEndPointAssociationById($sanitizedInput['id']);
