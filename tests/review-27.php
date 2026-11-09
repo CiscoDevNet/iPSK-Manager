@@ -10,7 +10,7 @@ foreach (['adminAuthorized', 'authorizedEPGroups', 'authorizationGroups', 'autho
 verify($_SESSION['portalSettings']['id'] === 3 && $_SESSION['portalGET']['client_mac'] === 'test', 'Login navigation context lost');
 $db = connectionFor(new class {
     function real_escape_string($value) { return $value; }
-    function query($sql) { return false; }
+    function prepare($sql) { return false; }
 });
 $_SESSION = validSession() + ['adminAuthorized'=>true];
 verify(!$db->authenticateInternalUser('missing', 'wrong'), 'Failed authentication must fail');

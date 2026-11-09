@@ -159,6 +159,18 @@ class ExtensionConnectionStub {
     public $result = true;
     public $throws = false;
     public $query;
+    public $values;
+    function prepare($sql) {
+        $this->query = $sql;
+        return new class($this) {
+            public $field_count = 0;
+            private $connection;
+            function __construct($connection) { $this->connection = $connection; }
+            function bind_param($types, &...$values) { $this->connection->values = $values; return true; }
+            function execute() { return $this->connection->query($this->connection->query); }
+            function close() {}
+        };
+    }
     function real_escape_string($value) { return (string)$value; }
     function query($query) {
         $this->query = $query;
@@ -179,7 +191,8 @@ foreach (['success', 'false', 'exception'] as $mode) {
         $property->setAccessible(true);
         $property->setValue($db, $connection);
         check($db->extendEndpoint(42, 0, 'test-sid') === ($mode === 'success'), 'Must report the database result');
-        check(str_contains($connection->query, "`accountExpired` = 'False', `expirationDate` = 0"), 'Unlimited extension must reset expired status and store zero');
+        check(str_contains($connection->query, "`accountExpired` = 'False', `expirationDate` = ?"), 'Unlimited extension must reset expired status and store zero');
+        check($connection->values === [0, 42], 'Expiration and endpoint ID must be bound');
     });
 }
 
