@@ -32,6 +32,12 @@ try {
     verify($db->getGlobalSetting("fixture's", "key's") === "value's", 'Settings insert roundtrip');
     $db->setGlobalSetting("fixture's", "key's", "updated's");
     verify($db->getGlobalSetting("fixture's", "key's") === "updated's", 'Settings update roundtrip');
+    $c->query("UPDATE endpoints SET expirationDate=100,accountExpired='True'");
+    verify($db->updateEndpoint($id,"O'Connor",'fixture','a@example.test',$sid,null,'10',"acl's",0), 'Unlimited update failed');
+    $updated=$c->query('SELECT * FROM endpoints WHERE id='.(int)$id)->fetch_assoc();
+    verify((int)$updated['expirationDate']===0 && $updated['accountExpired']==='False' && $updated['pskValue']===$psk, 'Zero expiration failed or changed omitted key');
+    $db->updateEndpoint($id,"O'Connor",'fixture','a@example.test',$sid,null,'10',"acl's");
+    verify((int)$c->query('SELECT expirationDate FROM endpoints WHERE id='.(int)$id)->fetch_row()[0]===0, 'Omitted expiration changed');
     $groups = ['count'=>2, ['groupDn'=>"CN=O'Connor"], ['groupDn'=>"' OR 1=1 --"]];
     $db->getEndPointGroupAuthorizations(1, $groups);
     $db->getEndPointAssociationPermissions(1, $groups, 1);

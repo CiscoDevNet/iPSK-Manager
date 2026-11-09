@@ -3209,16 +3209,15 @@
 
 		function updateEndpoint($endpointId, $fullName, $description, $email, $createdBy, $psk = null, $vlan = null, $dacl = null, $expirationDate = null){
 			
-			if($psk == null && $expirationDate == null){
-				$queryValues = [$fullName, $description, $email, $vlan, $dacl, (int)($endpointId)];
-				$query = "UPDATE `endpoints` SET `fullName` = ?, `description` = ?, `emailAddress` = ?, `vlan` = ?, `dacl` = ? WHERE `id` = ?";
-			}elseif($psk != null && $expirationDate == null){
-				$queryValues = [$fullName, $description, $email, $psk, $vlan, $dacl, (int)($endpointId)];
-				$query = "UPDATE `endpoints` SET `fullName` = ?, `description` = ?, `emailAddress` = ?, `pskValue` = ?, `vlan` = ?, `dacl` = ?  WHERE `id` = ?";
-			}else{
-				$queryValues = [$fullName, $description, $email, $psk, $vlan, $dacl, (int)($expirationDate), (int)($endpointId)];
-				$query = "UPDATE `endpoints` SET `fullName` = ?, `description` = ?, `emailAddress` = ?, `pskValue` = ?, `vlan` = ?, `dacl` = ?, `accountExpired` = 'False', `expirationDate` = ? WHERE `id` = ?";
-			}
+            $query = "UPDATE endpoints SET fullName=?, description=?, emailAddress=?, vlan=?, dacl=?";
+            $queryValues = [$fullName, $description, $email, $vlan, $dacl];
+            if ($psk !== null) { $query .= ", pskValue=?"; $queryValues[] = $psk; }
+            if ($expirationDate !== null) {
+                $query .= ", accountExpired='False', expirationDate=?";
+                $queryValues[] = (int)$expirationDate;
+            }
+            $query .= " WHERE id=?";
+            $queryValues[] = (int)$endpointId;
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
 				return true;
