@@ -1,0 +1,274 @@
+{
+  "description": "Pinned upstream vendor assets. Multi-source bundles are concatenated in source order with a newline separator and final newline. Checksums cover exact downloaded bytes.",
+  "assets": [
+    {
+      "library": "Bootstrap",
+      "version": "5.3.8",
+      "paths": [
+        "adminportal/scripts/bootstrap.bundle.min.js",
+        "supportfiles/portals/sponsorportal/commonfiles/scripts/bootstrap.bundle.min.js",
+        "supportfiles/portals/captiveportal/commonfiles/scripts/bootstrap.bundle.min.js"
+      ],
+      "sources": [
+        {
+          "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js",
+          "sha256": "e4fd49181388c48ec5040bd3fe66f57c29c8e67fcd8502b3354b96ec7ab47cc7"
+        }
+      ],
+      "sha256": "e4fd49181388c48ec5040bd3fe66f57c29c8e67fcd8502b3354b96ec7ab47cc7"
+    },
+    {
+      "library": "Bootstrap",
+      "version": "5.3.8",
+      "paths": [
+        "adminportal/styles/bootstrap.min.css",
+        "supportfiles/portals/sponsorportal/commonfiles/styles/bootstrap.min.css",
+        "supportfiles/portals/captiveportal/commonfiles/styles/bootstrap.min.css",
+        "portals/404/bootstrap.min.css"
+      ],
+      "sources": [
+        {
+          "url": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css",
+          "sha256": "d85327d99c7a3ee1f9b5d0500d1370acea3ad2db39c163c2f51f232baedbdede"
+        }
+      ],
+      "sha256": "d85327d99c7a3ee1f9b5d0500d1370acea3ad2db39c163c2f51f232baedbdede"
+    },
+    {
+      "library": "Chart.js",
+      "version": "4.6.1",
+      "paths": [
+        "adminportal/scripts/chart.min.js"
+      ],
+      "sources": [
+        {
+          "url": "https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js",
+          "sha256": "87364cc2b2a76a6684929e7d6b80b18a897794db38400caff1fcf1791c6925d2"
+        }
+      ],
+      "sha256": "87364cc2b2a76a6684929e7d6b80b18a897794db38400caff1fcf1791c6925d2"
+    },
+    {
+      "library": "jquery",
+      "version": "3.7.1",
+      "paths": [
+        "adminportal/scripts/jquery.min.js",
+        "supportfiles/portals/sponsorportal/commonfiles/scripts/jquery.min.js",
+        "supportfiles/portals/captiveportal/commonfiles/scripts/jquery.min.js"
+      ],
+      "sources": [
+        {
+          "url": "https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js",
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ],
+      "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+    },
+    {
+      "library": "feather-icons",
+      "version": "4.29.2",
+      "paths": [
+        "adminportal/scripts/feather.min.js",
+        "supportfiles/portals/sponsorportal/commonfiles/scripts/feather.min.js",
+        "supportfiles/portals/captiveportal/commonfiles/scripts/feather.min.js"
+      ],
+      "sources": [
+        {
+          "url": "https://cdn.jsdelivr.net/npm/feather-icons@4.29.2/dist/feather.min.js",
+          "sha256": "ea465ac6b69a037dc49fda6ab1c585f95725091eff4515df61db91d9d3c5e54e"
+        }
+      ],
+      "sha256": "ea465ac6b69a037dc49fda6ab1c585f95725091eff4515df61db91d9d3c5e54e"
+    },
+    {
+      "library": "clipboard",
+      "version": "2.0.11",
+      "paths": [
+        "adminportal/scripts/clipboard.min.js",
+        "supportfiles/portals/sponsorportal/commonfiles/scripts/clipboard.min.js",
+        "supportfiles/portals/captiveportal/commonfiles/scripts/clipboard.min.js"
+      ],
+      "sources": [
+        {
+          "url": "https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js",
+          "sha256": "e17a1d816e13c0826e0ed7febfabc3277f45571234bde0bf9120829a7169edc9"
+        }
+      ],
+      "sha256": "e17a1d816e13c0826e0ed7febfabc3277f45571234bde0bf9120829a7169edc9"
+    },
+    {
+      "library": "popper.js",
+      "version": "1.16.1",
+      "paths": [
+        "adminportal/scripts/popper.min.js",
+        "supportfiles/portals/sponsorportal/commonfiles/scripts/popper.min.js",
+        "supportfiles/portals/captiveportal/commonfiles/scripts/popper.min.js"
+      ],
+      "sources": [
+        {
+          "url": "https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js",
+          "sha256": "fe28dc38bc057f6eb11180235bbe458b3295a39b674d889075d3d9a0b5071d9f"
+        }
+      ],
+      "sha256": "fe28dc38bc057f6eb11180235bbe458b3295a39b674d889075d3d9a0b5071d9f"
+    },
+    {
+      "library": "DataTables with Bootstrap 5 and extensions",
+      "version": "2.3.8",
+      "paths": [
+        "adminportal/scripts/datatables.min.js",
+        "supportfiles/portals/sponsorportal/commonfiles/scripts/datatables.min.js"
+      ],
+      "sources": [
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net@2.3.8/js/dataTables.min.js",
+          "sha256": "14003b703de0e0019277baff32ce03a0b8a1aba6a97c86bb4b67d430336085de"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-bs5@2.3.8/js/dataTables.bootstrap5.min.js",
+          "sha256": "5adfe8c7957aaec56ef0403aa9e1fcdf7165785f092c34bb55c9075ea660ddbc"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-buttons@3.2.6/js/dataTables.buttons.min.js",
+          "sha256": "243f85216f9bed6b10492ed6f4ee60b6a451fddc4850d818eb5a240e4a241b32"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@3.2.6/js/buttons.bootstrap5.min.js",
+          "sha256": "e799b00d16687d245b868139cc956579fa5568b765656a7a86dfa3d24b9ddb3f"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-buttons@3.2.6/js/buttons.colVis.min.js",
+          "sha256": "e6b6f95a15d26a91b5938b784f97ebfad958684cf4b339c6c8dff16439080659"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-buttons@3.2.6/js/buttons.print.min.js",
+          "sha256": "25a9469b202cf1d1302d8aa5200b81ef3c587e0798ed1ef72d16231f124d3c3c"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-responsive@3.0.8/js/dataTables.responsive.min.js",
+          "sha256": "b9278ed91185c3fac4e9075dc03c54327966eaee9f32d7a97e13acd36a0e49d7"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@3.0.8/js/responsive.bootstrap5.min.js",
+          "sha256": "80975e0be6f9699be165bdc8523e57ebbd20983dfc7cc8476a3f057542aed86e"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-scroller@2.4.3/js/dataTables.scroller.min.js",
+          "sha256": "fba445ffe160661f71b585477e7ed74c407de7c92377c9801bc352747e911015"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-scroller-bs5@2.4.3/js/scroller.bootstrap5.min.js",
+          "sha256": "4704c149c6ebbe59fcd9a7245f33b19e100ebc696b2b213d7f84d07424253173"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-searchpanes@2.3.5/js/dataTables.searchPanes.min.js",
+          "sha256": "187de4a838e78b46bab1cf3da7f083f7bfcf409c1036f30f4c126a36d4a752fd"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-searchpanes-bs5@2.3.5/js/searchPanes.bootstrap5.min.js",
+          "sha256": "181f60519377446c750e8abc4978b1445e2545102fcc63f805cbe25daddbf7f0"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-staterestore@1.4.3/js/dataTables.stateRestore.min.js",
+          "sha256": "eb5dd89d983dfb45be905e80eebff570cb5d5355ce2cad0415177eccbe39c6d3"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-staterestore-bs5@1.4.3/js/stateRestore.bootstrap5.min.js",
+          "sha256": "82628bff50a799a8a5195f7c37c8db18220fecee80c1aa5f4c0bac526c03eead"
+        }
+      ],
+      "sha256": "8f12667c8e332be105537e13490d4c2fa32490fee0df8b8fef27e35011848db4"
+    },
+    {
+      "library": "DataTables with Bootstrap 5 and extensions",
+      "version": "2.3.8",
+      "paths": [
+        "adminportal/styles/datatables.min.css",
+        "supportfiles/portals/sponsorportal/commonfiles/styles/datatables.min.css"
+      ],
+      "sources": [
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-bs5@2.3.8/css/dataTables.bootstrap5.min.css",
+          "sha256": "38a56c35899a27ed8f29096321472522cee35e25a91989116fe08f1de33401ec"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-buttons-bs5@3.2.6/css/buttons.bootstrap5.min.css",
+          "sha256": "29a082ee1c05aac8eac50e71a1861cde10144c352a289c7ae3ad8dd0e44439b7"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-responsive-bs5@3.0.8/css/responsive.bootstrap5.min.css",
+          "sha256": "2e5894ae7eef4f43e3b1d3d67ec19c41d0cf308d1f69a50f5b354641a8599024"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-scroller-bs5@2.4.3/css/scroller.bootstrap5.min.css",
+          "sha256": "24e02212b1e77f1db2ac0c9add4338d7bbe944bfaed8a7414eb93fa78a48e162"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-searchpanes-bs5@2.3.5/css/searchPanes.bootstrap5.min.css",
+          "sha256": "692542dc6715a4b7c32dcdb7ad7db58ab3b70f19d4f62202ef78fc2847592e83"
+        },
+        {
+          "url": "https://cdn.jsdelivr.net/npm/datatables.net-staterestore-bs5@1.4.3/css/stateRestore.bootstrap5.min.css",
+          "sha256": "6a43292b2db3ebc56ccbe85665d2816ff17d7baf90531184e1a0ee3b2f3e1b76"
+        }
+      ],
+      "sha256": "57cf9f951777de6677f38640be57de6e88d48dadadc07c3de5495909717e024a"
+    },
+    {
+      "library": "PHPMailer",
+      "version": "7.2.0",
+      "paths": [
+        "supportfiles/include/phpmailer/PHPMailer.php"
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/PHPMailer/PHPMailer/v7.2.0/src/PHPMailer.php",
+          "sha256": "007a9d0e5445162c4ae15374605c8287f129432bdb545322d7075ef81c4660d4"
+        }
+      ],
+      "sha256": "007a9d0e5445162c4ae15374605c8287f129432bdb545322d7075ef81c4660d4"
+    },
+    {
+      "library": "PHPMailer",
+      "version": "7.2.0",
+      "paths": [
+        "supportfiles/include/phpmailer/SMTP.php"
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/PHPMailer/PHPMailer/v7.2.0/src/SMTP.php",
+          "sha256": "4d46dda61291216905257a63086842a41c39c958828417820c42baf8219c1240"
+        }
+      ],
+      "sha256": "4d46dda61291216905257a63086842a41c39c958828417820c42baf8219c1240"
+    },
+    {
+      "library": "PHPMailer",
+      "version": "7.2.0",
+      "paths": [
+        "supportfiles/include/phpmailer/Exception.php"
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/PHPMailer/PHPMailer/v7.2.0/src/Exception.php",
+          "sha256": "22ab858ae438d98f58f41f38ad2191d1b0d59570aebea0463a7948cfae1021b7"
+        }
+      ],
+      "sha256": "22ab858ae438d98f58f41f38ad2191d1b0d59570aebea0463a7948cfae1021b7"
+    },
+    {
+      "library": "PHPMailer",
+      "version": "7.2.0",
+      "paths": [
+        "supportfiles/include/phpmailer/LICENSE"
+      ],
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/PHPMailer/PHPMailer/v7.2.0/LICENSE",
+          "sha256": "a1a33180d02960ab1c5de36cf20b1a2f0fe9888d83826ad263da5db52f1b183b"
+        }
+      ],
+      "sha256": "a1a33180d02960ab1c5de36cf20b1a2f0fe9888d83826ad263da5db52f1b183b"
+    }
+  ]
+}

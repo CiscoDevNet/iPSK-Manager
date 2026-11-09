@@ -32,7 +32,9 @@ Identity PSK Manager enables the following features/functionality:
 
 **What's New (November 2026)**
 
+- Refreshed bundled libraries: Bootstrap 5.3.8, Chart.js 4.6.1, DataTables 2.3.8 and compatible extensions, PHPMailer 7.2.0, and standalone Popper 1.16.1. All deployed copies are pinned in the [vendor manifest](supportfiles/vendor-manifest.json), with browser and real SMTP regression coverage.
 - Security and reliability fixes across the admin, sponsor, and captive portals, with regression coverage for the reviewed issues and database migration behavior.
+- Preserved arrow-key navigation and Escape dismissal in DataTables column menus alongside Bootstrap dropdowns.
 - Stronger route, session, and CSRF protection; authorization is rechecked for endpoint details, PSK access, edits, imports, and CoA operations.
 - [Directory-scoped group grants](#directory-scoped-group-grants-schema-12) prevent identical group DNs in separate directories from sharing administrator or portal permissions.
 - Atomic endpoint changes and concurrent quota enforcement; corrected unlimited quotas, endpoint ownership, reassignment, and expiration handling.
@@ -91,22 +93,29 @@ Identity PSK Manager enables the following features/functionality:
 
 **Tools & Frameworks:**
 
-- Bootstrap v5.3.6
+- Bootstrap v5.3.8
 - jQuery v3.7.1
 - feathericon v4.29.2
-- Chart JS v4.4.9
+- Chart.js v4.6.1
 - ClipBoard Copy v2.0.11
-- DataTables v2.3.1
-- PHPMailer v6.10.0
+- DataTables v2.3.8 (Bootstrap 5 integration)
+- DataTables extensions: Buttons / Column visibility / Print v3.2.6, Responsive v3.0.8, Scroller v2.4.3, SearchPanes v2.3.5, StateRestore v1.4.3
+- PHPMailer v7.2.0
+- Standalone Popper v1.16.1 for existing portal scripts (Bootstrap bundles its own Popper v2.11.8)
+
+jQuery remains on v3.7.1 and DataTables on the v2 series to preserve the existing portal and extension APIs. Upgrading to jQuery 4 or DataTables 3 is a separate compatibility migration. Feather v4.29.2 and Clipboard v2.0.11 already match their current stable releases. See the [test instructions](tests/README.md) for offline PHP and browser checks.
 
 **We would like to thank all the authors & contributers on the previously mentioned Tools & Frameworks!**
 
 The Documentation and Guides available from these tools, contained the details needed to bring this Application to life.  Below are links to references used for the above Tools & Frameworks:
-- Bootstrap - Mobile first website Framework [https://getbootstrap.com/docs/5.0/getting-started/introduction/](https://getbootstrap.com/docs/5.0/getting-started/introduction/)
+- Bootstrap - Mobile first website Framework [https://getbootstrap.com/docs/5.3/getting-started/introduction/](https://getbootstrap.com/docs/5.3/getting-started/introduction/)
 - jQuery - Feature-rich JavaScript Library [https://api.jquery.com/](https://api.jquery.com/)
 - feathericon - Simply beautiful open sources icons - [https://feathericons.com/](https://feathericons.com/)
 - Chart JS - Simple and Flexible Javascript Charts - [https://www.chartjs.org/docs/latest/](https://www.chartjs.org/docs/latest/)
 - ClipBoard Copy - Javascript based copy to clipboard - [https://clipboardjs.com/](https://clipboardjs.com/)
+- DataTables - [v2.3.8 release notes](https://cdn.datatables.net/2.3.8/)
+- PHPMailer - [v7.2.0 release notes](https://github.com/PHPMailer/PHPMailer/releases/tag/v7.2.0)
+- Popper - [v1.16.1 source](https://github.com/floating-ui/floating-ui/tree/v1.16.1)
 
 ## Prerequisites
 
@@ -517,13 +526,14 @@ Confirm that the reported database version reaches **12**. If an update fails, k
 #### After updating
 
 1. **Bind external group grants before restoring external access.** In **Groups**, edit every external row marked **Review required**, select its **Authentication directory**, and save. For alternate LDAP servers serving the same trusted directory, configure their **Identity source** explicitly as described [below](#directory-scoped-group-grants-schema-12). Keep independent directories separate. Test external administrator and portal access, including an account that should be denied. Restore SAML if it was temporarily disabled, then test that login path too.
-2. **Start fresh sessions and imports.** Have administrators and portal users sign out and sign in again, then reload open forms. Re-upload any CSV files that were pending before the update and generate fresh sponsor PSKs for unfinished enrollment forms. Old session state and pending tokens must not be reused.
+2. **Start fresh sessions and imports.** Have administrators and portal users sign out and sign in again, then hard-refresh the browser to load the matching JavaScript and CSS and reload open forms. Purge cached static assets from any reverse proxy or CDN used by the deployment. Update library copies in any custom portal templates as well. Re-upload any CSV files that were pending before the update and generate fresh sponsor PSKs for unfinished enrollment forms. Old session state and pending tokens must not be reused.
 3. **Refresh expiration jobs if used.** Update deployed copies from `expire-endpoints-cron-example.php.txt`, preserving the deployment's `ipskManagerPath`, settings, and schedule. Updating the repository example does not update a copy installed elsewhere. Verify the configured expiration behavior and email delivery before resuming scheduled jobs.
 4. **Verify the deployment's integrations and permissions.** Check ISE ODBC authentication and attribute retrieval, ERS/MnT operations including CoA where enabled, LDAP/SAML login, and SMTP delivery. Confirm that suspended endpoints are denied when using `iPSK_AuthMACPlain`. Exercise a permitted endpoint creation, edit, import, and expiration extension; verify quota limits and own-only access with a sponsor account. Review any ownership changes made by v11.
 5. **Resume service after validation.** Restore enrollment and scheduled jobs once migrations, group bindings, and integration checks pass. Keep the backups available for recovery.
 
 #### Compatibility notes for existing deployments
 
+- **Library refresh:** Deploy JavaScript and CSS together, including the DataTables extensions and Bootstrap integration. This refresh adds no database migration beyond schema 12 and keeps the application's PHP 8.0+ requirement. For custom PHPMailer subclasses, review the [v7 changes](https://github.com/PHPMailer/PHPMailer/releases/tag/v7.0.0): `lang()`, `setLanguage()`, and `$language` are now static. The bundled application does not override them. Retest SMTP delivery after replacing the mail classes.
 - **PSKs:** New or edited keys must be 8–63 printable ASCII characters or exactly 64 hexadecimal digits. Random-key policy lengths must be 8–63; review legacy templates configured for 64-character random passphrases. Existing endpoint keys are not automatically rotated. Correct invalid templates before creating or changing endpoints with them.
 - **Sessions and uploads:** Sessions expire after 30 minutes of inactivity or 12 hours overall, and configured earlier logout deadlines still apply. CSV uploads use single-use tokens valid for 30 minutes. Generated sponsor PSK tokens are single-use, expire after 10 minutes, and are invalidated by changes to the associated policy. CSV headers must contain each of `macaddress`, `fullname`, `emailaddress`, and `description` exactly once; their order and case may vary.
 - **Stored credentials:** Passwords and PSKs now retain their original characters. Previously stored values are not automatically decoded or rewritten. If an integration fails because a legacy secret was stored with escaped characters, re-enter the intended secret and retest that integration.
