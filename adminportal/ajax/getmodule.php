@@ -70,7 +70,7 @@
 				$logMessage = "REQUEST:SUCCESS;GET-MODULE:".$sanitizedInput['module'].";SUB-MODULE:".$sanitizedInput['sub-module'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				include($moduleFileName);
+				ipskRenderDatabaseOperation($ipskISEDB, $moduleFileName, get_defined_vars());
 			}else{
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("moduleFileName"=>$moduleFileName), Array("sanitizedInput"=>$sanitizedInput), Array("_POST"=>$_POST));
@@ -97,7 +97,7 @@
 				$logMessage = "REQUEST:SUCCESS;GET-MODULE:".$sanitizedInput['module'].";";
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 				
-				include($moduleFileName);
+				ipskRenderDatabaseOperation($ipskISEDB, $moduleFileName, get_defined_vars());
 			}else{
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("moduleFileName"=>$moduleFileName), Array("sanitizedInput"=>$sanitizedInput), Array("_POST"=>$_POST));

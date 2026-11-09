@@ -1,6 +1,7 @@
 <?php
 // Only for an isolated disposable database. Never reads application configuration.
 require __DIR__.'/review-bootstrap.php';
+ob_start();
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $c = new mysqli(getenv('IPSK_TEST_DB_HOST') ?: 'ipsk-review-db', 'root', '');
 $name = 'ipsk_test_'.bin2hex(random_bytes(8));
@@ -103,6 +104,28 @@ try {
     verify($c->query('SELECT COUNT(*) FROM internalUserGroupMapping WHERE userId='.(int)$other)->fetch_row()[0]==0,'Membership remained');
     verify(!$db->updateInternalUserGroupMapping(['invalid'],$other,'fixture'),'Malformed group accepted');
     verify($db->authenticateInternalUser('OtherUser','otherpass') && $_SESSION['memberOf']['count']===0,'Fresh login retained removed group');
+    $sponsor=$db->addSponsorGroup('Atomic group','',0,[],0,0,'fixture');
+    verify($db->addSponsorGroupEPGMapping([$group],$sponsor,'fixture'),'Atomic mapping fixture');
+    foreach ([MYSQLI_REPORT_OFF, MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT] as $reporting) {
+        mysqli_report($reporting);
+        verify(!$db->updateSponsorGroupEPGMapping([999999],$sponsor,'fixture'),'FK failure reported success');
+        verify((int)$c->query('SELECT endpointGroupId FROM sponsorGroupEPGMapping WHERE sponsorGroupId='.(int)$sponsor)->fetch_row()[0]===(int)$group,'Failed mapping replacement deleted original');
+        $c->query("CREATE TRIGGER review_fail_sid BEFORE UPDATE ON internalUsers FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Injected SID failure'");
+        $before=(int)$c->query('SELECT COUNT(*) FROM internalUsers')->fetch_row()[0];
+        verify(!$db->addInternalUser('AtomicUser','Name','','','hash','fixture'),'Second write failure reported success');
+        verify((int)$c->query('SELECT COUNT(*) FROM internalUsers')->fetch_row()[0]===$before,'Failed SID assignment left partial user');
+        $c->query('DROP TRIGGER review_fail_sid');
+        $c->query("CREATE TRIGGER review_fail_setting BEFORE INSERT ON settings FOR EACH ROW BEGIN IF NEW.keyName='admin-portal-strict-hostname' THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Injected setting failure'; END IF; END");
+        $_SESSION=validSession()+['adminAuthorized'=>true];http_response_code(200);
+        $input=['module-action'=>'general','adminPortalHostname'=>'atomic.example.test','strict-hostname'=>1,'redirect-hostname'=>1,'logPurgeInterval'=>30,'usePortalDescription'=>1];
+        ob_start();$ok=ipskRenderDatabaseOperation($db,__DIR__.'/../supportfiles/adminportals/modules/sysconfig/update.inc.php',['ipskISEDB'=>$db,'sanitizedInput'=>$input]);$output=ob_get_clean();
+        verify(!$ok && !str_contains($output,'atomic.example.test'),'Batch settings failure reported success');
+        verify((int)$c->query("SELECT COUNT(*) FROM settings WHERE settingClass='admin-portal'")->fetch_row()[0]===0,'Batch settings left partial changes');
+        $c->query('DROP TRIGGER review_fail_setting');
+    }
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    verify($db->updateSponsorGroupEPGMapping([],$sponsor,'fixture'),'Empty mapping removal failed');
+    echo "PASS review 20 integration: mapping/SID/settings failures roll back under strict and non-strict mysqli\n";
     $db->set_dbDatabase($name);
     $c->query('CREATE PROCEDURE iPSK_AttributeFetch (IN username VARCHAR(64), OUT result INT) SELECT 1');
     $runner=$db->getMigrationManager();

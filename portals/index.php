@@ -171,7 +171,9 @@
 				header("Cache-Control: post-check=0, pre-check=0", false);
 				header("Pragma: no-cache");
 				
-				include ($filename);
+				if (in_array(basename($filename), ['edit.inc.php','bulkupdate.inc.php','activate.inc.php','suspend.inc.php','delete.inc.php','extend.inc.php'], true)) {
+                    ipskRenderDatabaseOperation($ipskISEDB, $filename, get_defined_vars());
+                } else { include ($filename); }
 			}else{
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("filename"=>$filename), Array("sanitizedInput"=>$sanitizedInput));

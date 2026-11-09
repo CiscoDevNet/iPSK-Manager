@@ -1,5 +1,24 @@
 <?php
 
+function ipskRenderDatabaseOperation($database, $file, $variables) {
+    ob_start();
+    $result = $database->atomic(function () use ($file, $variables) {
+        extract($variables, EXTR_SKIP);
+        include $file;
+        return http_response_code() < 400;
+    });
+    $output = ob_get_clean();
+    if ($result === false) {
+        if (http_response_code() >= 400 && http_response_code() < 500 && $output !== '') { print $output; return false; }
+        http_response_code(500);
+        print '<p class="text-danger">'.ipskHtml($database->lastError ?: 'Unable to save changes. Please retry.').'</p>';
+        return false;
+    }
+    print $output;
+    return true;
+}
+
+
 function ipskRememberGeneratedPsk($associationId, $policy, $psk) {
     $_SESSION['pending-psks'][(string)$associationId] = ['hash'=>password_hash($psk, PASSWORD_DEFAULT), 'policy'=>hash('sha256', json_encode($policy)), 'expires'=>time()+600];
 }

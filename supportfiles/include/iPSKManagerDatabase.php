@@ -1661,6 +1661,7 @@
                 $result = $this->preparedQuery('SELECT GET_LOCK(?, 10) AS acquired', [$lock]);
                 if (!$result || (int)$result->fetch_assoc()['acquired'] !== 1) return false;
                 $this->enrollmentLock = $lock;
+                $this->queryFailed = false;
                 if (!$this->dbConnection->begin_transaction()) { $this->abortPortalEnrollment(); return false; }
                 // Refresh grants and usage only after acquiring the cross-session lock.
                 $grant = ipskCreationGrant($this, $groupId, $permission);
@@ -1682,7 +1683,7 @@
         function finishPortalEnrollment() {
             if ($this->enrollmentLock === null) return false;
             try {
-                if (!$this->dbConnection->commit()) { $this->abortPortalEnrollment(); return false; }
+                if ($this->queryFailed || !$this->dbConnection->commit()) { $this->abortPortalEnrollment(); return false; }
                 $lock = $this->enrollmentLock;
                 $this->enrollmentLock = null;
                 $this->preparedQuery('SELECT RELEASE_LOCK(?)', [$lock]);
@@ -1699,15 +1700,44 @@
 
         function __destruct() { $this->abortPortalEnrollment(); }
 
-        private function preparedQuery($sql, $values = []) {
-            $statement = $this->dbConnection->prepare($sql);
-            if (!$statement) return false;
+        private $atomicDepth = 0;
+        private $queryFailed = false;
+
+        function atomic($operation) {
+            $outer = $this->atomicDepth === 0;
+            if ($outer) { $this->queryFailed = false; $this->lastError = ''; }
             try {
-                if ($values && !$statement->bind_param(str_repeat('s', count($values)), ...$values)) return false;
-                if (!$statement->execute()) return false;
-                return $statement->field_count ? $statement->get_result() : true;
+                if ($outer && !$this->dbConnection->begin_transaction()) throw new RuntimeException('Unable to start transaction');
+                $this->atomicDepth++;
+                try { $result = $operation(); } finally { $this->atomicDepth--; }
+                if ($result === false || $this->queryFailed) throw new RuntimeException('Database operation failed');
+                if ($outer && !$this->dbConnection->commit()) throw new RuntimeException('Unable to commit transaction');
+                return $result;
+            } catch (Throwable $error) {
+                $this->queryFailed = true;
+                if ($this->lastError === '') $this->lastError = 'Changes could not be saved. No changes from this operation were committed.';
+                if ($outer) { try { $this->dbConnection->rollback(); } catch (Throwable $ignored) {} }
+                return false;
+            }
+        }
+
+        private function preparedQuery($sql, $values = []) {
+            if ($this->atomicDepth > 0 && $this->queryFailed) return false;
+            $statement = null;
+            try {
+                $statement = $this->dbConnection->prepare($sql);
+                if (!$statement) throw new RuntimeException('Prepare failed');
+                if ($values && !$statement->bind_param(str_repeat('s', count($values)), ...$values)) throw new RuntimeException('Bind failed');
+                if (!$statement->execute()) throw new RuntimeException('Execute failed');
+                $result = $statement->field_count ? $statement->get_result() : true;
+                if ($result === false) throw new RuntimeException('Result retrieval failed');
+                return $result;
+            } catch (Throwable $error) {
+                $this->queryFailed = true;
+                $this->lastError = 'Database operation failed. Check the database connection and configuration, then retry.';
+                return false;
             } finally {
-                $statement->close();
+                if ($statement) $statement->close();
             }
         }
 
@@ -2132,7 +2162,8 @@
 			
 			$endpointQueryResult = $this->preparedQuery($endpointQuery, [$macAddress]);
 			
-			if($endpointQueryResult->num_rows < 1){
+			if (!$endpointQueryResult) return false;
+            if($endpointQueryResult->num_rows < 1){
                 $queryValues = [];
                 $query = "INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `vlan`, `dacl`, `expirationDate`, `createdBy`) VALUES (?,LCASE(REPLACE(REPLACE(?,':',''),'-','')),?,?,?,?,?,?,?,?)";
 			
@@ -2190,7 +2221,8 @@
 				
 				$endpointQueryResult = $this->preparedQuery($endpointQuery, array_values($macAddress));
 								
-				if($endpointQueryResult->num_rows < 1){
+				if (!$endpointQueryResult) return false;
+            if($endpointQueryResult->num_rows < 1){
 					$insertMacAddress = "";
                     $insertValues = [];
 					$macAddressAdd['count'] = 0;
@@ -2415,7 +2447,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2431,7 +2463,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2446,7 +2478,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return $this->dbConnection->insert_id;
+				return $queryResult ? $this->dbConnection->insert_id : false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2455,6 +2487,7 @@
 		}
 
 		function addInternalUser($userName, $fullName, $description, $email, $encryptedpassword, $createdBy){
+            return $this->atomic(function () use ($userName, $fullName, $description, $email, $encryptedpassword, $createdBy) {
 			
 			$queryValues = [$userName, $fullName, $description, $email, $encryptedpassword, "CN=".$userName.",CN=Users,DC=System,DC=Local", $createdBy];
 			$query = "INSERT INTO internalUsers (`userName`, `fullName`, `description`, `email`, `password`, `dn`, `createdBy`) VALUES(?,?,?,?,?,?,?)";
@@ -2472,6 +2505,7 @@
 				$sidQuery = "UPDATE `internalUsers` SET `sid`=? WHERE `id` = ?";
 				
 				$queryResult = $this->preparedQuery($sidQuery, $sidQueryValues);
+                if (!$queryResult) return false;
 								
 				return $insertId;
 			}
@@ -2479,6 +2513,7 @@
 				$this->lastError = 'Username already exists or could not be saved. Choose a unique username.';
 				return false;
 			}
+            });
 		}
 		
 		function addInternalGroup($groupName, $groupType, $groupDescription, $groupDn, $permission, $createdBy){
@@ -2539,7 +2574,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2564,7 +2599,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2594,7 +2629,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2624,7 +2659,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2639,7 +2674,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2654,7 +2689,7 @@
 				
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2718,7 +2753,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2746,7 +2781,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2762,7 +2797,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2778,7 +2813,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2794,7 +2829,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2810,7 +2845,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2825,7 +2860,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2840,7 +2875,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2855,7 +2890,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2870,7 +2905,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2885,7 +2920,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2900,7 +2935,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2915,7 +2950,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2942,7 +2977,7 @@
 				
 				try {
 					$queryResult = $this->preparedQuery($query, $queryValues);
-					return true;
+					return $queryResult !== false;
 				}
 				catch (Exception $e) {
 					//error_log("Caught Exception: $e");
@@ -2972,7 +3007,7 @@
 				
 				try {
 					$queryResult = $this->preparedQuery($query, $queryValues);
-					return true;
+					return $queryResult !== false;
 				}
 				catch (Exception $e) {
 					//error_log("Caught Exception: $e");
@@ -2994,7 +3029,7 @@
 				
 				try {
 					$queryResult = $this->preparedQuery($query, $queryValues);
-					return true;
+					return $queryResult !== false;
 				}
 				catch (Exception $e) {
 					//error_log("Caught Exception: $e");
@@ -3006,6 +3041,7 @@
 		}		
 		
 		function updateSponsorGroupPortalMapping($sponsorGroupIds, $sponsorPortalId, $createdBy){
+            return $this->atomic(function () use ($sponsorGroupIds, $sponsorPortalId, $createdBy) {
 			$querysuffix = "";
             $querysuffixValues = [];
 			
@@ -3013,13 +3049,15 @@
 			$deleteQuery = "DELETE FROM `sponsorGroupPortalMapping` WHERE `sponsorPortalId` = ?";
 			
 			$queryResult = $this->preparedQuery($deleteQuery, $deleteQueryValues);
+            if (!$queryResult) return false;
 						
 			for($idCount = 0; $idCount < count($sponsorGroupIds); $idCount++){
 				$querysuffix .= "(?,?,?),";
 				array_push($querysuffixValues, $sponsorGroupIds[$idCount], $sponsorPortalId, $createdBy);
 			}
 			
-			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
+			if ($querysuffix === '') return true;
+            $querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
 			$queryValues = [];
 			$query = sprintf("INSERT INTO sponsorGroupPortalMapping (`sponsorGroupId`, `sponsorPortalId`, `createdBy`) VALUES %s", $querysuffix);
@@ -3027,12 +3065,13 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
 				return false;
 			}
+            });
 		}
 		
 		function updateInternalGroup($groupId, $groupName, $groupType, $groupDescription, $groupDn, $permission, $createdBy){
@@ -3048,7 +3087,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3066,14 +3105,13 @@
                 $admin=$this->preparedQuery('SELECT COUNT(*) AS total FROM internalGroups WHERE permissions=1 AND id IN ('.implode(',',array_fill(0,count($ids),'?')).')',$ids);
                 if (!$admin || (int)$admin->fetch_assoc()['total']===0) return false;
             }
-            try {
-                if (!$this->dbConnection->begin_transaction()) return false;
+            return $this->atomic(function () use ($ids, $userId, $createdBy) {
                 if (!$this->preparedQuery('DELETE FROM internalUserGroupMapping WHERE userId=?',[$userId])) throw new RuntimeException('Delete failed');
                 foreach ($ids as $id) {
                     if (!$this->preparedQuery('INSERT INTO internalUserGroupMapping (groupId,userId,createdBy) VALUES (?,?,?)',[$id,$userId,$createdBy])) throw new RuntimeException('Insert failed');
                 }
-                return $this->dbConnection->commit();
-            } catch (Throwable $error) { $this->dbConnection->rollback(); return false; }
+                return true;
+            });
         }
 
 		function updateWirelessNetwork($ssidId, $ssidName, $ssidDescription, $createdBy){
@@ -3083,7 +3121,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3099,7 +3137,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3114,7 +3152,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3123,6 +3161,7 @@
 		}
 		
 		function updateSponsorGroupEPGMapping($endpointGroupIds, $sponsorGroupId, $createdBy){
+            return $this->atomic(function () use ($endpointGroupIds, $sponsorGroupId, $createdBy) {
 			$querysuffix = "";
             $querysuffixValues = [];
 			
@@ -3130,6 +3169,7 @@
 			$deleteQuery = "DELETE FROM `sponsorGroupEPGMapping` WHERE `sponsorGroupId` = ?";
 			
 			$queryResult = $this->preparedQuery($deleteQuery, $deleteQueryValues);
+            if (!$queryResult) return false;
 			
 			if(is_array($endpointGroupIds)){
 				for($idCount = 0; $idCount < count($endpointGroupIds); $idCount++){
@@ -3141,7 +3181,8 @@
 				array_push($querysuffixValues, $sponsorGroupId, $endpointGroupIds, $createdBy);
 			}
 			
-			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
+			if ($querysuffix === '') return true;
+            $querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
 			$queryValues = [];
 			$query = sprintf("INSERT INTO `sponsorGroupEPGMapping` (`sponsorGroupId`, `endpointGroupId`, `createdBy`) VALUES %s", $querysuffix);
@@ -3149,15 +3190,17 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
 				return false;
 			}
+            });
 		}
 		
 		function updateSponsorGroupSSIDMapping($wirelessIds, $sponsorGroupId, $createdBy){
+            return $this->atomic(function () use ($wirelessIds, $sponsorGroupId, $createdBy) {
 			$querysuffix = "";
             $querysuffixValues = [];
 			
@@ -3165,6 +3208,7 @@
 			$deleteQuery = "DELETE FROM `sponsorGroupSSIDMapping` WHERE `sponsorGroupId` = ?";
 			
 			$queryResult = $this->preparedQuery($deleteQuery, $deleteQueryValues);
+            if (!$queryResult) return false;
 			
 			if(is_array($wirelessIds)){
 				for($idCount = 0; $idCount < count($wirelessIds); $idCount++){
@@ -3176,7 +3220,8 @@
 				array_push($querysuffixValues, $sponsorGroupId, $wirelessIds, $createdBy);
 			}
 			
-			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
+			if ($querysuffix === '') return true;
+            $querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
 			$queryValues = [];
 			$query = sprintf("INSERT INTO sponsorGroupSSIDMapping (`sponsorGroupId`, `wirelessSSIDId`, `createdBy`) VALUES %s", $querysuffix);
@@ -3184,15 +3229,17 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
 				return false;
 			}
+            });
 		}
 		
 		function updateSponsorInternalGroupMapping($internalGroupIds, $sponsorGroupId, $permissions, $createdBy){
+            return $this->atomic(function () use ($internalGroupIds, $sponsorGroupId, $permissions, $createdBy) {
 			$querysuffix = "";
             $querysuffixValues = [];
 			
@@ -3200,13 +3247,15 @@
 			$deleteQuery = "DELETE FROM `sponsorGroupInternalMapping` WHERE `sponsorGroupId` = ?";
 			
 			$queryResult = $this->preparedQuery($deleteQuery, $deleteQueryValues);
+            if (!$queryResult) return false;
 			
 			for($idCount = 0; $idCount < count($internalGroupIds); $idCount++){
 				$querysuffix .= "(?,?,?,?),";
 				array_push($querysuffixValues, $sponsorGroupId, $internalGroupIds[$idCount], $permissions, $createdBy);
 			}
 			
-			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
+			if ($querysuffix === '') return true;
+            $querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
 			$queryValues = [];
 			$query = sprintf("INSERT INTO `sponsorGroupInternalMapping` (`sponsorGroupId`, `internalGroupId`, `groupPermissions`, `createdBy`) VALUES %s", $querysuffix);
@@ -3214,12 +3263,13 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
 				return false;
 			}
+            });
 		}
 		
 		function updateSponsorGroup($groupId, $groupName, $groupDescription, $sponsorGroupAuthType, $members, $maxDevices, $groupType, $createdBy){
@@ -3229,7 +3279,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3270,7 +3320,7 @@
 			}
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3292,7 +3342,7 @@
             $queryValues[] = (int)$endpointId;
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3308,7 +3358,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3323,7 +3373,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3353,7 +3403,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3394,7 +3444,7 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3409,7 +3459,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3424,7 +3474,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3550,7 +3600,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
