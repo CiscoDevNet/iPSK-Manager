@@ -1,5 +1,17 @@
 <?php
 
+function ipskRememberGeneratedPsk($associationId, $policy, $psk) {
+    $_SESSION['pending-psks'][(string)$associationId] = ['hash'=>password_hash($psk, PASSWORD_DEFAULT), 'policy'=>hash('sha256', json_encode($policy)), 'expires'=>time()+600];
+}
+function ipskConsumeGeneratedPsk($associationId, $policy, $psk) {
+    $pending = $_SESSION['pending-psks'][(string)$associationId] ?? null;
+    unset($_SESSION['pending-psks'][(string)$associationId]);
+    return $pending && $policy && ipskValidPsk($psk) && $pending['expires'] > time()
+        && hash_equals($pending['policy'], hash('sha256', json_encode($policy)))
+        && strlen($psk) === min(63, (int)$policy['pskLength']) && password_verify($psk, $pending['hash']);
+}
+
+
 function ipskValidPsk($key) {
     return is_string($key) && (preg_match('/^[\x20-\x7e]{8,63}$/D', $key) === 1 || preg_match('/^[a-fA-F0-9]{64}$/D', $key) === 1);
 }

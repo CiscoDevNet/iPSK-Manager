@@ -50,7 +50,9 @@
 				print $ipskISEERS->getEndPointGroupCountbyId($sanitizedInput['groupUuid']);
 			}
 		}elseif($sanitizedInput['action'] == "get_random_psk"){
-			$authZ = $ipskISEDB->getEndPointAuthorizationPolicy($sanitizedInput['id']);
+			if (!ipskEndpointPermission($ipskISEDB, $sanitizedInput['id'], 256 | 1024)) { http_response_code(403); return; }
+            $authZ = $ipskISEDB->getEndPointAuthorizationPolicy($sanitizedInput['id']);
+            if (!$authZ) { http_response_code(404); return; }
 			
 			//LOG::Entry
 			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
@@ -59,8 +61,7 @@
 			
 			$psk = $ipskISEDB->generateRandomPassword($authZ['pskLength']);
 			
-			$_SESSION['temp']['expires'] = time() + 600;
-			$_SESSION['temp']['sponsoreditpsk'] = password_hash($psk, PASSWORD_DEFAULT);
+			ipskRememberGeneratedPsk($sanitizedInput['id'], $authZ, $psk);
 			
 			print $psk;
 		}

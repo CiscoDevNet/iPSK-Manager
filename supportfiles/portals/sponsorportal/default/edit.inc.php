@@ -79,24 +79,13 @@
 				$ipskISEDB->addEndpointAssociation($endpoint['endpointId'], $endpoint['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']);
 				
 			}elseif($sanitizedInput['editPSK'] == 1){
-				$endPointPermissions = $ipskISEDB->getEndPointAssociationPermissions($sanitizedInput['id'],$_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id']);
-				
-				if(isset($endPointPermissions['count'])){
-					
-					//Validate the randomly generated PSK matches the one submitted to the user - Prevent Tampering
-					if(password_verify($sanitizedInput['ciscoAVPairPSK'], $_SESSION['temp']['sponsoreditpsk'])){
-						for($idxId = 0; $idxId < $endPointPermissions['count']; $idxId++){
-							if($endPointPermissions[$idxId]['advancedPermissions'] & 1024){
-								$randomPSK = "psk=".$sanitizedInput['ciscoAVPairPSK'];
-					
-								$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
-							}
-						}
-					}
-				}
+                if (!ipskEndpointPermission($ipskISEDB, $sanitizedInput['id'], 256 | 1024)
+                    || !ipskConsumeGeneratedPsk($sanitizedInput['id'], $ipskISEDB->getEndPointAuthorizationPolicy($sanitizedInput['id']), $sanitizedInput['ciscoAVPairPSK'] ?? null)) {
+                    http_response_code(400); print '<p class="text-danger">Generate a fresh key for this endpoint and try again.</p>'; return;
+                }
+                $randomPSK = 'psk='.$sanitizedInput['ciscoAVPairPSK'];
+                $endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
 
-				//Revoke previously generated PSK for Enduser
-				unset($_SESSION['temp']);
 			}else{
 				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], null, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
 			}

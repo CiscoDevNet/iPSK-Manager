@@ -1338,7 +1338,7 @@
 		
 		function getEndPointAuthorizationPolicy($associationId){
 			$queryValues = [$associationId];
-			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, authorizationTemplates.pskLength FROM endpointAssociations INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id INNER JOIN authorizationTemplates ON authorizationTemplates.id = endpointGroups.authzTemplateId INNER JOIN endpoints  ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.id = ? LIMIT 1";
+			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, authorizationTemplates.id AS policyId, authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, authorizationTemplates.vlan, authorizationTemplates.dacl, authorizationTemplates.pskLength FROM endpointAssociations INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id INNER JOIN authorizationTemplates ON authorizationTemplates.id = endpointGroups.authzTemplateId INNER JOIN endpoints  ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.id = ? LIMIT 1";
 			
 			$queryResult = $this->preparedQuery($query, $queryValues);
 			
