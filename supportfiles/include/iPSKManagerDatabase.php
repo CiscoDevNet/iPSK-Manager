@@ -1489,6 +1489,9 @@
 				if($queryResult){
 					if($queryResult->num_rows > 0){
 						while($row = $queryResult->fetch_assoc()){
+                            // Apply visibility scope before merging action bits from multiple grants.
+                            if (!(($row['groupPermissions'] & 6) ||
+                                (($row['groupPermissions'] & 1) && $row['createdBy'] === ($_SESSION['logonSID'] ?? null)))) continue;
 							
 							if(isset($associationSeen[$row['macAddress']])){
 								$rawEndpointList[$row['macAddress']]['viewPermissions'] =$rawEndpointList[$row['macAddress']]['viewPermissions'] | ($row['groupPermissions'] & 15);
@@ -1507,7 +1510,7 @@
 						
 						$listCount = 0;
 						
-						foreach($rawEndpointList as $endPoint){
+						foreach($rawEndpointList ?? [] as $endPoint){
 							$mergedEndpointList[$listCount]['id'] = $endPoint['id'];
 							$mergedEndpointList[$listCount]['endpointId'] = $endPoint['endpointId'];
 							$mergedEndpointList[$listCount]['macAddress'] = $endPoint['macAddress'];
@@ -1518,7 +1521,8 @@
 							$listCount++;
 						}
 						
-						$mergedEndpointList['count'] = $listCount;					
+						if ($listCount === 0) return false;
+                        $mergedEndpointList['count'] = $listCount;					
 						
 						return $mergedEndpointList;
 					}else{
