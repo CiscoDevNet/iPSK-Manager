@@ -31,10 +31,6 @@
 	//Define Initial Variables
 	$uploadFile = $_FILES['csvFile']['tmp_name'];
 	
-	if($sanitizedInput['uploadkey'] != ""){
-		unset($_SESSION['bulk-import'][$sanitizedInput['uploadkey']]);
-	}
-	
 	//Check File Extension for a CSV File
 	if(strtolower(substr($_FILES['csvFile']['name'],strlen($_FILES['csvFile']['name']) - 4, 4)) == ".csv"){
 		//Import file data from the uploaded file
@@ -125,9 +121,7 @@
 									
 									$csvFile['count'] = $entryCount;
 									
-									$uploadData = dechex(time());
-									
-									$_SESSION['bulk-import'][$uploadData] = $csvFile;
+									$uploadData = ipskStorePendingImport($csvFile);
 									
 									$returnResult['result'] = true;
 									$returnResult['validitems'] = $entryCount;

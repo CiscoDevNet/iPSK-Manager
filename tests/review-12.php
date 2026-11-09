@@ -20,8 +20,8 @@ foreach (['adminportals/modules/endpoints','portals/sponsorportal/default'] as $
         (function () use ($path,$source,$mode,$ipskISEERS) {
         $_SERVER['REMOTE_ADDR']='127.0.0.1';
         $_SESSION=validSession()+['adminAuthorized'=>true,'logonSID'=>'owner','portalSettings'=>['id'=>3],'authorizationGroups'=>[],'portalAuthorization'=>['bulkcreate'=>true],
-            'bulk-import'=>['fixture'=>['count'=>2,['macAddress'=>'AA:BB:CC:DD:EE:01','fullname'=>'One','description'=>'','emailaddress'=>''],['macAddress'=>'AA:BB:CC:DD:EE:02','fullname'=>'Two','description'=>'','emailaddress'=>'']]]];
-        $sanitizedInput=['associationGroup'=>7,'wirelessSSID'=>1,'bulkImportType'=>$source,'emailAddress'=>'a@example.test','fullName'=>'Name','endpointDescription'=>'','groupUuid'=>'fixture','uploadkey'=>'fixture'];
+            'bulk-import-expiry'=>[str_repeat('a',64)=>time()+60], 'bulk-import'=>[str_repeat('a',64)=>['count'=>2,['macAddress'=>'AA:BB:CC:DD:EE:01','fullname'=>'One','description'=>'','emailaddress'=>''],['macAddress'=>'AA:BB:CC:DD:EE:02','fullname'=>'Two','description'=>'','emailaddress'=>'']]]];
+        $sanitizedInput=['associationGroup'=>7,'wirelessSSID'=>1,'bulkImportType'=>$source,'emailAddress'=>'a@example.test','fullName'=>'Name','endpointDescription'=>'','groupUuid'=>'fixture','uploadkey'=>str_repeat('a',64)];
         $ipskISEDB=new ImportKeyDatabase(); $ipskISEDB->mode=$mode;
         ob_start(); try { include __DIR__.'/../supportfiles/'.$path.'/bulkimport.inc.php'; } catch (ImportCaptured $e) {} finally {ob_end_clean();}
         if ($mode==='*devicerandom*') verify(is_array($ipskISEDB->keys) && count(array_unique($ipskISEDB->keys))===2 && strlen($ipskISEDB->keys[0])===16,'Device keys missing/reused');

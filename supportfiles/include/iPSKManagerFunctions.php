@@ -1,5 +1,24 @@
 <?php
 
+function ipskStorePendingImport($records) {
+    foreach (array_keys($_SESSION['bulk-import'] ?? []) as $key) {
+        if (($_SESSION['bulk-import-expiry'][$key] ?? 0) <= time()) {
+            unset($_SESSION['bulk-import'][$key], $_SESSION['bulk-import-expiry'][$key]);
+        }
+    }
+    do { $token = bin2hex(random_bytes(32)); } while (isset($_SESSION['bulk-import'][$token]));
+    $_SESSION['bulk-import'][$token] = $records;
+    $_SESSION['bulk-import-expiry'][$token] = time() + 1800;
+    return $token;
+}
+function ipskTakePendingImport($token) {
+    if (!is_string($token) || !preg_match('/^[a-f0-9]{64}$/D', $token)) { return false; }
+    $records = ($_SESSION['bulk-import-expiry'][$token] ?? 0) > time() ? ($_SESSION['bulk-import'][$token] ?? false) : false;
+    unset($_SESSION['bulk-import'][$token], $_SESSION['bulk-import-expiry'][$token]);
+    return $records;
+}
+
+
 /**
  *@license
  *
@@ -385,7 +404,7 @@
 								),
 			'uploadkey'	=>	array('filter'    => FILTER_VALIDATE_REGEXP,
 								  'flags'     => '' ,
-								  'options'   => array('regexp' => '/^(?:[A-F]|[a-f]|[0-9]){8}$/')
+								  'options'   => array('regexp' => '/^[a-f0-9]{64}$/D')
 								),
 			'confirmaction'	=>	FILTER_VALIDATE_INT,
 			'wirelessSSID'	=>	FILTER_VALIDATE_INT,

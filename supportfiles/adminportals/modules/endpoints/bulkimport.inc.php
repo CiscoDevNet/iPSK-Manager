@@ -70,9 +70,8 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 		}
 		
 		if($sanitizedInput['bulkImportType'] == 1){
-			$macaddressArray = $_SESSION['bulk-import'][$sanitizedInput['uploadkey']];
-			
-			unset($_SESSION['bulk-import'][$sanitizedInput['uploadkey']]);
+			$macaddressArray = ipskTakePendingImport($sanitizedInput['uploadkey']);
+            if ($macaddressArray === false) { print '<p class="text-danger">Upload expired or already imported. Upload the CSV again.</p>'; return; }
 			
 			if($macaddressArray){
 				if($macaddressArray['count'] > 0){
