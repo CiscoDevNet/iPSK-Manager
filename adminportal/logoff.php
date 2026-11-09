@@ -27,7 +27,7 @@
 	include("../supportfiles/include/iPSKManagerFunctions.php");
 	include("../supportfiles/include/iPSKManagerDatabase.php");
 		
-	ipskSessionHandler();
+	ipskSessionHandler('admin');
 	
 	$ipskISEDB = new iPSKManagerDatabase($dbHostname, $dbUsername, $dbPassword, $dbDatabase);
 	

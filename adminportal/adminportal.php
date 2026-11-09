@@ -38,7 +38,7 @@
 	include("../supportfiles/include/iPSKManagerFunctions.php");
 	include("../supportfiles/include/iPSKManagerDatabase.php");
 	
-	ipskSessionHandler();
+	ipskSessionHandler('admin');
 
 	$ipskISEDB = new iPSKManagerDatabase($dbHostname, $dbUsername, $dbPassword, $dbDatabase);
 	
@@ -51,7 +51,7 @@
 	unset($dbPassword);
 	//END-[DO NOT REMOVE] - EMPTIES/REMOVES ENCRYTION KEY/DB PASSWORD VARIABLE
 	
-	if(!ipskLoginSessionCheck()){
+	if(!ipskAdminSessionCheck()){
 		session_destroy();
 		header("Location: ./");
 		die();

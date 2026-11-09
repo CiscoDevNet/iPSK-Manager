@@ -155,7 +155,10 @@
 		}
 		
 		if($portalSettings){
-			$_SESSION['portalSettings'] = $portalSettings;
+			if (isset($_SESSION['portalSettings']['id']) && $_SESSION['portalSettings']['id'] != $portalSettings['id']) {
+                $_SESSION = ['creationTime' => time()];
+            }
+            $_SESSION['portalSettings'] = $portalSettings;
 			
 			$filename = ipskPortalRoute($portalSettings['portalModule'], $portalSettings['portalTemplate'], $getPortal);
 			if($filename !== false && file_exists($filename)){

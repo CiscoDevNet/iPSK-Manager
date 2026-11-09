@@ -32,9 +32,11 @@
 		
 	$subModuleRegEx = "/^(?:create|new|add|edit|view|delete|enable|disable|extend|modify|update|suspend|activate|groups|updategroups|pass|updatepass|authzprofile|bulk|bulkimport)$/";
 	
-	function ipskSessionHandler(){
+	function ipskSessionHandler($scope = "portal"){
 		
-		session_start();
+        // Separate cookies even when the virtual hosts share PHP session storage.
+        session_name($scope === 'admin' ? 'IPSKADMIN' : 'IPSKPORTAL');
+        session_start();
 
 		if(!isset($_SESSION['creationTime'])) {
 			$_SESSION['creationTime'] = time();

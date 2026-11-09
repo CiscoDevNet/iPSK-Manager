@@ -34,13 +34,13 @@
 	//include("../../supportfiles/include/CiscoISE-ERS.php");
 	//include("../../supportfiles/include/BaseLDAPClass.php");
 	
-	ipskSessionHandler();
+	ipskSessionHandler('admin');
 
 	//$ipskISEDB = new iPSKManagerDatabase($dbHostname, $dbUsername, $dbPassword, $dbDatabase);
 	
 	//$ipskISEDB->set_encryptionKey($encryptionKey);
 	$encryptionKey = "";
-	if(!ipskLoginSessionCheck()){
+	if(!ipskAdminSessionCheck()){
 		session_destroy();
 		print "<script>window.location = \"./\"</script>";
 	}else{

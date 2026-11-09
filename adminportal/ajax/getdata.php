@@ -39,7 +39,7 @@
 	include("../../supportfiles/include/CiscoISE-ERS.php");
 	include("../../supportfiles/include/BaseLDAPClass.php");
 	
-	ipskSessionHandler();
+	ipskSessionHandler('admin');
 
 	$ipskISEDB = new iPSKManagerDatabase($dbHostname, $dbUsername, $dbPassword, $dbDatabase);
 	
@@ -48,7 +48,7 @@
 	
 	$sampleFile = (isset($_GET['samplefile'])) ? (filter_var($_GET['samplefile'],FILTER_VALIDATE_BOOLEAN)) : false;
 	
-	if(!ipskLoginSessionCheck()){
+	if(!ipskAdminSessionCheck()){
 		session_destroy();
 		print "<script>window.location = \"./\"</script>";
 	}else{

@@ -30,7 +30,7 @@
 	//Optional Components per Page
 	include("../supportfiles/include/BaseLDAPClass.php");
 	
-	ipskSessionHandler();
+	ipskSessionHandler('admin');
     unset($_SESSION['adminAuthorized']);
 	
 	if(isset($_POST['logoff'])){
