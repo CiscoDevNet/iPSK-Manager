@@ -49,8 +49,11 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 HTML;
 
 	$failure = false;
+    if (!isset($sanitizedInput['termLengthSeconds']) || !is_int($sanitizedInput['termLengthSeconds']) || $sanitizedInput['termLengthSeconds'] < 0 || $sanitizedInput['termLengthSeconds'] > 157680000) {
+        http_response_code(400); print '<p class="text-danger">Access term must be between no expiration and five years.</p>'; return;
+    }
 
-	if($sanitizedInput['authzPolicyName'] != "" && $sanitizedInput['termLengthSeconds'] < 157680000 && $sanitizedInput['ciscoAVPairPSK'] != ""){
+	if($sanitizedInput['authzPolicyName'] != "" && $sanitizedInput['ciscoAVPairPSK'] != ""){
 		if(isset($sanitizedInput['pskLength'])){
 			$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] == 0) ? 8 : $sanitizedInput['pskLength'];
 			$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] < 8) ? 8 : $sanitizedInput['pskLength'];
