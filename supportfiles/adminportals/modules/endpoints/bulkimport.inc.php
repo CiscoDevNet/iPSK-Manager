@@ -101,6 +101,9 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 			if($macaddressArray['SearchResult']['total'] > 0){
 				foreach($macaddressArray['SearchResult']['resources'] as $entry){
 					$macAddressList[$count] = $entry['name'];
+                    if ($deviceRandom) {
+                        $randomPSKList[$count] = 'psk='.$ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
+                    }
 					$count++;
 				}
 				
