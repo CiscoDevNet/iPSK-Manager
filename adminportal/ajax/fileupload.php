@@ -47,12 +47,14 @@
 		$sanitizedInput = sanitizeGetModuleInput($subModuleRegEx);
 		
 		//Define Initial Variables
-		$uploadFile = $_FILES['csvFile']['tmp_name'];
+		if (!headers_sent()) { header('Content-Type: application/json'); }
+    $upload = ipskReadCsvUpload($_FILES['csvFile'] ?? null);
+    if (isset($upload['error'])) { print json_encode(ipskUploadFailure($upload['error'])); return; }
 		
 		//Check File Extension for a CSV File
 		if(strtolower(substr($_FILES['csvFile']['name'],strlen($_FILES['csvFile']['name']) - 4, 4)) == ".csv"){
 			//Import file data from the uploaded file
-			$tempfileUploadContents = file_get_contents($uploadFile);
+			$tempfileUploadContents = $upload['contents'];
 			
 			//Quickly Trim the Contents of the file
 			$fileUploadContents = trim($tempfileUploadContents);

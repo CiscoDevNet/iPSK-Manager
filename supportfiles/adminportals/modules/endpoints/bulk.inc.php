@@ -325,7 +325,13 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 			contentType: false,
 			cache: false,
 			dataType: "json",
-			success: function (data) {
+			error: function (xhr, status) {
+                $("#uploadkey").val('');
+                $("#uploadCsv").prop('disabled', false);
+                $("#bulkimport").prop('disabled', true);
+                $("#uploadMessage").text('Upload failed. Check the file size and connection, then retry.').removeClass('d-none text-success').addClass('text-danger');
+            },
+            success: function (data) {
 				if(data.result){
 					$("#importCount").html( data.recordsprocessed );
 					$("#validCount").html( data.validitems );

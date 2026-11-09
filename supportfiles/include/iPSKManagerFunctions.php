@@ -1,5 +1,20 @@
 <?php
 
+function ipskReadCsvUpload($file) {
+    $errors = [UPLOAD_ERR_INI_SIZE=>'CSV exceeds the server upload size limit.', UPLOAD_ERR_FORM_SIZE=>'CSV exceeds the form size limit.', UPLOAD_ERR_PARTIAL=>'CSV upload was incomplete. Retry the upload.', UPLOAD_ERR_NO_FILE=>'Choose a CSV file. If one was selected, it may exceed the request size limit.', UPLOAD_ERR_NO_TMP_DIR=>'Upload temporary directory is unavailable.', UPLOAD_ERR_CANT_WRITE=>'Server could not write the upload.', UPLOAD_ERR_EXTENSION=>'A server extension stopped the upload.'];
+    $code = is_array($file) ? ($file['error'] ?? UPLOAD_ERR_NO_FILE) : UPLOAD_ERR_NO_FILE;
+    if ($code !== UPLOAD_ERR_OK) { return ['error'=>$errors[$code] ?? 'Invalid upload status. Retry the upload.']; }
+    $path = $file['tmp_name'] ?? null;
+    if (!is_string($path) || $path === '' || !is_file($path) || !is_readable($path)) { return ['error'=>'Uploaded CSV could not be read. Retry the upload.']; }
+    $contents = @file_get_contents($path);
+    if ($contents === false) { return ['error'=>'Uploaded CSV could not be read. Retry the upload.']; }
+    return ['contents'=>$contents];
+}
+function ipskUploadFailure($message) {
+    return ['result'=>false,'message'=>$message,'recordsprocessed'=>0,'validitems'=>0,'filtereditems'=>0,'invaliditems'=>0,'invalidchar'=>0,'uploadkey'=>''];
+}
+
+
 function ipskStorePendingImport($records) {
     foreach (array_keys($_SESSION['bulk-import'] ?? []) as $key) {
         if (($_SESSION['bulk-import-expiry'][$key] ?? 0) <= time()) {

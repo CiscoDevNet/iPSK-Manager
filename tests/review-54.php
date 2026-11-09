@@ -1,0 +1,5 @@
+<?php
+require __DIR__.'/review-bootstrap.php';require __DIR__.'/upload-harness.php';$_SESSION=validSession()+['adminAuthorized'=>true];
+foreach(['admin','sponsor'] as $portal){foreach([UPLOAD_ERR_INI_SIZE,UPLOAD_ERR_FORM_SIZE,UPLOAD_ERR_PARTIAL,UPLOAD_ERR_NO_FILE,UPLOAD_ERR_NO_TMP_DIR,UPLOAD_ERR_CANT_WRITE,UPLOAD_ERR_EXTENSION,99] as $error){$r=runUpload($portal,'',['error'=>$error,'tmp_name'=>'']);verify($r['result']===false && strlen($r['message'])>10 && $r['uploadkey']==='','Upload error not actionable JSON');}foreach(['','/no/such/file','/tmp'] as $path){$r=runUpload($portal,'',['tmp_name'=>$path]);verify($r['result']===false && str_contains($r['message'],'read'),'Unreadable upload not handled');}$r=runUpload($portal,"macaddress,fullname,emailaddress,description\nAA:BB:CC:DD:EE:FF,Owner,owner@example.test,Test");verify($r['result'] && $r['validitems']===1,'Retry failed');}
+verify(isset(ipskReadCsvUpload(null)['error']) && isset(ipskReadCsvUpload([])['error']),'Absent files (including oversized POST) not handled');
+echo "PASS review 54: every PHP upload failure, missing metadata and read failures return JSON; successful retry works\n";
