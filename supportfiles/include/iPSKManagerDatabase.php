@@ -164,29 +164,11 @@
 			return $this->requiredSchemaVersion;
 		}
 
-		function set_dbSchemaVersion($version){
-			$version = (int)$version;
-			$this->dbSchemaVersion = $version;
-
-			$updateStmt = $this->dbConnection->prepare("UPDATE `settings` SET `value` = ? WHERE `page` = 'global' AND `settingClass` = 'db-schema' AND `keyName` = 'version' LIMIT 1");
-			
-			if($updateStmt){
-				$updateStmt->bind_param("i", $version);
-				$updateStmt->execute();
-				
-				if($updateStmt->affected_rows == 0){
-					$insertStmt = $this->dbConnection->prepare("INSERT INTO `settings` (`page`, `settingClass`, `keyName`, `value`) VALUES ('global', 'db-schema', 'version', ?)");
-					
-					if($insertStmt){
-						$insertStmt->bind_param("i", $version);
-						$insertStmt->execute();
-						$insertStmt->close();
-					}
-				}
-				
-				$updateStmt->close();
-			}
-		}
+        function set_dbSchemaVersion($version) {
+            if (!$this->setGlobalSetting('db-schema','version',(int)$version)) return false;
+            $this->dbSchemaVersion = (int)$version;
+            return true;
+        }
 
 		function check_dbSchemaUpdates(){
 			if($this->requiredSchemaVersion > $this->dbSchemaVersion){
@@ -240,42 +222,39 @@
 			return $migrationRunner->getPendingMigrations($currentVersion, $target);
 		}
 
-		function runSchemaMigrations($targetVersion = null){
-			$response = Array(
-				"success" => true,
-				"applied" => Array(),
-				"error" => "",
-				"targetVersion" => ($targetVersion != null) ? (int)$targetVersion : (int)$this->requiredSchemaVersion
-			);
-
-			$migrationRunner = $this->getMigrationManager();
-			$currentVersionRaw = (int)$this->dbSchemaVersion;
-			$baselineVersion = (int)$this->autoMigrationBaselineVersion;
-
-			if($currentVersionRaw < $baselineVersion){
-				$response["success"] = false;
-				$response["error"] = "Automatic migrations begin at schema version ".$baselineVersion.". Please apply earlier updates manually.";
-				return $response;
-			}
-
-			$currentVersion = max($currentVersionRaw, $baselineVersion);
-			$pendingMigrations = $migrationRunner->getPendingMigrations($currentVersion, $response["targetVersion"]);
-
-			foreach($pendingMigrations as $migration){
-				$execResult = $migrationRunner->executeMigration($migration);
-
-				if(!$execResult["success"]){
-					$response["success"] = false;
-					$response["error"] = $execResult["error"];
-					return $response;
-				}
-
-				$this->set_dbSchemaVersion($migration["version"]);
-				$response["applied"][] = $migration["filename"];
-			}
-
-			return $response;
-		}
+        function runSchemaMigrations($targetVersion = null) {
+            $target = $targetVersion === null ? (int)$this->requiredSchemaVersion : (int)$targetVersion;
+            $current = (int)$this->dbSchemaVersion;
+            $response = ['success'=>false,'applied'=>[],'error'=>'','currentVersion'=>$current,'targetVersion'=>$target];
+            if ($current >= $target) { $response['success']=true; return $response; }
+            if ($current < $this->autoMigrationBaselineVersion) {
+                $response['error']='Apply legacy schema upgrades before automatic migrations.';
+                return $response;
+            }
+            try {
+                $runner = new iPSKManagerMigration($this->dbConnection,$this->dbDatabase,$this->migrationPath);
+                $pending = $runner->getPendingMigrations($current,$target);
+                $expected = $current + 1;
+                foreach ($pending as $migration) {
+                    if ($migration['version'] !== $expected++) throw new RuntimeException('Missing or duplicate migration version in deployment.');
+                }
+                if ($expected !== $target + 1) throw new RuntimeException('Missing migration files required to reach schema '.$target.'.');
+                $runner->set_replacements($this->get_migrationReplacements());
+                foreach ($pending as $migration) {
+                    $result = $runner->executeMigration($migration);
+                    if (!$result['success']) {
+                        $response['error']=$result['error'];
+                        if (isset($result['recoverySql'])) $response['recoverySql']=$result['recoverySql'];
+                        return $response;
+                    }
+                    if (!$this->set_dbSchemaVersion($migration['version'])) throw new RuntimeException('Could not persist schema version.');
+                    $response['currentVersion']=(int)$this->dbSchemaVersion;
+                    $response['applied'][]=$migration['filename'];
+                }
+                $response['success']=$response['currentVersion'] >= $target;
+            } catch (Throwable $error) { $response['error']=$error->getMessage(); }
+            return $response;
+        }
 
 		function check_newInstall(){
 
