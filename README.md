@@ -30,6 +30,17 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Portal Groups
 - Customizable Sponsor & Captive Portals
 
+**What's New (November 2026)**
+
+- Security and reliability fixes across the admin, sponsor, and captive portals, with regression coverage for the reviewed issues and database migration behavior.
+- Stronger route, session, and CSRF protection; authorization is rechecked for endpoint details, PSK access, edits, imports, and CoA operations.
+- [Directory-scoped group grants](#directory-scoped-group-grants-schema-12) prevent identical group DNs in separate directories from sharing administrator or portal permissions.
+- Atomic endpoint changes and concurrent quota enforcement; corrected unlimited quotas, endpoint ownership, reassignment, and expiration handling.
+- Consistent MAC address validation, safer CSV imports, unique internal usernames, and corrected PSK validation and random generation.
+- Safer SQL and LDAP queries, preserved password and PSK characters, escaped output, and sensitive-value redaction in new log entries.
+- Corrected ISE REST response handling, TLS verification, and request timeouts; repaired expiration email delivery and installer failure cleanup.
+- **Database schema 12 is required. Existing deployments must follow the [November 2026 upgrade checklist](#november-2026-upgrade-checklist-schema-12), including the manual review of external group mappings.**
+
 **What's New (April 2026)**
 - Added install detection if running in Podman
 - Various bug fixes 
@@ -449,6 +460,9 @@ By following these steps, you will enable the `memberof` overlay on your OpenLDA
 
 ## Keeping iPSK Manager up to date
 #### The automated process documented in this section only applies with versions of iPSK Manager that are installed on your system that have this section in the README.
+
+**For the November 2026 update, complete the [before-update checklist](#before-updating) before pulling code or scheduling an automated update. This update requires database migrations and administrator review of external group mappings.**
+
 When there is an update to the Git repository, local iPSK Manager deployment can be updated without reinstallation.  We recomend you periodically update your iPSK Manager deployment so you get all the latest features and fixes.  You can choose to automate the update process by creating a cron job.
 
 To use this upgrade method you need to copy the config.php file from the supportfiles/include directory to someplace outside the iPSK Manager source code.  Automatic restoration of the config.php file will take place after upgrades if the config.php file is placed in the /opt/ipsk-manager directory on your host running iPSK Manager.
@@ -459,18 +473,63 @@ To use this upgrade method you need to copy the config.php file from the support
 admin@ubuntu:~$ sudo mkdir /opt/ipsk-manager
 admin@ubuntu:~$ sudo cp /var/www/iPSK-Manager/supportfiles/include/config.php /opt/ipsk-manager
 ```
-2. Go to iPSK Manager install directory
+3. Go to iPSK Manager install directory
 ```
 admin@ubuntu:~$ cd /var/www/iPSK-Manager
 ```
-3. Pull repository
+4. Pull repository
 ```
 admin@ubuntu:~$ sudo git pull
 ```
-4. After the repository is pulled open a web browser to the URL of the Admin Portal of iPSK Manager.  The installer script will detect your config.php in the backup directory (/opt/ipsk-manager) and automatically copy it, remove the installation files, and redirect you to the login screen.  At this point your iPSK Manager installation has been updated.
-5. If a database schema update is required, a modal will appear. Click **Apply Database Updates** to run the bundled migration scripts.
-6. If the configured DB user cannot create routines with the required permissions, the modal will reveal fields for alternate DB credentials. Enter a user with the needed rights (commonly the ISE DB user) and re-run. Credentials are used one time and not stored.
+5. After the repository is pulled open a web browser to the URL of the Admin Portal of iPSK Manager.  The installer script will detect your config.php in the backup directory (/opt/ipsk-manager) and automatically copy it, remove the installation files, and redirect you to the login screen.  The application files are now updated; complete the database migrations and post-update checks before returning the deployment to service.
+6. Sign in with the internal administrator account verified before the update. If a database schema update is required, a modal will appear. Click **Apply Database Updates** to run the bundled migration scripts.
+7. If the configured DB user cannot create routines with the required permissions, the modal will reveal fields for alternate DB credentials. Enter a DBA-approved account with the needed schema and routine privileges and re-run. Credentials are used one time and not stored.
+8. Complete the [after-update checklist](#after-updating) below.
 
+
+### November 2026 upgrade checklist (schema 12)
+
+Fresh installations create schema 12 directly. Existing installations need the following preparation and migration steps; pulling code alone does not complete the upgrade.
+
+#### Before updating
+
+1. **Back up and plan recovery.** Take a restorable database backup, including stored routines and triggers, and save the application files, `supportfiles/include/config.php`, encryption key, and `DONOTDELETE-iPSKManager-Install.txt` securely. Preserve custom portal templates and deployed cron scripts. Schedule a maintenance window and pause enrollment, imports, endpoint changes, and expiration jobs while updating and migrating. Test the upgrade against a restored copy first where possible.
+2. **Verify internal administrator access.** Confirm a working internal administrator account and its password before changing code. External group grants will require manual review after schema 12. If admin SAML is enabled, establish and test an internal password login path before the maintenance window; temporarily disable SAML in Platform Configuration if necessary, accounting for the effect on other portals. An internal account alone does not bypass enabled SAML. Record which directory each external group belongs to and which LDAP servers represent the same trusted directory.
+3. **Check the current schema and database privileges.** Automatic migrations start at schema 6. For older installations, apply only the missing legacy updates in order through v6, following the instructions and installation-specific substitutions in `schemeupdate-v2.sql` and `schemaupdate-v3.sql` through `schemaupdate-v6.sql`. Arrange access to a database account able to alter tables and inspect/create/replace the required stored routines with their intended definers. Preserve the existing ISE ODBC account and routine definers.
+4. **Resolve conflicting legacy data.** Check for malformed endpoint MAC addresses and multiple endpoint records that become the same MAC when case, colons, and hyphens are normalized. Also check for duplicate internal usernames under the database column's collation, including case-only differences with the default collation. Resolve conflicts deliberately, preserving the intended owner, associations, and user memberships. Migrations v8 and v9 stop on these conflicts; they do not merge or delete records automatically.
+5. **Review local customizations.** Custom forms and scripts that change data must use POST and send the current session's CSRF token (`csrfToken` form field or `X-CSRF-Token` header). Bundled forms and same-origin XMLHttpRequest calls receive tokens automatically; custom clients such as `fetch` callers must supply them. Review authorization templates for the PSK requirements in the compatibility notes below, and prepare to refresh any separate copy of the expiration cron example.
+
+#### Apply the database updates
+
+Follow the update procedure above, sign in as the verified internal administrator, and select **Apply Database Updates**. Deploy the complete `supportfiles/db/migrations` directory with the code. The runner requires a continuous migration sequence and records each version only after it succeeds.
+
+| Schema | Change | Existing deployment impact |
+| --- | --- | --- |
+| 7 | Adds `subscriberName` to `iPSK_AttributeFetch`. | Applied if the December 2025 migration has not already run; requires routine replacement privileges. |
+| 8 | Normalizes endpoint and association MACs to uppercase colon notation and the MAC authentication password to lowercase without separators. | Invalid MACs or normalization collisions must be resolved before retrying. Endpoint PSKs are not rotated. |
+| 9 | Enforces unique internal usernames. | Conflicting usernames must be resolved before retrying. |
+| 10 | Makes `iPSK_AuthMACPlain` honor endpoint suspension. | Suspended endpoints using this procedure can no longer authenticate; its existing expiration behavior is preserved. |
+| 11 | Aligns association ownership with the endpoint's stored owner. | Own-only visibility can change where historical association ownership differed. Review affected sponsor access. |
+| 12 | Adds directory identity sources and scopes external group grants. | Legacy external groups remain unbound and grant no access until an administrator assigns their directory. |
+
+Confirm that the reported database version reaches **12**. If an update fails, keep the deployment in maintenance, resolve the reported data or privilege problem, and retry from the recorded version. Do not manually advance the version to bypass an error. Routine replacement includes preflight and recovery handling, but schema changes are not all transactional. If rollback is needed, restore the matching database, code, and configuration backups together.
+
+#### After updating
+
+1. **Bind external group grants before restoring external access.** In **Groups**, edit every external row marked **Review required**, select its **Authentication directory**, and save. For alternate LDAP servers serving the same trusted directory, configure their **Identity source** explicitly as described [below](#directory-scoped-group-grants-schema-12). Keep independent directories separate. Test external administrator and portal access, including an account that should be denied. Restore SAML if it was temporarily disabled, then test that login path too.
+2. **Start fresh sessions and imports.** Have administrators and portal users sign out and sign in again, then reload open forms. Re-upload any CSV files that were pending before the update and generate fresh sponsor PSKs for unfinished enrollment forms. Old session state and pending tokens must not be reused.
+3. **Refresh expiration jobs if used.** Update deployed copies from `expire-endpoints-cron-example.php.txt`, preserving the deployment's `ipskManagerPath`, settings, and schedule. Updating the repository example does not update a copy installed elsewhere. Verify the configured expiration behavior and email delivery before resuming scheduled jobs.
+4. **Verify the deployment's integrations and permissions.** Check ISE ODBC authentication and attribute retrieval, ERS/MnT operations including CoA where enabled, LDAP/SAML login, and SMTP delivery. Confirm that suspended endpoints are denied when using `iPSK_AuthMACPlain`. Exercise a permitted endpoint creation, edit, import, and expiration extension; verify quota limits and own-only access with a sponsor account. Review any ownership changes made by v11.
+5. **Resume service after validation.** Restore enrollment and scheduled jobs once migrations, group bindings, and integration checks pass. Keep the backups available for recovery.
+
+#### Compatibility notes for existing deployments
+
+- **PSKs:** New or edited keys must be 8–63 printable ASCII characters or exactly 64 hexadecimal digits. Random-key policy lengths must be 8–63; review legacy templates configured for 64-character random passphrases. Existing endpoint keys are not automatically rotated. Correct invalid templates before creating or changing endpoints with them.
+- **Sessions and uploads:** Sessions expire after 30 minutes of inactivity or 12 hours overall, and configured earlier logout deadlines still apply. CSV uploads use single-use tokens valid for 30 minutes. Generated sponsor PSK tokens are single-use, expire after 10 minutes, and are invalidated by changes to the associated policy. CSV headers must contain each of `macaddress`, `fullname`, `emailaddress`, and `description` exactly once; their order and case may vary.
+- **Stored credentials:** Passwords and PSKs now retain their original characters. Previously stored values are not automatically decoded or rewritten. If an integration fails because a legacy secret was stored with escaped characters, re-enter the intended secret and retest that integration.
+- **ISE REST calls:** Default timeouts are 5 seconds to connect and 30 seconds overall. TLS verification checks the certificate chain and hostname without requiring OCSP stapling. Ensure the configured ISE hostname and certificate trust work with verification enabled.
+- **Nested LDAP groups:** Traversal detects cycles and stops with denied access if a query fails or the traversal reaches its 10,000-entry safety limit. Test representative users if the deployment uses large nested group memberships.
+- **Historical logs:** Sensitive-value redaction applies to newly written log entries. Existing log records and backups are not retroactively scrubbed; review previously exposed secrets and rotate affected credentials if needed.
 
 ## GUI Logging
 Logging via GUI can be enabled by editing the **'additionalmenus.json'** file in **/var/www/iPSK-Manager/supportfiles/adminportals/modules/** directory. Change the "menuEnabled" flag at the end to 1 (default is 0) as shown below and refresh admin GUI and you will see 'System Logging' option visible just below 'About' settings. 
