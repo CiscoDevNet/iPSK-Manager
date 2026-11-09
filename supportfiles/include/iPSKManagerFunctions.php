@@ -143,7 +143,18 @@ function ipskTakePendingImport($token) {
 		}
 	}
 
+    // Use the configured identity source, not a directory's display/domain label.
+    function ipskOpenLdapOwner($sourceId, $uid) {
+        if (!is_int($sourceId) || $sourceId < 1 || !is_string($uid) || $uid === '') return false;
+        return 'OL:'.$sourceId.':'.hash('sha256', $uid);
+    }
+
     function ipskLoginSessionCheck() {
+        // Pre-upgrade external sessions contain unscoped ownership identifiers.
+        if (($_SESSION['identitySourceId'] ?? 0) > 0 && ($_SESSION['identityFormatVersion'] ?? 0) !== 1) {
+            ipskResetIdentity();
+            return false;
+        }
         if (empty($_SESSION['loggedIn']) || empty($_SESSION['authenticationGranted']) ||
             empty($_SESSION['authorizationGranted']) || !isset($_SESSION['logonDN'], $_SESSION['logonUsername'])) {
             return false;

@@ -155,6 +155,9 @@
                 }
             } catch (Throwable $error) {
                 $result['error'] = 'Migration failed: '.$error->getMessage();
+                if ((int)$migration['version'] === 13 && (int)$error->getCode() === 1062) {
+                    $result['error'] .= ' Ambiguous legacy OpenLDAP ownership: review the schema 13 README procedure and assign verified endpoint owners before retrying. No ownership was changed by this preflight.';
+                }
                 if (in_array((int)$error->getCode(), [1044,1045,1142,1227,1370], true) && !str_contains($result['error'], 'alternate DB credentials')) {
                     $result['error'] .= ' Use alternate DB credentials with permission to read and replace routines while preserving their original DEFINER.';
                 }

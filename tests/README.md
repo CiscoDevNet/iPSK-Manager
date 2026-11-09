@@ -55,3 +55,12 @@ of the ISE definer, failure with insufficient privileges, and refusal to guess
 between different owners. The same test supports an isolated MySQL 8 server via
 `IPSK_TEST_DB_HOST`; the test server must allow the fixture's root connection with
 an empty password. Never point this test at an existing deployment.
+
+
+The database integration suite also runs actual sponsor, captive and bulk handlers on
+independent connections released together at enrollment, verifying one shared user
+key alongside quota/rollback controls. OpenLDAP ownership coverage authenticates
+independent sources and explicit aliases, verifies PSK/ownership/quota separation,
+and applies schema 13 to legacy data, including ambiguous owners, non-ASCII UIDs,
+injected write failures, cache collisions and retries. LDAP transport is simulated;
+all ownership queries and migrations use the disposable database.

@@ -248,6 +248,7 @@
 							$_SESSION['logonDomain'] = $this->ldapDomain;
 							ipskRotateSession();
                             $_SESSION['identitySourceId'] = $this->identitySourceId;
+                            $_SESSION['identityFormatVersion'] = 1;
                             $_SESSION['authenticationGranted'] = true;
 							$_SESSION['authenticationTimestamp'] = time();
 							$_SESSION['logonTime'] = time();
@@ -258,6 +259,8 @@
 						}
 
 						if($this->directoryType == 1) {
+                            $owner = ipskOpenLdapOwner($this->identitySourceId, $entries[0]['uid'][0] ?? null);
+                            if ($owner === false) { ipskResetIdentity(); return false; }
 							$_SESSION['sAMAccountName'] = $entries[0]['uid'][0];
 							if($entries[0]['mail'][0] != ''){
 								$_SESSION['userPrincipalName'] = $entries[0]['mail'][0];
@@ -267,11 +270,12 @@
 							$_SESSION['fullName'] = trim(($entries[0]['givenname'][0] ?? '').' '.($entries[0]['sn'][0] ?? ''));
 							$_SESSION['emailAddress'] = (isset($entries[0]['mail'][0])) ? $entries[0]['mail'][0] : '';
 							$_SESSION['logonUsername'] = $username;
-							$_SESSION['logonSID'] = $entries[0]['uid'][0]."-".$this->ldapDomain;
+							$_SESSION['logonSID'] = $owner;
 							$_SESSION['logonDN'] = $userDN;
 							$_SESSION['logonDomain'] = $this->ldapDomain;
 							ipskRotateSession();
                             $_SESSION['identitySourceId'] = $this->identitySourceId;
+                            $_SESSION['identityFormatVersion'] = 1;
                             $_SESSION['authenticationGranted'] = true;
 							$_SESSION['authenticationTimestamp'] = time();
 							$_SESSION['logonTime'] = time();

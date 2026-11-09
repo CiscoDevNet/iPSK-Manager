@@ -37,13 +37,14 @@ Identity PSK Manager enables the following features/functionality:
 - Preserved arrow-key navigation and Escape dismissal in DataTables column menus alongside Bootstrap dropdowns.
 - Improved migration recovery when an earlier update left an ISE stored procedure missing; preserve its original owner, explain insufficient database privileges, and show optional migration credentials before applying updates.
 - Stronger route, session, and CSRF protection; authorization is rechecked for endpoint details, PSK access, edits, imports, and CoA operations.
+- OpenLDAP endpoint ownership, per-user keys and quotas are isolated by identity source. Schema 13 reconciles unambiguous legacy owners and stops for review when ownership is ambiguous.
 - [Directory-scoped group grants](#directory-scoped-group-grants-schema-12) prevent identical group DNs in separate directories from sharing administrator or portal permissions.
 - Per-user random keys are selected under the enrollment lock, so simultaneous sponsor, captive, and bulk enrollments share one key.
 - Atomic endpoint changes and concurrent quota enforcement; corrected unlimited quotas, endpoint ownership, reassignment, and expiration handling.
 - Consistent MAC address validation, safer CSV imports, unique internal usernames, and corrected PSK validation and random generation.
 - Safer SQL and LDAP queries, preserved password and PSK characters, escaped output, and sensitive-value redaction in new log entries.
 - Corrected ISE REST response handling, TLS verification, and request timeouts; repaired expiration email delivery and installer failure cleanup.
-- **Database schema 12 is required. Existing deployments must follow the [November 2026 upgrade checklist](#november-2026-upgrade-checklist-schema-12), including the manual review of external group mappings.**
+- **Database schema 13 is required. Existing deployments must follow the [November 2026 upgrade checklist](#november-2026-upgrade-checklist-schema-13), including review of external group mappings and legacy OpenLDAP endpoint owners.**
 
 **What's New (April 2026)**
 - Added install detection if running in Podman
@@ -498,9 +499,9 @@ admin@ubuntu:~$ sudo git pull
 8. Complete the [after-update checklist](#after-updating) below.
 
 
-### November 2026 upgrade checklist (schema 12)
+### November 2026 upgrade checklist (schema 13)
 
-Fresh installations create schema 12 directly. Existing installations need the following preparation and migration steps; pulling code alone does not complete the upgrade.
+Fresh installations create schema 13 directly. Existing installations need the following preparation and migration steps; pulling code alone does not complete the upgrade.
 
 #### Before updating
 
@@ -508,7 +509,8 @@ Fresh installations create schema 12 directly. Existing installations need the f
 2. **Verify internal administrator access.** Confirm a working internal administrator account and its password before changing code. External group grants will require manual review after schema 12. If admin SAML is enabled, establish and test an internal password login path before the maintenance window; temporarily disable SAML in Platform Configuration if necessary, accounting for the effect on other portals. An internal account alone does not bypass enabled SAML. Record which directory each external group belongs to and which LDAP servers represent the same trusted directory.
 3. **Check the current schema and database privileges.** Automatic migrations start at schema 6. For older installations, apply only the missing legacy updates in order through v6, following the instructions and installation-specific substitutions in `schemeupdate-v2.sql` and `schemaupdate-v3.sql` through `schemaupdate-v6.sql`. Arrange access to a database account able to alter tables and inspect/create/replace the required stored routines with their intended definers. Preserve the existing ISE ODBC account and routine definers.
 4. **Resolve conflicting legacy data.** Check for malformed endpoint MAC addresses and multiple endpoint records that become the same MAC when case, colons, and hyphens are normalized. Also check for duplicate internal usernames under the database column's collation, including case-only differences with the default collation. Resolve conflicts deliberately, preserving the intended owner, associations, and user memberships. Migrations v8 and v9 stop on these conflicts; they do not merge or delete records automatically.
-5. **Review local customizations.** Custom forms and scripts that change data must use POST and send the current session's CSRF token (`csrfToken` form field or `X-CSRF-Token` header). Bundled forms and same-origin XMLHttpRequest calls receive tokens automatically; custom clients such as `fetch` callers must supply them. Review authorization templates for the PSK requirements in the compatibility notes below, and prepare to refresh any separate copy of the expiration cron example.
+5. **Review OpenLDAP ownership.** Inventory configured directory domains and deliberate identity-source aliases. Legacy endpoint owners use `uid-domain`, which cannot distinguish independent directories with matching names. Review the [schema 13 ownership procedure](#openldap-ownership-upgrade-schema-13), including records from removed/renamed directories, before reopening enrollment.
+6. **Review local customizations.** Custom forms and scripts that change data must use POST and send the current session's CSRF token (`csrfToken` form field or `X-CSRF-Token` header). Bundled forms and same-origin XMLHttpRequest calls receive tokens automatically; custom clients such as `fetch` callers must supply them. Review authorization templates for the PSK requirements in the compatibility notes below, and prepare to refresh any separate copy of the expiration cron example.
 
 #### Apply the database updates
 
@@ -522,8 +524,57 @@ Follow the update procedure above, sign in as the verified internal administrato
 | 10 | Makes `iPSK_AuthMACPlain` honor endpoint suspension. | Suspended endpoints using this procedure can no longer authenticate; its existing expiration behavior is preserved. |
 | 11 | Aligns association ownership with the endpoint's stored owner. | Own-only visibility can change where historical association ownership differed. Review affected sponsor access. |
 | 12 | Adds directory identity sources and scopes external group grants. | Legacy external groups remain unbound and grant no access until an administrator assigns their directory. |
+| 13 | Namespaces OpenLDAP endpoint ownership by identity source. | Unambiguous owners and their associations/cache migrate without changing PSKs. Ambiguous owners stop the update before ownership changes; review and resolve them as described below. |
 
-Confirm that the reported database version reaches **12**. If an update fails, keep the deployment in maintenance, resolve the reported data or privilege problem, and retry from the recorded version. Do not manually advance the version to bypass an error. Routine replacement includes preflight and recovery handling, but schema changes are not all transactional. If rollback is needed, restore the matching database, code, and configuration backups together.
+Confirm that the reported database version reaches **13**. If an update fails, keep the deployment in maintenance, resolve the reported data or privilege problem, and retry from the recorded version. Do not manually advance the version to bypass an error. Routine replacement includes preflight and recovery handling, but schema changes are not all transactional. If rollback is needed, restore the matching database, code, and configuration backups together.
+
+#### OpenLDAP ownership upgrade (schema 13)
+
+The new owner identifier is `OL:<identity-source-id>:<SHA-256 of the exact LDAP uid>`. Directory labels are not part of ownership. Explicit aliases share an identity source; independent directories must retain separate sources. Internal and Active Directory SIDs remain unchanged. Existing external sessions are invalidated and must authenticate again.
+
+During maintenance, back up first and apply updates with the verified internal administrator. Schema 13 uses the configured OpenLDAP domain suffixes to identify legacy owners and preserves existing endpoint keys, expiration and enabled state. It also reconciles association ownership and descriptive user-cache entries. If a legacy owner has multiple possible source/UID combinations, the `ipsk_ldap_owner_review_required` preflight fails before changing persistent ownership. Earlier successful schema versions remain recorded; resolve the ambiguity and retry. Never alias independent directories merely to make the migration pass.
+
+After schema 12 is present, run these read-only queries in the application database to review configured sources and legacy owners:
+
+```sql
+SELECT id, adConnectionName, adDomain, directoryType,
+       COALESCE(identitySourceId,id) AS identity_source_id
+FROM ldapServers;
+
+SELECT e.id, e.macAddress, e.createdBy,
+       GROUP_CONCAT(DISTINCT CONCAT(COALESCE(d.identitySourceId,d.id), ':',
+           LEFT(e.createdBy,CHAR_LENGTH(e.createdBy)-CHAR_LENGTH(d.adDomain)-1))
+           SEPARATOR ', ') AS candidate_source_and_uid
+FROM endpoints e
+LEFT JOIN ldapServers d ON d.directoryType=1
+ AND BINARY RIGHT(e.createdBy,CHAR_LENGTH(d.adDomain)+1)=BINARY CONCAT('-',d.adDomain)
+ AND CHAR_LENGTH(e.createdBy)>CHAR_LENGTH(d.adDomain)+1
+WHERE e.createdBy NOT REGEXP '^OL:[0-9]+:[a-f0-9]{64}$'
+  AND e.createdBy NOT REGEXP '^S-[0-9]+(-[0-9]+)+$'
+GROUP BY e.id,e.macAddress,e.createdBy;
+```
+
+Confirm the actual owner from trusted directory and enrollment records. A missing candidate can mean a removed/renamed directory; the migration leaves those owners unchanged rather than guessing, so own-only access will need manual reconciliation. An ambiguous legacy string can represent devices belonging to different people. Assign **reviewed endpoint IDs individually**, not every row with that string. For example, after replacing all fixture values below with the verified source, exact LDAP UID, old owner and endpoint IDs:
+
+```sql
+SET @review_source = 3;
+SET @review_uid = 'alice';
+SET @review_old_owner = 'alice-example.test';
+SET @review_owner = CONCAT('OL:', @review_source, ':',
+                          SHA2(CONVERT(@review_uid USING utf8mb4),256));
+START TRANSACTION;
+UPDATE endpoints SET createdBy=@review_owner
+WHERE id IN (101,102) AND BINARY createdBy=BINARY @review_old_owner;
+UPDATE endpointAssociations a JOIN endpoints e ON e.id=a.endpointId
+SET a.createdBy=e.createdBy WHERE e.id IN (101,102);
+SELECT e.id,e.macAddress,e.createdBy,a.createdBy AS association_owner
+FROM endpoints e JOIN endpointAssociations a ON a.endpointId=e.id
+WHERE e.id IN (101,102);
+-- Review the selected rows; use ROLLBACK instead if they are not correct.
+COMMIT;
+```
+
+Use the **identity source ID**, not an alternate server's row ID. Retain legitimate aliases already configured in schema 12. Retry **Apply Database Updates**, confirm schema **13**, and verify ownership and quotas before resuming enrollment. No PSKs are rotated automatically. Where deliberate aliases formerly used different domain labels, their devices now count toward the same owner's quota; review any existing multiple-key or over-quota cases without deleting working devices automatically. Keep the migration credential privileges described above, including permission to create temporary tables, until the update succeeds; then remove temporary credentials.
 
 #### Missing routine or DEFINER errors
 
@@ -535,15 +586,16 @@ For a missing attribute-fetch or plain-MAC routine, the updater can recover its 
 
 #### After updating
 
-1. **Bind external group grants before restoring external access.** In **Groups**, edit every external row marked **Review required**, select its **Authentication directory**, and save. For alternate LDAP servers serving the same trusted directory, configure their **Identity source** explicitly as described [below](#directory-scoped-group-grants-schema-12). Keep independent directories separate. Test external administrator and portal access, including an account that should be denied. Restore SAML if it was temporarily disabled, then test that login path too.
-2. **Start fresh sessions and imports.** Have administrators and portal users sign out and sign in again, then hard-refresh the browser to load the matching JavaScript and CSS and reload open forms. Purge cached static assets from any reverse proxy or CDN used by the deployment. Update library copies in any custom portal templates as well. Re-upload any CSV files that were pending before the update and generate fresh sponsor PSKs for unfinished enrollment forms. Old session state and pending tokens must not be reused.
-3. **Refresh expiration jobs if used.** Update deployed copies from `expire-endpoints-cron-example.php.txt`, preserving the deployment's `ipskManagerPath`, settings, and schedule. Updating the repository example does not update a copy installed elsewhere. Verify the configured expiration behavior and email delivery before resuming scheduled jobs.
-4. **Verify the deployment's integrations and permissions.** Check ISE ODBC authentication and attribute retrieval, ERS/MnT operations including CoA where enabled, LDAP/SAML login, and SMTP delivery. Confirm that suspended endpoints are denied when using `iPSK_AuthMACPlain`. Exercise a permitted endpoint creation, edit, import, and expiration extension; verify quota limits and own-only access with a sponsor account. Review any ownership changes made by v11.
-5. **Resume service after validation.** Restore enrollment and scheduled jobs once migrations, group bindings, and integration checks pass. Keep the backups available for recovery.
+1. **Verify migrated ownership and reauthenticate.** All existing external-directory sessions must sign in again. After binding the external groups in the next step, check own-only visibility, existing PSKs and device counts with an account from each independent source and an intended alias. Unknown legacy owners remain administrator-managed until explicitly assigned; do not reopen their enrollment until this review is complete.
+2. **Bind external group grants before restoring external access.** In **Groups**, edit every external row marked **Review required**, select its **Authentication directory**, and save. For alternate LDAP servers serving the same trusted directory, configure their **Identity source** explicitly as described [below](#directory-scoped-group-grants-schema-12). Keep independent directories separate. Test external administrator and portal access, including an account that should be denied. Restore SAML if it was temporarily disabled, then test that login path too.
+3. **Start fresh sessions and imports.** Have administrators and portal users sign out and sign in again, then hard-refresh the browser to load the matching JavaScript and CSS and reload open forms. Purge cached static assets from any reverse proxy or CDN used by the deployment. Update library copies in any custom portal templates as well. Re-upload any CSV files that were pending before the update and generate fresh sponsor PSKs for unfinished enrollment forms. Old session state and pending tokens must not be reused.
+4. **Refresh expiration jobs if used.** Update deployed copies from `expire-endpoints-cron-example.php.txt`, preserving the deployment's `ipskManagerPath`, settings, and schedule. Updating the repository example does not update a copy installed elsewhere. Verify the configured expiration behavior and email delivery before resuming scheduled jobs.
+5. **Verify the deployment's integrations and permissions.** Check ISE ODBC authentication and attribute retrieval, ERS/MnT operations including CoA where enabled, LDAP/SAML login, and SMTP delivery. Confirm that suspended endpoints are denied when using `iPSK_AuthMACPlain`. Exercise a permitted endpoint creation, edit, import, and expiration extension; verify quota limits and own-only access with a sponsor account. Review any ownership changes made by v11.
+6. **Resume service after validation.** Restore enrollment and scheduled jobs once migrations, group bindings, and integration checks pass. Keep the backups available for recovery.
 
 #### Compatibility notes for existing deployments
 
-- **Library refresh:** Deploy JavaScript and CSS together, including the DataTables extensions and Bootstrap integration. This refresh adds no database migration beyond schema 12 and keeps the application's PHP 8.0+ requirement. For custom PHPMailer subclasses, review the [v7 changes](https://github.com/PHPMailer/PHPMailer/releases/tag/v7.0.0): `lang()`, `setLanguage()`, and `$language` are now static. The bundled application does not override them. Retest SMTP delivery after replacing the mail classes.
+- **Library refresh:** Deploy JavaScript and CSS together, including the DataTables extensions and Bootstrap integration. The library refresh itself adds no schema migration and keeps the application's PHP 8.0+ requirement; the subsequent OpenLDAP ownership fix requires schema 13. For custom PHPMailer subclasses, review the [v7 changes](https://github.com/PHPMailer/PHPMailer/releases/tag/v7.0.0): `lang()`, `setLanguage()`, and `$language` are now static. The bundled application does not override them. Retest SMTP delivery after replacing the mail classes.
 - **PSKs:** New or edited keys must be 8–63 printable ASCII characters or exactly 64 hexadecimal digits. Random-key policy lengths must be 8–63; review legacy templates configured for 64-character random passphrases. Existing endpoint keys are not automatically rotated. Correct invalid templates before creating or changing endpoints with them.
 - **Per-user keys:** No migration or key rotation is required for the enrollment concurrency fix. Existing keys remain valid. If earlier concurrent enrollments left multiple keys for one owner/group, review those devices and coordinate any manual key changes with their users; this update does not silently rotate working credentials.
 - **Sessions and uploads:** Sessions expire after 30 minutes of inactivity or 12 hours overall, and configured earlier logout deadlines still apply. CSV uploads use single-use tokens valid for 30 minutes. Generated sponsor PSK tokens are single-use, expire after 10 minutes, and are invalidated by changes to the associated policy. CSV headers must contain each of `macaddress`, `fullname`, `emailaddress`, and `description` exactly once; their order and case may vary.
