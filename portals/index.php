@@ -89,17 +89,11 @@
 	$getPortal = isset($_GET['portal']) ?  $_GET['portal'] : '';
 	$getError = isset($_GET['error']) ?  $_GET['error'] : '';
 	
-	if(isset($_GET['client_mac'])){
-		$_SESSION['portalGET']['client_mac'] = $_GET['client_mac'];
-	}
-		
-	if(isset($_GET['redirect'])){
-		$_SESSION['portalGET']['redirect'] = $_GET['redirect'];
-	}	
-		
-	if(isset($_GET['sessionId'])){
-		$_SESSION['portalGET']['sessionId'] = $_GET['sessionId'];
-	}	
+    $portalParameters = ipskPortalParameters(array_merge($_SESSION['portalGET'] ?? [], $_GET));
+    if ($portalParameters === false) { http_response_code(400); return; }
+    $_SESSION['portalGET'] = array_merge($_SESSION['portalGET'] ?? [], $portalParameters);
+    $portalQuery = ipskPortalQuery(is_string($getPortalId) ? $getPortalId : '', $_SESSION['portalGET']);
+    $portalHomeJson = json_encode('index.php?'.$portalQuery, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 
 	if($getPortal == "" && $samlSettings['enabled'] == true && $getError == ""){
 		$getPortal = "login.php";

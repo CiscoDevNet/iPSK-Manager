@@ -32,7 +32,7 @@
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
 		session_destroy();
-		header("Location: index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}");
+		header("Location: index.php?{$portalQuery}");
 		die();
 	}
 	
@@ -203,7 +203,7 @@
 			type: "POST",
 			dataType: "html",
 			success: function (data) {
-				window.location = "index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}";
+				window.location = $portalHomeJson;
 			}
 		});
 		

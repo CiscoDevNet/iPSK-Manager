@@ -95,6 +95,30 @@
 
 
 
+
+    function ipskPortalParameters($input) {
+        $out = [];
+        foreach (['client_mac', 'sessionId', 'redirect'] as $key) {
+            if (!isset($input[$key])) continue;
+            $value = $input[$key];
+            if (!is_string($value)) return false;
+            if ($key === 'client_mac') {
+                if (!preg_match('/\A(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}\z/iD', $value)) return false;
+                $value = strtoupper(str_replace('-', ':', $value));
+            } elseif ($key === 'sessionId') {
+                if (!preg_match('/\A[a-zA-Z0-9_.:-]{1,128}\z/D', $value)) return false;
+            } elseif ($value !== '' && (!filter_var($value, FILTER_VALIDATE_URL) ||
+                !in_array(strtolower(parse_url($value, PHP_URL_SCHEME) ?? ''), ['http','https'], true) ||
+                preg_match('/[\x00-\x20\x7f]/', $value))) return false;
+            $out[$key] = $value;
+        }
+        return $out;
+    }
+
+    function ipskPortalQuery($portalId, $parameters) {
+        return http_build_query(['portalId'=>$portalId] + $parameters, '', '&', PHP_QUERY_RFC3986);
+    }
+
     function ipskHtml($value) {
         return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
