@@ -88,6 +88,12 @@ try {
     verify($runWorker(2,'commit','AA:BB:CC:DD:03:01')==='committed','Failed insertion retained reservation');
     verify($runWorker(0,'commit','AA:BB:CC:DD:04:01,AA:BB:CC:DD:04:02')==='committed','Unlimited batch rejected');
     echo "PASS quota integration: independent concurrent connections, batch capacity, rollback/retry, unlimited\n";
+    $user=$db->addInternalUser('UniqueUser','First','','',password_hash('validpass',PASSWORD_DEFAULT),'fixture');
+    verify($user>0 && $db->addInternalUser('uniqueuser','Duplicate','','',password_hash('otherpass',PASSWORD_DEFAULT),'fixture')===false,'Duplicate username accepted');
+    $other=$db->addInternalUser('OtherUser','Other','','',password_hash('otherpass',PASSWORD_DEFAULT),'fixture');
+    verify(!$db->updateInternalUser($other,'UNIQUEUSER','Other','','','fixture'),'Duplicate rename accepted');
+    verify($db->authenticateInternalUser('UniqueUser','validpass'),'Unique user cannot authenticate');
+    verify($_SESSION['fullName']==='First' && $_SESSION['memberOf']['count']===0,'Authentication selected wrong identity or failed empty membership');
     $db->set_dbDatabase($name);
     $c->query('CREATE PROCEDURE iPSK_AttributeFetch (IN username VARCHAR(64), OUT result INT) SELECT 1');
     $runner=$db->getMigrationManager();
@@ -107,6 +113,13 @@ try {
     $migrationResult=$db->runSchemaMigrations(8);
     verify($migrationResult['success'] && $migrationResult['currentVersion']===8,'Canonical migration failed: '.$migrationResult['error']);
     verify($c->query('SELECT macAddress FROM endpoints WHERE id='.(int)$id)->fetch_row()[0]==='AA:BB:CC:DD:EE:FF','Legacy MAC not normalized');
+    $c->query('ALTER TABLE internalUsers DROP INDEX unique_internal_username');
+    $c->query("INSERT INTO internalUsers (userName,password,fullName,createdBy) VALUES ('uniqueuser','invalid','Legacy duplicate','fixture')");
+    $duplicateUser=$c->insert_id;
+    verify(!$db->authenticateInternalUser('UniqueUser','validpass'),'Ambiguous legacy identity authenticated');
+    verify(!$db->runSchemaMigrations(9)['success'] && $db->dbSchemaVersion===8,'Duplicate migration claimed success');
+    $c->query('DELETE FROM internalUsers WHERE id='.(int)$duplicateUser);
+    verify($db->runSchemaMigrations(9)['success'],'Resolved duplicate migration did not recover');
     echo "PASS migration integration: resolves existing definer without environment and replaces routine successfully\n";
     echo "PASS database integration: real schema, prepared queries, literal secrets, settings, group lookup, bulk insert IDs\n";
 } finally {

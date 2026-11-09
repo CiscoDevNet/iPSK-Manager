@@ -33,7 +33,7 @@
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 8;
+		public $requiredSchemaVersion = 9;
 		public $autoMigrationBaselineVersion = 6;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
@@ -639,12 +639,12 @@
 			$passwordVerify = false;
 			
 			$authQueryValues = [$username];
-			$authQuery = "SELECT password FROM `internalUsers` WHERE userName = ? LIMIT 1";
+			$authQuery = "SELECT * FROM `internalUsers` WHERE userName = ? LIMIT 2";
 			
 			$authQueryResult = $this->preparedQuery($authQuery, $authQueryValues);
 			
 			if($authQueryResult){
-				if($authQueryResult->num_rows > 0){
+				if($authQueryResult->num_rows === 1){
 					$user = $authQueryResult->fetch_assoc();
 					
 					if($saml == false) {
@@ -653,20 +653,13 @@
 
 					if($passwordVerify == true || $saml == true){
 						
-						$userQueryValues = [$username];
-						$userQuery = "SELECT `id`,`userName`,`fullName`,`description`, `email`, `dn`,`sid`,`createdBy`,`createdDate` FROM `internalUsers` WHERE userName = ? LIMIT 1";
-			
-						$userQueryResult = $this->preparedQuery($userQuery, $userQueryValues);
-						
-						$user = $userQueryResult->fetch_assoc();
-					
-
+                        $memberOf = ['count'=>0];
 						$membershipQueryValues = [$user['id']];
 						$membershipQuery = "SELECT `internalUserGroupMapping`.`userId`,`internalUserGroupMapping`.`groupId`, `internalGroups`.`id`, `internalGroups`.`groupName`, `internalGroups`.`groupDn` FROM `internalUserGroupMapping` INNER JOIN `internalGroups` ON internalUserGroupMapping.groupId =  `internalGroups`.`id` WHERE `internalUserGroupMapping`.`userId` = ?";
 
 						$groupMembership = $this->preparedQuery($membershipQuery, $membershipQueryValues);
 						
-						if($groupMembership->num_rows > 0){
+						if($groupMembership && $groupMembership->num_rows > 0){
 							$count = 0;
 							
 							while($row = $groupMembership->fetch_assoc()){
@@ -2461,7 +2454,8 @@
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
 			
-				$insertId = $this->dbConnection->insert_id;
+				if (!$queryResult) return false;
+                $insertId = $this->dbConnection->insert_id;
 				
 				$userSidId = 1000 + $insertId;
 				$userSid = "S-1-9-1556668800-1556668800-$userSidId";
@@ -2474,7 +2468,7 @@
 				return $insertId;
 			}
 			catch (Exception $e) {
-				//error_log("Caught Exception: $e");
+				$this->lastError = 'Username already exists or could not be saved. Choose a unique username.';
 				return false;
 			}
 		}
@@ -3234,10 +3228,10 @@
 
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
-				//error_log("Caught Exception: $e");
+				$this->lastError = 'Username already exists or could not be saved. Choose a unique username.';
 				return false;
 			}
 		}

@@ -49,7 +49,7 @@ $htmlbody = <<<HTML
 HTML;
 
 if($sanitizedInput['id'] > 1 && $sanitizedInput['userName'] != "" && $sanitizedInput['fullName'] != ""){
-	$ipskISEDB->updateInternalUser($sanitizedInput['id'], $sanitizedInput['userName'], $sanitizedInput['fullName'], $sanitizedInput['description'], $sanitizedInput['email'], $_SESSION['logonSID']);
+	if (!$ipskISEDB->updateInternalUser($sanitizedInput['id'], $sanitizedInput['userName'], $sanitizedInput['fullName'], $sanitizedInput['description'], $sanitizedInput['email'], $_SESSION['logonSID'])) { print "<script>alert('Username already exists or could not be saved.');</script>"; return; }
 	
 	print $htmlbody;
 }

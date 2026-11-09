@@ -52,7 +52,7 @@ if($sanitizedInput['userName'] != "" && $sanitizedInput['fullName'] != "" && $sa
 	if($sanitizedInput['password'] == $sanitizedInput['confirmpassword']){
 		if(strlen($sanitizedInput['confirmpassword']) > 5){
 
-			$ipskISEDB->addInternalUser($sanitizedInput['userName'], $sanitizedInput['fullName'], $sanitizedInput['description'], $sanitizedInput['email'], password_hash($sanitizedInput['password'], PASSWORD_DEFAULT), $_SESSION['logonSID']);
+			if (!$ipskISEDB->addInternalUser($sanitizedInput['userName'], $sanitizedInput['fullName'], $sanitizedInput['description'], $sanitizedInput['email'], password_hash($sanitizedInput['password'], PASSWORD_DEFAULT), $_SESSION['logonSID'])) { print "<script>alert('Username already exists or could not be saved.');</script>"; return; }
 			
 			print $htmlbody;
 			
