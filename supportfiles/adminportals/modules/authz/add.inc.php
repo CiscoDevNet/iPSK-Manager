@@ -80,7 +80,7 @@ $htmlbody = <<<HTML
 		<label class="fw-bold" for="pskLength">Pre-Shared Key Length:</label>
 		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow form-validation" validation-state="required" validation-minimum-length="1" validation-maximum-length="2" id="pskLength" value="8">
-			<div class="invalid-feedback">Please enter a PSK length between 8 and 64</div>
+			<div class="invalid-feedback">Please enter a PSK length between 8 and 63</div>
 		</div>
 		<div class="mb-3 input-group-sm fw-bold">
 			<label class="fw-bold" for="keyType">Pre-Shared Key Type:</label>
@@ -98,7 +98,7 @@ $htmlbody = <<<HTML
 			<div class="input-group-append shadow">
 				<span class="input-group-text fw-bold" id="basic-addon1"><a id="generatepassword" data-command="generate" data-set="psk" href="#"><span id="passwordfeather" data-feather="shuffle"></span></a></span>
 			</div>
-			<div class="invalid-feedback">Please enter a Valid Pre-Shared Key (Key Length must be betwee 8-64 Characters Long)</div>
+			<div class="invalid-feedback">Please enter a Valid Pre-Shared Key (8–63 printable ASCII characters or 64 hexadecimal digits)</div>
 		</div>
 		<div class="mb-3 input-group-sm fw-bold">
 			<label class="fw-bold" for="pskType">Random iPSK Type:</label>

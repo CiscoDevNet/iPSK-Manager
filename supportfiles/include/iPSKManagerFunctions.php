@@ -1,5 +1,16 @@
 <?php
 
+function ipskValidPsk($key) {
+    return is_string($key) && (preg_match('/^[\x20-\x7e]{8,63}$/D', $key) === 1 || preg_match('/^[a-fA-F0-9]{64}$/D', $key) === 1);
+}
+function ipskValidPskPolicy($key, $length) {
+    if (in_array($key, ['*devicerandom*','*userrandom*'], true)) {
+        return filter_var($length, FILTER_VALIDATE_INT) !== false && $length >= 8 && $length <= 63;
+    }
+    return ipskValidPsk($key);
+}
+
+
 function ipskReadCsvUpload($file) {
     $errors = [UPLOAD_ERR_INI_SIZE=>'CSV exceeds the server upload size limit.', UPLOAD_ERR_FORM_SIZE=>'CSV exceeds the form size limit.', UPLOAD_ERR_PARTIAL=>'CSV upload was incomplete. Retry the upload.', UPLOAD_ERR_NO_FILE=>'Choose a CSV file. If one was selected, it may exceed the request size limit.', UPLOAD_ERR_NO_TMP_DIR=>'Upload temporary directory is unavailable.', UPLOAD_ERR_CANT_WRITE=>'Server could not write the upload.', UPLOAD_ERR_EXTENSION=>'A server extension stopped the upload.'];
     $code = is_array($file) ? ($file['error'] ?? UPLOAD_ERR_NO_FILE) : UPLOAD_ERR_NO_FILE;

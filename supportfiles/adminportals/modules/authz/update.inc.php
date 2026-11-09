@@ -53,15 +53,10 @@ HTML;
         http_response_code(400); print '<p class="text-danger">Access term must be between no expiration and five years.</p>'; return;
     }
 
-	if($sanitizedInput['authzPolicyName'] != "" && $sanitizedInput['ciscoAVPairPSK'] != ""){
-		if(isset($sanitizedInput['pskLength'])){
-			$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] == 0) ? 8 : $sanitizedInput['pskLength'];
-			$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] < 8) ? 8 : $sanitizedInput['pskLength'];
-			$sanitizedInput['pskLength'] = ($sanitizedInput['pskLength'] > 64) ? 64 : $sanitizedInput['pskLength'];
-		}
-		
+	if($sanitizedInput['authzPolicyName'] != ""){
+
 		if($sanitizedInput['pskMode'] == 0){
-			if(strlen($sanitizedInput['ciscoAVPairPSK']) > 7){
+			if(ipskValidPsk($sanitizedInput['ciscoAVPairPSK'])){
 				$psk = $sanitizedInput['ciscoAVPairPSK'];
 			}else{
 				$failure = true;
@@ -74,7 +69,10 @@ HTML;
 			}
 		}
 
-		if(!isset($sanitizedInput['vlan'])) {
+		if ($failure || !ipskValidPskPolicy($psk ?? null, $sanitizedInput['pskLength'] ?? null)) {
+            http_response_code(400); print '<p class="text-danger">Use 8–63 printable ASCII characters or 64 hexadecimal digits. Generated length must be 8–63.</p>'; return;
+        }
+        if(!isset($sanitizedInput['vlan'])) {
 			$sanitizedInput['vlan'] = '';
 		}
 

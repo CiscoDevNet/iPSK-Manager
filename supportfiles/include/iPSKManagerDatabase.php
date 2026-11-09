@@ -30,6 +30,7 @@
  */
 
 	include_once(__DIR__."/iPSKManagerMigration.php");
+    require_once(__DIR__."/iPSKManagerFunctions.php");
 	
 	class iPSKManagerDatabase {
 	
@@ -308,8 +309,9 @@
 			}
 			
 			if ($alphabet === '') { throw new InvalidArgumentException('Password alphabet must not be empty'); }
-			//Limit the maximum length to 64 Characters
-			if($length > 64){ $length = 64;}
+			// Generated passphrases use the printable ASCII limit.
+			if (filter_var($length, FILTER_VALIDATE_INT) === false || $length < 8) { throw new InvalidArgumentException('PSK length must be at least 8'); }
+            if($length > 63){ $length = 63;}
 			
 			$generatedPsk = "";
 			//Loop through and select random characters from the alphabet
@@ -2119,6 +2121,7 @@
 		}
 		
 		function addEndpoint($macAddress, $fullName, $description, $email, $psk, $vlan, $dacl, $expirationDate, $createdBy){
+            if (!ipskValidPsk(ipskPskPlain($psk))) { $this->lastError='PSK must be 8–63 printable ASCII characters or 64 hexadecimal digits.'; return false; }
             $macAddress = ipskCanonicalMac($macAddress);
             if ($macAddress === false) return false;
 			
@@ -2146,6 +2149,7 @@
 			}
 		
 		function addBulkEndpoints($macAddress, $fullName, $description, $email, $psk, $vlan, $dacl, $expirationDate, $createdBy){
+            foreach (is_array($psk) ? $psk : [$psk] as $key) { if (!ipskValidPsk(ipskPskPlain($key))) { $this->lastError='Invalid PSK in import.'; return false; } }
             if (!is_array($macAddress)) return false;
             $macAddress = array_map('ipskCanonicalMac', $macAddress);
             if (in_array(false, $macAddress, true)) { $this->lastError='Invalid MAC address in import.'; return false; }
@@ -2418,6 +2422,7 @@
 		}
 
 		function addAuthorizationTemplate($authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, $termLengthSeconds, $pskLength, $vlan, $dacl, $createdBy){
+            if (!ipskValidPskPolicy($ciscoAVPairPSK, $pskLength)) { $this->lastError='Invalid PSK or generated key length.'; return false; }
 			
 			$queryValues = [$authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, (int)($termLengthSeconds), (int)($pskLength), $vlan, $dacl, $createdBy];
 			$query = "INSERT INTO authorizationTemplates (`authzPolicyName`, `authzPolicyDescription`, `ciscoAVPairPSK`, `termLengthSeconds`, `pskLength`, `vlan`, `dacl`, `createdBy`) VALUES(?,?,?,?,?,?,?,?)";
@@ -3085,6 +3090,7 @@
 		}
 		
 		function updateAuthorizationTemplate($authzId, $authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, $termLengthSeconds, $pskLength, $vlan, $dacl, $createdBy){
+            if (!ipskValidPskPolicy($ciscoAVPairPSK, $pskLength)) { $this->lastError='Invalid PSK or generated key length.'; return false; }
 			
 			$queryValues = [$authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, (int)($termLengthSeconds), (int)($pskLength), $vlan, $dacl, (int)($authzId)];
 			$query = "UPDATE `authorizationTemplates` SET `authzPolicyName`=?, `authzPolicyDescription`=?, `ciscoAVPairPSK`=?, `termLengthSeconds`=?, `pskLength`=?, `vlan`=?, `dacl`=? WHERE `id` = ?";
@@ -3271,6 +3277,7 @@
 		}
 
 		function updateEndpoint($endpointId, $fullName, $description, $email, $createdBy, $psk = null, $vlan = null, $dacl = null, $expirationDate = null){
+            if ($psk !== null && !ipskValidPsk(ipskPskPlain($psk))) { $this->lastError='PSK must be 8–63 printable ASCII characters or 64 hexadecimal digits.'; return false; }
 			
             $query = "UPDATE endpoints SET fullName=?, description=?, emailAddress=?, vlan=?, dacl=?";
             $queryValues = [$fullName, $description, $email, $vlan, $dacl];
@@ -3292,6 +3299,7 @@
 		}
 
 		function updateEndpointPsk($endpointId, $psk){
+            if (!ipskValidPsk(ipskPskPlain($psk))) { $this->lastError='PSK must be 8–63 printable ASCII characters or 64 hexadecimal digits.'; return false; }
 			
 			$queryValues = [$psk, (int)($endpointId)];
 			$query = "UPDATE `endpoints` SET `pskValue` = ? WHERE `id` = ?";

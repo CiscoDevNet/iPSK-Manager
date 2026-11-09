@@ -59,7 +59,10 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 				$ipskISEDB->addEndpointAssociation($endpoint['endpointId'], $endpoint['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']);
 				
 			}elseif($sanitizedInput['editPSK'] == 1){
-				$randomPSK = "psk=".$sanitizedInput['presharedKey'];
+				if (!ipskValidPsk($sanitizedInput['presharedKey'] ?? null)) {
+                    http_response_code(400); print '<p class="text-danger">PSK must be 8–63 printable ASCII characters or 64 hexadecimal digits.</p>'; return;
+                }
+                $randomPSK = "psk=".$sanitizedInput['presharedKey'];
 				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
 			}else{
 				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], null, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
@@ -184,7 +187,7 @@ HTML;
 					</div>
 					<label class="fw-bold" for="psk">Pre-Shared Key:</label>
 					<div class="input-group mb-3 input-group-sm fw-bold">
-						<input type="password" id="presharedKey" class="form-control shadow" id="psk" value="{$endpoint['pskValue']}" disabled>
+						<input type="password" id="presharedKey" class="form-control shadow form-validation" validation-minimum-length="8" validation-maximum-length="64" value="{$endpoint['pskValue']}" disabled>
 						<div class="input-group-append shadow">
 							<span class="input-group-text fw-bold" id="basic-addon1"><a id="showpassword" href="#"><span id="passwordfeather" data-feather="eye"></span></a></span>
 						</div>
