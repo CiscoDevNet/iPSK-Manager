@@ -44,9 +44,9 @@
 	use PHPMailer\PHPMailer\SMTP;
 	use PHPMailer\PHPMailer\Exception;
 
-	require("supportfiles/include/phpmailer/Exception.php");
-	require("supportfiles/include/phpmailer/PHPMailer.php");
-	require("supportfiles/include/phpmailer/SMTP.php");
+	require_once($ipskManagerPath."/supportfiles/include/phpmailer/Exception.php");
+	require_once($ipskManagerPath."/supportfiles/include/phpmailer/PHPMailer.php");
+	require_once($ipskManagerPath."/supportfiles/include/phpmailer/SMTP.php");
 
 	header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 	header("Cache-Control: post-check=0, pre-check=0", false);
