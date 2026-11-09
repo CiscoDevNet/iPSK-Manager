@@ -108,20 +108,38 @@
 
             // Validate every replacement before executing even the first statement.
             if (preg_match('/\{\{[A-Z_]+\}\}/', $sql, $missing)) {
-                $result['error'] = 'Missing migration configuration: '.$missing[0];
+                $routineTokens = ['{{ISE_DB_DEFINER}}'=>'iPSK_AttributeFetch', '{{PLAIN_MAC_DEFINER}}'=>'iPSK_AuthMACPlain'];
+                $result['error'] = isset($routineTokens[$missing[0]])
+                    ? 'Cannot determine the existing ISE database owner (DEFINER) for '.$routineTokens[$missing[0]].'. Retry with alternate DB credentials that can inspect and replace routines. If the routine is missing and the remaining ISE routine owners differ or are unavailable, have your DBA restore it from backup or configure the confirmed ISE_DB_USERNAME. No procedure was changed by this migration.'
+                    : 'Missing migration configuration: '.$missing[0];
                 return $result;
             }
             $statements = $this->splitSqlStatements($sql);
-            $backups = []; $dropped = [];
+            $backups = []; $dropped = []; $missingRoutines = [];
             try {
                 // Prove CREATE/definer privileges using a temporary routine before dropping a working one.
                 foreach ($statements as $statement) {
                     if (!preg_match('/CREATE\s+(?:DEFINER\s*=\s*`(?:``|[^`])+`@`(?:``|[^`])+`\s+)?PROCEDURE\s+`([^`]+)`/i', $statement, $match)) continue;
                     $name = $match[1];
-                    $existing = $this->dbConnection->query('SHOW CREATE PROCEDURE `'.str_replace('`','``',$name).'`');
-                    $row = $existing ? $existing->fetch_assoc() : false;
-                    if (!$row || empty($row['Create Procedure'])) throw new RuntimeException('Cannot read the existing routine definition for recovery: '.$name);
-                    $backups[$name] = $row['Create Procedure'];
+                    try {
+                        $existing = $this->dbConnection->query('SHOW CREATE PROCEDURE `'.str_replace('`','``',$name).'`');
+                        if (!$existing && ($this->dbConnection->errno ?? 0) !== 1305) {
+                            throw new RuntimeException('Cannot inspect the existing routine: '.$name.'. Use alternate DB credentials with permission to read and replace routines.');
+                        }
+                    } catch (Throwable $error) {
+                        if ((int)$error->getCode() !== 1305) throw new RuntimeException('Cannot inspect the existing routine: '.$name.'. Use alternate DB credentials with permission to read and replace routines. '.$error->getMessage(), (int)$error->getCode(), $error);
+                        $existing = false;
+                    }
+                    if ($existing) {
+                        $row = $existing->fetch_assoc();
+                        if (!$row || empty($row['Create Procedure'])) throw new RuntimeException('Cannot read the existing routine definition for recovery: '.$name.'. Use alternate DB credentials with permission to read and replace routines.');
+                        $backups[$name] = $row['Create Procedure'];
+                    } else {
+                        // Error 1305 can also conceal a routine from a restricted user.
+                        // Never DROP without a readable backup. CREATE will safely fail
+                        // if it actually exists, including a concurrent creation.
+                        $missingRoutines[$name] = true;
+                    }
                     $temporary = 'ipsk_preflight_'.bin2hex(random_bytes(8));
                     $candidate = preg_replace('/(PROCEDURE\s+)`'.preg_quote($name,'/').'`/i', '$1`'.$temporary.'`', $statement, 1);
                     if (!$this->dbConnection->query($candidate)) throw new RuntimeException('Routine preflight failed: '.$this->dbConnection->error);
@@ -129,6 +147,7 @@
                 }
                 foreach ($statements as $statement) {
                     if (trim($statement) === '') continue;
+                    if (preg_match('/DROP PROCEDURE(?: IF EXISTS)? `([^`]+)`/i', $statement, $drop) && isset($missingRoutines[$drop[1]])) continue;
                     if (!$this->dbConnection->query($statement)) throw new RuntimeException($this->dbConnection->error);
                     if (preg_match('/DROP PROCEDURE(?: IF EXISTS)? `([^`]+)`/i',$statement,$match)) $dropped[$match[1]]=true;
                     if (preg_match('/CREATE\s+(?:DEFINER\s*=\s*`(?:``|[^`])+`@`(?:``|[^`])+`\s+)?PROCEDURE\s+`([^`]+)`/i',$statement,$match)) unset($dropped[$match[1]]);
@@ -136,6 +155,9 @@
                 }
             } catch (Throwable $error) {
                 $result['error'] = 'Migration failed: '.$error->getMessage();
+                if (in_array((int)$error->getCode(), [1044,1045,1142,1227,1370], true) && !str_contains($result['error'], 'alternate DB credentials')) {
+                    $result['error'] .= ' Use alternate DB credentials with permission to read and replace routines while preserving their original DEFINER.';
+                }
                 try { $this->dbConnection->rollback(); } catch (Throwable $rollbackError) {}
                 foreach ($dropped as $name=>$unused) {
                     if (!isset($backups[$name])) continue;

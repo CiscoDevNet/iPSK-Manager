@@ -197,18 +197,37 @@
 				$replacements = array_merge($replacements, $extraReplacements);
 			}
 
-            foreach (['{{ISE_DB_DEFINER}}'=>'iPSK_AttributeFetch','{{PLAIN_MAC_DEFINER}}'=>'iPSK_AuthMACPlain'] as $token=>$routine) {
-            if (!isset($replacements[$token])) {
+            $routineDefiners = ['{{ISE_DB_DEFINER}}'=>'iPSK_AttributeFetch', '{{PLAIN_MAC_DEFINER}}'=>'iPSK_AuthMACPlain'];
+            $iseRoutines = ['iPSK_AttributeFetch', 'iPSK_AuthMACPlain', 'iPSK_AuthMACPlainNonExpired',
+                'iPSK_FetchGroups', 'iPSK_FetchPasswordForMAC', 'iPSK_FetchPasswordForMACNonExpired',
+                'iPSK_MACLookup', 'iPSK_MACLookupNonExpired'];
+            $siblingDefiner = null;
+            foreach ($routineDefiners as $token=>$routine) {
+                if (isset($replacements[$token])) continue;
                 if (!empty($_SERVER['ISE_DB_USERNAME'])) {
                     $replacements[$token] = '`'.str_replace('`','``',$_SERVER['ISE_DB_USERNAME']).'`@`%`';
-                } else {
-                    $result = $this->preparedQuery("SELECT DEFINER FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=? AND ROUTINE_NAME=? AND ROUTINE_TYPE='PROCEDURE'", [$this->dbDatabase, $routine]);
-                    $row = $result ? $result->fetch_assoc() : false;
-                    if ($row && ($at = strrpos($row['DEFINER'], '@')) !== false) {
-                        $replacements[$token] = '`'.str_replace('`','``',substr($row['DEFINER'],0,$at)).'`@`'.str_replace('`','``',substr($row['DEFINER'],$at+1)).'`';
-                    }
+                    continue;
                 }
-            }
+                $result = $this->preparedQuery("SELECT DEFINER FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=? AND ROUTINE_NAME=? AND ROUTINE_TYPE='PROCEDURE'", [$this->dbDatabase, $routine]);
+                $row = $result ? $result->fetch_assoc() : false;
+                $definer = $row['DEFINER'] ?? null;
+                // A previous failed upgrade may have dropped the target routine. Only
+                // recover its owner if all visible, known ISE routines agree; never use
+                // the migration login or an unrelated application's routine owner.
+                if (!$row && $result) {
+                    if ($siblingDefiner === null) {
+                        $placeholders = implode(',', array_fill(0, count($iseRoutines), '?'));
+                        $siblings = $this->preparedQuery("SELECT DISTINCT DEFINER FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=? AND ROUTINE_TYPE='PROCEDURE' AND ROUTINE_NAME IN ($placeholders)", array_merge([$this->dbDatabase], $iseRoutines));
+                        $siblingDefiner = false;
+                        if ($siblings && $siblings->num_rows === 1) {
+                            $siblingDefiner = $siblings->fetch_assoc()['DEFINER'] ?? false;
+                        }
+                    }
+                    $definer = $siblingDefiner;
+                }
+                if (is_string($definer) && ($at = strrpos($definer, '@')) !== false) {
+                    $replacements[$token] = '`'.str_replace('`','``',substr($definer,0,$at)).'`@`'.str_replace('`','``',substr($definer,$at+1)).'`';
+                }
             }
             return $replacements;
 		}

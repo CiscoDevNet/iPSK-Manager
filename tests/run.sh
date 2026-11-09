@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")/.."
-for test in tests/endpoint-extension.php tests/review-[0-9]*.php tests/vendor-libraries.php; do
+for test in tests/endpoint-extension.php tests/review-[0-9]*.php tests/migration-definers.php tests/vendor-libraries.php; do
     output=$(php -d error_reporting=22527 -d log_errors=1 -d error_log=/dev/stderr "$test" 2>&1)
     printf '%s\n' "$output"
     if printf '%s\n' "$output" | grep -E 'PHP (Warning|Notice|Fatal error):'; then exit 1; fi

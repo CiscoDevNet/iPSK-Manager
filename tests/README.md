@@ -36,7 +36,22 @@ checks load the actual admin/sponsor/captive library copies and the application'
 table/dashboard initializers into a synthetic local page. They cover pagination,
 sorting, column filtering and visibility, saved state, responsive layout, Bootstrap
 modals/dropdowns, menu keyboard navigation and Escape dismissal, icons, clipboard
-copying, and all six dashboard charts. External
-browser requests are blocked; no application database or credentials are needed.
+copying, all six dashboard charts, and the migration form's optional credentials
+and retry request. External browser requests are blocked; no application database or credentials are needed.
 Node, Playwright, and the browser are only test dependencies, not deployment
 requirements. SMTP TLS and live ISE/LDAP integrations still need deployment checks.
+
+
+Missing-routine recovery has an additional integration test. With the disposable
+MariaDB test server above running, execute:
+
+```sh
+docker run --rm --network ipsk-review-test -e IPSK_TEST_DB_HOST=ipsk-review-db -v "$PWD:/app:ro" -w /app ipsk-review-php:local php tests/migration-recovery-integration.php
+```
+
+Run this only on a disposable database server: it creates and removes temporary
+databases and users. It tests recovery of absent v7/v10 procedures, preservation
+of the ISE definer, failure with insufficient privileges, and refusal to guess
+between different owners. The same test supports an isolated MySQL 8 server via
+`IPSK_TEST_DB_HOST`; the test server must allow the fixture's root connection with
+an empty password. Never point this test at an existing deployment.

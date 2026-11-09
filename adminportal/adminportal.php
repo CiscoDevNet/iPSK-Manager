@@ -104,8 +104,8 @@ HTML;
 							<button type="button" class="btn btn-primary shadow" id="runDbMigrations">Apply Database Updates</button>
 							<div class="ms-2 small text-muted">Applies bundled SQL migrations directly.</div>
 						</div>
-						<div id="dbMigrationCreds" class="card card-body p-2 border d-none">
-							<div class="fw-semibold mb-1">Use alternate DB credentials (e.g., ISE DB user)</div>
+						<div id="dbMigrationCreds" class="card card-body p-2 border mt-2">
+							<div class="fw-semibold mb-1">Optional migration database credentials</div>
 							<div class="row g-2">
 								<div class="col-12 col-md-6">
 									<label for="dbAltUsername" class="form-label mb-0 small">DB Username</label>
@@ -116,7 +116,7 @@ HTML;
 									<input id="dbAltPassword" type="password" class="form-control form-control-sm" autocomplete="current-password">
 								</div>
 							</div>
-							<div class="small text-muted mt-1">Credentials are used once to run the migration and are not stored.</div>
+							<div class="small text-muted mt-1">Leave blank to use the configured application account. Routine updates require an account that can read and replace routine definitions while preserving their original owner; the ISE ODBC account may not have these rights. Alternate credentials are used once and are not stored.</div>
 						</div>
 						<div id="dbMigrationStatus" class="alert alert-info mt-2 d-none"></div>
 HTML;

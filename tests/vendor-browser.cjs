@@ -42,8 +42,16 @@ function tableInitializer(file) {
       const [dir, tableSource] = bundle;
       const page = await context.newPage();
       const errors = [];
+      const expectedHttpErrors = [];
       page.on('pageerror', error => errors.push(error.stack));
-      page.on('console', message => { if (message.type() === 'error') errors.push(message.text() + ' ' + JSON.stringify(message.location())); });
+      page.on('console', message => {
+        if (message.type() !== 'error') return;
+        if (message.location().url === 'http://ipsk.test/ajax/runmigrations.php' && message.text().startsWith('Failed to load resource: the server responded with a status of 500')) {
+          expectedHttpErrors.push(message.text());
+        } else {
+          errors.push(message.text() + ' ' + JSON.stringify(message.location()));
+        }
+      });
       page.on('dialog', async dialog => { errors.push(dialog.message()); await dialog.dismiss(); });
       async function load() {
         await page.goto(`http://ipsk.test/vendor-${index}`);
@@ -127,7 +135,34 @@ function tableInitializer(file) {
         await page.addScriptTag({content: chartScript[1].replace(/<\?php[\s\S]*?\?>/g, match => /Label/.test(match) ? "'One','Two'" : '1,2')});
         assert.equal(await page.evaluate(() => Object.keys(Chart.instances).length), 6);
         assert(await page.evaluate(() => Object.values(Chart.instances).every(chart => chart.width > 0 && chart.height > 0)));
+
+        // Use the actual migration form and client handler; credentials must be
+        // offered before the first attempt, then submitted on an explicit retry.
+        const adminSource = read('adminportal/adminportal.php');
+        const migrationForm = adminSource.match(/\$autoMigrationContent = <<< HTML\n([\s\S]*?)\nHTML;/);
+        assert(migrationForm, 'Migration form not found');
+        await page.evaluate(html => document.body.insertAdjacentHTML('beforeend', html), migrationForm[1]);
+        assert(await page.locator('#dbAltUsername').isVisible());
+        assert(await page.locator('#dbAltPassword').isVisible());
+        const attempts = [];
+        await page.route('**/ajax/getmodule.php', route => route.fulfill({body: ''}));
+        // Avoid the success handler's page reload: simulate a routine privilege
+        // failure for both attempts and assert the retry request independently.
+        await page.route('**/ajax/runmigrations.php', route => {
+          attempts.push(Object.fromEntries(new URLSearchParams(route.request().postData() || '')));
+          return route.fulfill({status: 500, contentType: 'application/json', body: JSON.stringify({error: `Fixture migration attempt ${attempts.length}: use alternate DB credentials`})});
+        });
+        await page.addScriptTag({path: path.join(root, 'adminportal/scripts/ipsk-adminportal-v1.js')});
+        await page.locator('#runDbMigrations').click();
+        await page.waitForFunction(() => document.getElementById('dbMigrationStatus').textContent.includes('attempt 1'));
+        assert.deepEqual(attempts[0], {});
+        await page.locator('#dbAltUsername').fill('fixture-admin');
+        await page.locator('#dbAltPassword').fill('fixture-only-password');
+        await page.locator('#runDbMigrations').click();
+        await page.waitForFunction(() => document.getElementById('dbMigrationStatus').textContent.includes('attempt 2'));
+        assert.deepEqual(attempts[1], {dbuser: 'fixture-admin', dbpass: 'fixture-only-password'});
       }
+      assert.equal(expectedHttpErrors.length, dir === 'adminportal' ? 2 : 0);
       assert.deepEqual(errors, [], `Browser errors for ${dir}`);
       await page.close();
       console.log(`PASS vendor browser: ${dir}`);

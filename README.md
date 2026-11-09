@@ -35,6 +35,7 @@ Identity PSK Manager enables the following features/functionality:
 - Refreshed bundled libraries: Bootstrap 5.3.8, Chart.js 4.6.1, DataTables 2.3.8 and compatible extensions, PHPMailer 7.2.0, and standalone Popper 1.16.1. All deployed copies are pinned in the [vendor manifest](supportfiles/vendor-manifest.json), with browser and real SMTP regression coverage.
 - Security and reliability fixes across the admin, sponsor, and captive portals, with regression coverage for the reviewed issues and database migration behavior.
 - Preserved arrow-key navigation and Escape dismissal in DataTables column menus alongside Bootstrap dropdowns.
+- Improved migration recovery when an earlier update left an ISE stored procedure missing; preserve its original owner, explain insufficient database privileges, and show optional migration credentials before applying updates.
 - Stronger route, session, and CSRF protection; authorization is rechecked for endpoint details, PSK access, edits, imports, and CoA operations.
 - [Directory-scoped group grants](#directory-scoped-group-grants-schema-12) prevent identical group DNs in separate directories from sharing administrator or portal permissions.
 - Atomic endpoint changes and concurrent quota enforcement; corrected unlimited quotas, endpoint ownership, reassignment, and expiration handling.
@@ -492,7 +493,7 @@ admin@ubuntu:~$ sudo git pull
 ```
 5. After the repository is pulled open a web browser to the URL of the Admin Portal of iPSK Manager.  The installer script will detect your config.php in the backup directory (/opt/ipsk-manager) and automatically copy it, remove the installation files, and redirect you to the login screen.  The application files are now updated; complete the database migrations and post-update checks before returning the deployment to service.
 6. Sign in with the internal administrator account verified before the update. If a database schema update is required, a modal will appear. Click **Apply Database Updates** to run the bundled migration scripts.
-7. If the configured DB user cannot create routines with the required permissions, the modal will reveal fields for alternate DB credentials. Enter a DBA-approved account with the needed schema and routine privileges and re-run. Credentials are used one time and not stored.
+7. The modal offers **Optional migration database credentials** before the update starts. Leave them blank to use the configured application account, or enter a DBA-approved account with the required schema and routine privileges. If an attempt fails because it cannot read or replace routine definitions, enter the alternate credentials and retry. Credentials are used one time and not stored.
 8. Complete the [after-update checklist](#after-updating) below.
 
 
@@ -522,6 +523,14 @@ Follow the update procedure above, sign in as the verified internal administrato
 | 12 | Adds directory identity sources and scopes external group grants. | Legacy external groups remain unbound and grant no access until an administrator assigns their directory. |
 
 Confirm that the reported database version reaches **12**. If an update fails, keep the deployment in maintenance, resolve the reported data or privilege problem, and retry from the recorded version. Do not manually advance the version to bypass an error. Routine replacement includes preflight and recovery handling, but schema changes are not all transactional. If rollback is needed, restore the matching database, code, and configuration backups together.
+
+#### Missing routine or DEFINER errors
+
+An older updater may report `Missing migration configuration: {{ISE_DB_DEFINER}}` when it cannot discover the owner of `iPSK_AttributeFetch`. This can happen when a previous failed update removed that procedure, or when the database account cannot inspect routine metadata.
+
+After installing the corrected updater, retry **Apply Database Updates** with a DBA-approved account in **Optional migration database credentials**. The account must be able to read existing routine definitions for recovery, create and replace routines with their original `DEFINER`, and update the application schema. Schema-level `ALL PRIVILEGES` alone may not be sufficient; the ISE ODBC account also may not have the required migration privileges. Have your DBA select appropriate rights for your MySQL/MariaDB version rather than changing the routine owner to the migration account.
+
+For a missing attribute-fetch or plain-MAC routine, the updater can recover its owner from the remaining known ISE routines only when their visible owners agree. It preserves both the account name and host, excludes unrelated routines, and never drops a procedure without a readable backup. If owners differ or cannot be inspected, stop and have your DBA restore the missing procedure from a matching backup before retrying. Do not advance the schema version manually or replace the token with an arbitrary database username.
 
 #### After updating
 
