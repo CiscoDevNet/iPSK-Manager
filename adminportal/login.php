@@ -31,6 +31,7 @@
 	include("../supportfiles/include/BaseLDAPClass.php");
 	
 	ipskSessionHandler();
+    unset($_SESSION['adminAuthorized']);
 	
 	if(isset($_POST['logoff'])){
 		$_SESSION = null;
@@ -105,6 +106,7 @@
 							if($authorizedGroups[$count] == $_SESSION['memberOf'][$userCount]){
 								$_SESSION['authorizationGroup'] = $authorizedGroups[$count];
 								$_SESSION['authorizationGranted'] = true;
+                                $_SESSION['adminAuthorized'] = true;
 								$_SESSION['authorizationTimestamp'] = time();
 								
 								//LOG::Entry
@@ -173,6 +175,7 @@
 										if($authorizedGroups[$count] == $_SESSION['memberOf'][$userCount]){
 											$_SESSION['authorizationGroup'] = $authorizedGroups[$count];
 											$_SESSION['authorizationGranted'] = true;
+                                $_SESSION['adminAuthorized'] = true;
 											$_SESSION['authorizationTimestamp'] = time();
 											
 											//LOG::Entry

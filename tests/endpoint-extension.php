@@ -51,7 +51,7 @@ class ExtensionDatabaseStub {
 
 function renderExtension($template, $database, $term, $confirm = true, $cachedCap = null) {
     $_SESSION = ['loggedIn' => true, 'logonDN' => 'test', 'logonUsername' => 'test',
-        'authenticationGranted' => true, 'authorizationGranted' => true,
+        'authenticationGranted' => true, 'authorizationGranted' => true, 'adminAuthorized' => true,
         'logonSID' => 'test-sid', 'authorizationGroups' => [], 'portalSettings' => ['id' => 3]];
     if ($cachedCap !== null) {
         $_SESSION['extendEndpointMaxTerm'] = $cachedCap;

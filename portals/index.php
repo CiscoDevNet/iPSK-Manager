@@ -157,8 +157,8 @@
 		if($portalSettings){
 			$_SESSION['portalSettings'] = $portalSettings;
 			
-			$filename = "../supportfiles/portals/".$portalSettings['portalModule']."/".$portalSettings['portalTemplate']."/".substr($getPortal,0,strlen($getPortal) - 4).".inc.php";
-			if(file_exists($filename)){
+			$filename = ipskPortalRoute($portalSettings['portalModule'], $portalSettings['portalTemplate'], $getPortal);
+			if($filename !== false && file_exists($filename)){
 				header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 				header("Cache-Control: post-check=0, pre-check=0", false);
 				header("Pragma: no-cache");
@@ -184,8 +184,8 @@
 		}
 	}elseif(isset($_GET['portal'])){
 		if(isset($_SESSION['portalSettings'])){
-			$filename = "../supportfiles/portals/".$_SESSION['portalSettings']['portalModule']."/commonfiles/".$_GET['portal'];
-			if(file_exists($filename)){
+			$filename = ipskPortalAsset($_SESSION['portalSettings']['portalModule'], $_GET['portal']);
+			if($filename !== false && file_exists($filename)){
 				switch(substr($filename,strlen($filename) - 3, 3)) {
 					case "css":
 						$contentType = "text/css";

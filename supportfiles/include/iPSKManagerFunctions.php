@@ -73,6 +73,36 @@
 		}	
 	}
 	
+
+    function ipskAdminSessionCheck() {
+        return ipskLoginSessionCheck() && ($_SESSION['adminAuthorized'] ?? false) === true;
+    }
+
+    // Routes are application capabilities, never filesystem paths supplied by callers.
+    function ipskPortalRoute($module, $template, $route) {
+        $routes = [
+            'captiveportal' => ['index', 'login', 'logoff', 'enroll', 'create', 'error', 'performcoa'],
+            'sponsorportal' => ['index', 'login', 'logoff', 'sponsor', 'manage', 'create', 'edit',
+                'view', 'delete', 'activate', 'suspend', 'extend', 'bulk', 'bulkimport',
+                'bulkupdate', 'fileupload', 'query'],
+        ];
+        if (!is_string($module) || !isset($routes[$module]) || $template !== 'default' ||
+            !is_string($route) || !in_array($route, array_map(function ($name) { return $name.'.php'; }, $routes[$module]), true)) {
+            return false;
+        }
+        return __DIR__.'/../portals/'.$module.'/'.$template.'/'.substr($route, 0, -4).'.inc.php';
+    }
+
+    function ipskPortalAsset($module, $route) {
+        if (!in_array($module, ['captiveportal', 'sponsorportal'], true) || !is_string($route) ||
+            !preg_match('~\A(?:scripts|styles|images)/[a-zA-Z0-9_.-]+\.(?:css|js|svg|gif|png|jpg|ico|jpeg)\z~D', $route)) {
+            return false;
+        }
+        $base = realpath(__DIR__.'/../portals/'.$module.'/commonfiles');
+        $path = realpath($base.'/'.$route);
+        return $base && $path && strncmp($path, $base.DIRECTORY_SEPARATOR, strlen($base) + 1) === 0 ? $path : false;
+    }
+
 	function convertBinSID($binSid) {
 		//Break apart the byte stream
 		$stringSid = unpack('Crevision/x/nauthhigh/Nauthlow/V*', $binSid);
