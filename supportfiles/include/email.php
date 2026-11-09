@@ -145,7 +145,7 @@ HTML;
 			
 			$headers .= 'From: ' . $mailFrom . "\r\n";
 			$headers .=	'Reply-To: ' . $mailFrom . "\r\n";
-			$headers .=	'X-Mailer: PHP/' . phpversion();
+			$headers .=	'X-Mailer: PHP/' . phpversion() . "\r\n";
 			
 			if(mail($to, $subject, $body, $headers, "-f ".$mailFrom)){
 				return true;
@@ -172,7 +172,7 @@ HTML;
 
 			$headers .= 'From: ' . $mailFrom . "\r\n";
 			$headers .=	'Reply-To: ' . $mailFrom . "\r\n";
-			$headers .=	'X-Mailer: PHP/' . phpversion();
+			$headers .=	'X-Mailer: PHP/' . phpversion() . "\r\n";
 			$headers .= "MIME-Version: 1.0\r\n";
 			$headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
 
