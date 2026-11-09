@@ -27,7 +27,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 
 	$endPointAssociation = $ipskISEDB->getEndPointAssociationById($sanitizedInput['id']);
 	
-	$endPointAssociation['pskValue'] = ipskPskPlain($endPointAssociation['pskValue']);
+	$endPointAssociation['pskValue'] = ipskHtml(ipskPskPlain($endPointAssociation['pskValue']));
 	
 	$endPointAssociation['createdBy'] = $ipskISEDB->getUserPrincipalNameFromCache($endPointAssociation['createdBy']);
 	

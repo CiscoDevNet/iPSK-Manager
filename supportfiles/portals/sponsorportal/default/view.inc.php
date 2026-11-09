@@ -37,7 +37,7 @@
 	$endPointAssociation = $ipskISEDB->getEndPointAssociationById($sanitizedInput['id']);
 	
 	if($_SESSION['portalAuthorization']['viewallPSK'] == true){
-		$endPointAssociation['pskValue'] = '<input type="password" id="presharedKey" class="form-control shadow" id="psk" value="'.ipskPskPlain($endPointAssociation['pskValue']).'" readonly>';
+		$endPointAssociation['pskValue'] = '<input type="password" id="presharedKey" class="form-control shadow" id="psk" value="'.ipskHtml(ipskPskPlain($endPointAssociation['pskValue'])).'" readonly>';
 	}else{
 		$endPointPermissions = $ipskISEDB->getEndPointAssociationPermissions($sanitizedInput['id'],$_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id']);
 		
@@ -63,7 +63,7 @@
 			}
 			
 			if($viewPSKPermission){
-				$endPointAssociation['pskValue'] = '<input type="password" id="presharedKey" class="form-control shadow" id="psk" value="'.ipskPskPlain($endPointAssociation['pskValue']).'" readonly>';
+				$endPointAssociation['pskValue'] = '<input type="password" id="presharedKey" class="form-control shadow" id="psk" value="'.ipskHtml(ipskPskPlain($endPointAssociation['pskValue'])).'" readonly>';
 			}else{
 				$endPointAssociation['pskValue'] = '<input type="text" id="presharedKey" class="form-control shadow text-danger" id="psk" value="NO VIEW PERMISSION" readonly>';
 			}

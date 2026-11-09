@@ -84,6 +84,7 @@ require("../supportfiles/include/phpmailer/SMTP.php");
 	}
 
 	function htmlBody($portalName, $wirelessPassword, $wirelessSsid, $macAddress, $endpointGroupName, $description, $fullname, $enrolledBy){
+        $wirelessPassword = htmlspecialchars($wirelessPassword, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 		$body = <<< HTML
 <html>
 	<head>

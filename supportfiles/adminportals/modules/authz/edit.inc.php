@@ -57,7 +57,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 	}else{
 		$pageiPSKType .= '<option value="0">Unique PSK per Device</option>';
 		$pageiPSKType .= '<option value="1">Unique PSK per User</option>';
-		$password = $authorizationTemplate['ciscoAVPairPSK'];
+		$password = ipskHtml($authorizationTemplate['ciscoAVPairPSK']);
 		$readonlyFlag = "";
 		$minLength = '8';
 		$passwordFeather = "refresh-cw";

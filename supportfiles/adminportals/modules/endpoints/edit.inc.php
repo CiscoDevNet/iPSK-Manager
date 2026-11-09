@@ -108,7 +108,7 @@ HTML;
 		$endpoint = $ipskISEDB->getEndpointByAssociationId($sanitizedInput['id']);
 		
 		$endpointGroups = $ipskISEDB->getEndpointGroupsAndAuthz();
-		$endpoint['pskValue'] = ipskPskPlain($endpoint['pskValue']);
+		$endpoint['pskValue'] = ipskHtml(ipskPskPlain($endpoint['pskValue']));
 		
 		$pageData['endpointGroupList'] .= '<select id="associationGroup" class="form-select mt-2 mb-3 shadow" disabled>';
 		

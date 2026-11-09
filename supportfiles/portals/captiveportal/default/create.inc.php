@@ -125,6 +125,7 @@
 		}
 	}
 
+	$randomPassword = ipskHtml($randomPassword);
 	print <<< HTML
 <html lang="en">
   <head>

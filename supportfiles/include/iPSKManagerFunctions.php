@@ -616,6 +616,10 @@
 			}
 		}
 
+        // Secrets are validated as secrets, never trimmed, stripped or HTML-encoded before storage.
+        foreach (['password','confirmpassword','ersPassword','mntPassword','smtpPassword','adPassword','ciscoAVPairPSK','presharedKey'] as $key) {
+            if (array_key_exists($key,$_POST)) $mysanitizedInputs[$key] = is_string($_POST[$key]) ? $_POST[$key] : false;
+        }
 		return $mysanitizedInputs;
 	}
 
