@@ -78,7 +78,8 @@ if (isset($sanitizedInput['logDisplay'])) {
   <tbody>
     <?php
 		if($logging){
-			while($row = $logging->fetch_assoc()) {				
+			while($row = $logging->fetch_assoc()) {
+                $row = array_map('ipskHtml', $row);				
 				print '<tr>';
 				print '<td>'.$row['dateCreated'].'</td>';
 				print '<td>'.$row['sessionID'].'</td>';

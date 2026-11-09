@@ -95,6 +95,10 @@
 
 
 
+    function ipskHtml($value) {
+        return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
     function ipskRefreshPortalAuthorization($database, $portalId) {
         $grants = $database->getPortalAuthGroups($portalId);
         $matched = []; $bits = 0;

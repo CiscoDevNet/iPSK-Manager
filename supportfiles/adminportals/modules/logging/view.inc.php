@@ -40,7 +40,8 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 				$logging['logDataPayload'] = print_r($tempLogPayload,true);
 			}
 			
-			$htmlbody = <<<HTML
+			$logging = array_map('ipskHtml', $logging);
+            $htmlbody = <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="viewlogentry" tabindex="-1" role="dialog" aria-labelledby="viewlogentryModal" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
