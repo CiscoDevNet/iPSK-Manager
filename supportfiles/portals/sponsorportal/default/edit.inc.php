@@ -26,11 +26,28 @@
 		die();
 	}
 	
+    if (!ipskEndpointPermission($ipskISEDB, $sanitizedInput['id'] ?? 0, 256)) {
+        http_response_code(403);
+        print 'You are not authorized to edit this endpoint.';
+        return;
+    }
+
 	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction'] && isset($sanitizedInput['fullName']) && isset($sanitizedInput['emailAddress']) && isset($sanitizedInput['endpointDescription']) && isset($sanitizedInput['editAssociation']) && isset($sanitizedInput['associationGroup'])){
 		if($_SESSION['editAssociationEndpointId'] == $sanitizedInput['id']){
 			$endpoint = $ipskISEDB->getEndpointByAssociationId($sanitizedInput['id']);
 		
-			$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
+			if (!$endpoint) { http_response_code(404); return; }
+            if ($sanitizedInput['editAssociation'] == 1) {
+                if (!ipskCreationGrant($ipskISEDB, $sanitizedInput['associationGroup'])) {
+                    http_response_code(403);
+                    print 'You are not authorized to use the destination group.';
+                    return;
+                }
+            } else {
+                // Metadata/key-only edits always retain the existing group's policy.
+                $sanitizedInput['associationGroup'] = $endpoint['epGroupId'];
+            }
+            $endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 			
 			if($sanitizedInput['editAssociation'] == 1){
 				

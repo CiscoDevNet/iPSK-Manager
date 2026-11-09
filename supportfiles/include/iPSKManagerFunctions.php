@@ -93,6 +93,23 @@
     }
 
 
+
+    function ipskEndpointPermission($database, $associationId, $action = 0) {
+        $permissions = $database->getEndPointAssociationPermissions($associationId, $_SESSION['authorizationGroups'] ?? [], $_SESSION['portalSettings']['id']);
+        $endpoint = false;
+        foreach ($permissions ?: [] as $row) {
+            if (!is_array($row)) continue;
+            $bits = (int)$row['groupPermissions'];
+            if (($bits & $action) !== $action) continue;
+            if ($bits & 6) return true;
+            if ($bits & 1) {
+                $endpoint = $endpoint ?: $database->getEndpointByAssociationId($associationId);
+                if ($endpoint && $endpoint['createdBy'] === $_SESSION['logonSID']) return true;
+            }
+        }
+        return false;
+    }
+
     function ipskCreationGrant($database, $groupId, $permission = 512) {
         if (!filter_var($groupId, FILTER_VALIDATE_INT) || $groupId < 1 || empty($_SESSION['portalSettings']['id'])) return false;
         $groups = $database->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'], $_SESSION['authorizationGroups'] ?? []);
