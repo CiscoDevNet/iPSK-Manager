@@ -94,6 +94,11 @@ try {
     verify(!$db->updateInternalUser($other,'UNIQUEUSER','Other','','','fixture'),'Duplicate rename accepted');
     verify($db->authenticateInternalUser('UniqueUser','validpass'),'Unique user cannot authenticate');
     verify($_SESSION['fullName']==='First' && $_SESSION['memberOf']['count']===0,'Authentication selected wrong identity or failed empty membership');
+    $c->query("INSERT INTO internalGroups (id,groupName,groupType,description,groupDn,permissions,createdBy) VALUES (2,'AdminFixture',0,'','CN=AdminFixture',1,'fixture')");
+    $c->query('INSERT INTO internalUserGroupMapping (userId,groupId,createdBy) VALUES ('.(int)$other.",2,'fixture')");
+    verify(!$db->canDeleteInternalObject('user',$other) && !$db->canDeleteInternalObject('group',2),'Last administrator deletion allowed');
+    $c->query('INSERT INTO internalUserGroupMapping (userId,groupId,createdBy) VALUES ('.(int)$user.",2,'fixture')");
+    verify($db->canDeleteInternalObject('user',$other),'Ordinary administrator deletion blocked despite remaining admin');
     $db->set_dbDatabase($name);
     $c->query('CREATE PROCEDURE iPSK_AttributeFetch (IN username VARCHAR(64), OUT result INT) SELECT 1');
     $runner=$db->getMigrationManager();

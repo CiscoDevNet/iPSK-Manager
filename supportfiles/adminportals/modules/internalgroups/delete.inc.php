@@ -25,6 +25,8 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 	
 
 
+if (!$ipskISEDB->canDeleteInternalObject('group', $sanitizedInput['id'] ?? 0)) { http_response_code(403); print 'Protected object or last administrator cannot be deleted.'; return; }
+
 if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction']){
 	$ipskISEDB->deleteInternalUserGroupMappingById($sanitizedInput['id']);
 	$ipskISEDB->deletePortalGroupMappingById($sanitizedInput['id']);

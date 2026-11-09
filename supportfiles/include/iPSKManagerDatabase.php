@@ -2718,7 +2718,20 @@
 			}
 		}
 		
+        function canDeleteInternalObject($kind, $id) {
+            if (!in_array($kind,['user','group'],true) || !filter_var($id,FILTER_VALIDATE_INT) || $id <= 1) return false;
+            if ($kind === 'user') {
+                $target = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUserGroupMapping m JOIN internalGroups g ON g.id=m.groupId WHERE m.userId=? AND g.permissions=1',[$id]);
+                $remaining = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUsers u JOIN internalUserGroupMapping m ON m.userId=u.id JOIN internalGroups g ON g.id=m.groupId WHERE u.id<>? AND u.enabled=1 AND g.permissions=1',[$id]);
+            } else {
+                $target = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalGroups WHERE id=? AND permissions=1',[$id]);
+                $remaining = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUsers u JOIN internalUserGroupMapping m ON m.userId=u.id JOIN internalGroups g ON g.id=m.groupId WHERE g.id<>? AND u.enabled=1 AND g.permissions=1',[$id]);
+            }
+            return $target && $remaining && ((int)$target->fetch_assoc()['total']===0 || (int)$remaining->fetch_assoc()['total']>0);
+        }
+
 		function deleteInternalUserGroupMappingById($id){
+            if (!$this->canDeleteInternalObject('group', $id)) return false;
 			
 			$queryValues = [(int)($id)];
 			$query = "DELETE FROM `internalUserGroupMapping` WHERE `groupId` = ?";
@@ -2734,6 +2747,7 @@
 		}
 		
 		function deleteInternalUserGroupMappingByUserId($id){
+            if (!$this->canDeleteInternalObject('user', $id)) return false;
 			
 			$queryValues = [(int)($id)];
 			$query = "DELETE FROM `internalUserGroupMapping` WHERE `userId` = ?";
@@ -2749,6 +2763,7 @@
 		}
 
 		function deletePortalGroupMappingById($id){
+            if (!$this->canDeleteInternalObject('group', $id)) return false;
 			
 			$queryValues = [$id];
 			$query = "DELETE FROM `sponsorGroupInternalMapping` WHERE `internalGroupId` = ?";
@@ -2764,6 +2779,7 @@
 		}
 
 		function deleteInternalGroupById($id){
+            if (!$this->canDeleteInternalObject('group', $id)) return false;
 			
 			$queryValues = [$id];
 			$query = "DELETE FROM `internalGroups` WHERE `id` = ?";
@@ -2779,6 +2795,7 @@
 		}
 
 		function deleteInternalUserById($id){
+            if (!$this->canDeleteInternalObject('user', $id)) return false;
 			
 			$queryValues = [$id];
 			$query = "DELETE FROM `internalUsers` WHERE `id` = ?";
