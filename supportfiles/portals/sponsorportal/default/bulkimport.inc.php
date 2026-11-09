@@ -90,14 +90,7 @@
 			$deviceRandom = true;
 			
 		}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
-			$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'],$_SESSION['logonSID']);
-			if(!$userPsk){
-				$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-				$randomPSKList = "psk=".$randomPassword;
-			}else{
-				$randomPassword = $userPsk;
-				$randomPSKList = "psk=".$randomPassword;
-			}
+            // Resolve the shared user key only after acquiring the enrollment lock.
 		}else{
 			$randomPassword = $endpointGroupAuthorization['ciscoAVPairPSK'];
 			$randomPSKList = "psk=".$randomPassword;
@@ -147,6 +140,16 @@
 		
         if (!$ipskISEDB->beginPortalEnrollment($sanitizedInput['associationGroup'], $macAddressList ?? [], 2048)) {
             http_response_code(409); print 'The import exceeds the available device quota.'; return;
+        }
+        if ($endpointGroupAuthorization['ciscoAVPairPSK'] === '*userrandom*') {
+			$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'],$_SESSION['logonSID']);
+			if(!$userPsk){
+				$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
+				$randomPSKList = "psk=".$randomPassword;
+			}else{
+				$randomPassword = $userPsk;
+				$randomPSKList = "psk=".$randomPassword;
+			}
         }
 		if($sanitizedInput['bulkImportType'] == 1 && $macAddressList){
 			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList, $fullnameList, $descriptionList, $emailaddressList, $randomPSKList, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID']);

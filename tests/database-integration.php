@@ -88,6 +88,27 @@ try {
     verify($c->query("SELECT COUNT(*) FROM endpoints WHERE macAddress='AA:BB:CC:DD:03:01'")->fetch_row()[0]==0,'Rollback left orphan endpoint');
     verify($runWorker(2,'commit','AA:BB:CC:DD:03:01')==='committed','Failed insertion retained reservation');
     verify($runWorker(0,'commit','AA:BB:CC:DD:04:01,AA:BB:CC:DD:04:02')==='committed','Unlimited batch rejected');
+    // Release two actual enrollment handlers together immediately before GET_LOCK.
+    $db->addAuthorizationTemplate('Concurrent user keys','','*userrandom*',0,16,'','','fixture');
+    $keyPolicy=(int)$c->insert_id;
+    foreach ([['sponsor','sponsor'],['captive','captive'],['sponsor','bulk'],['bulk','bulk']] as $case=>$routes) {
+        $db->addEndpointGroup('Concurrent keys '.$case,'',$keyPolicy,0,'fixture');$keyGroup=(int)$c->insert_id;
+        $jobs=[];
+        foreach ($routes as $index=>$route) {
+            $mac=sprintf('AA:BB:DD:00:%02X:%02X',$case,$index);
+            $process=proc_open([PHP_BINARY,__DIR__.'/enrollment-worker.php',$name,(string)$keyGroup,$route,$mac],[['pipe','r'],['pipe','w'],['pipe','w']],$pipes);
+            stream_set_timeout($pipes[1],20);$jobs[]=[$process,$pipes];
+        }
+        foreach($jobs as [$process,$pipes])verify(fgets($pipes[1])==="ready\n",'Enrollment failed before barrier');
+        foreach($jobs as [$process,$pipes]){fwrite($pipes[0],"go\n");fclose($pipes[0]);}
+        foreach($jobs as [$process,$pipes]){
+            $out=stream_get_contents($pipes[1]);$errors=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
+            verify(proc_close($process)===0 && $out==='committed' && $errors==='','Concurrent enrollment failed: '.$out.$errors);
+        }
+        $row=$c->query('SELECT COUNT(*) AS devices,COUNT(DISTINCT e.pskValue) AS keysUsed FROM endpoints e JOIN endpointAssociations a ON a.endpointId=e.id WHERE a.epGroupId='.$keyGroup)->fetch_assoc();
+        verify((int)$row['devices']===2 && (int)$row['keysUsed']===1,'Concurrent first enrollments split the user key');
+    }
+    echo "PASS review 58 integration: simultaneous sponsor, captive, mixed single/bulk and bulk/bulk enrollments share one key\n";
     echo "PASS quota integration: independent concurrent connections, batch capacity, rollback/retry, unlimited\n";
     $user=$db->addInternalUser('UniqueUser','First','','',password_hash('validpass',PASSWORD_DEFAULT),'fixture');
     verify($user>0 && $db->addInternalUser('uniqueuser','Duplicate','','',password_hash('otherpass',PASSWORD_DEFAULT),'fixture')===false,'Duplicate username accepted');

@@ -74,6 +74,21 @@
 		if(isset($sanitizedInput['associationGroup']) && isset($sanitizedInput['macAddress']) && isset($sanitizedInput['endpointDescription']) && isset($sanitizedInput['emailAddress']) && isset($sanitizedInput['fullName'])) {	
 			$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 			
+			if($endpointGroupAuthorization['termLengthSeconds'] == 0){
+				$duration = $endpointGroupAuthorization['termLengthSeconds'];
+			}else{
+				$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
+			}
+			
+			$wirelessNetwork = $ipskISEDB->getWirelessNetworkById($sanitizedInput['wirelessSSID']);
+			
+			if($wirelessNetwork){
+				$wifiSsid = $wirelessNetwork['ssidName'];
+			}
+			
+			if (!$ipskISEDB->beginPortalEnrollment($sanitizedInput['associationGroup'], [$sanitizedInput['macAddress']])) {
+                http_response_code(409); print 'Device quota unavailable. Reload and try again.'; return;
+            }
 			if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
 				$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
 				$randomPSK = "psk=".$randomPassword;
@@ -91,21 +106,6 @@
 				$randomPSK = "psk=".$randomPassword;
 			}
 			
-			if($endpointGroupAuthorization['termLengthSeconds'] == 0){
-				$duration = $endpointGroupAuthorization['termLengthSeconds'];
-			}else{
-				$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
-			}
-			
-			$wirelessNetwork = $ipskISEDB->getWirelessNetworkById($sanitizedInput['wirelessSSID']);
-			
-			if($wirelessNetwork){
-				$wifiSsid = $wirelessNetwork['ssidName'];
-			}
-			
-			if (!$ipskISEDB->beginPortalEnrollment($sanitizedInput['associationGroup'], [$sanitizedInput['macAddress']])) {
-                http_response_code(409); print 'Device quota unavailable. Reload and try again.'; return;
-            }
             $endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID']);
 			
 			if($endpointId){
