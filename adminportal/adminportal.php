@@ -296,6 +296,7 @@ HTML;
 	<script type="text/javascript" src="scripts/ipsk-adminportal-v1.js"></script>
 	<link href="styles/datatables.min.css" rel="stylesheet">
 	<script type="text/javascript" src="scripts/datatables.min.js"></script>
+	<script type="text/javascript" src="scripts/datatables-compat.js"></script>
 	<script>
     $(document).ready(function () {
 		// Clear Datatable Filters On Reload Or Page Change
