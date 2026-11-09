@@ -88,6 +88,15 @@ try {
     verify($runWorker(2,'commit','AA:BB:CC:DD:03:01')==='committed','Failed insertion retained reservation');
     verify($runWorker(0,'commit','AA:BB:CC:DD:04:01,AA:BB:CC:DD:04:02')==='committed','Unlimited batch rejected');
     echo "PASS quota integration: independent concurrent connections, batch capacity, rollback/retry, unlimited\n";
+    $db->set_dbDatabase($name);
+    $c->query('CREATE PROCEDURE iPSK_AttributeFetch (IN username VARCHAR(64), OUT result INT) SELECT 1');
+    $runner=$db->getMigrationManager();
+    $migration=$runner->getMigrations()[0];
+    $upgrade=$runner->executeMigration($migration);
+    verify($upgrade['success'],'Routine upgrade failed: '.$upgrade['error']);
+    $routine=$c->query('SHOW CREATE PROCEDURE iPSK_AttributeFetch')->fetch_assoc();
+    verify(str_contains($routine['Create Procedure'],'subscriberName'),'Routine replacement missing subscriberName');
+    echo "PASS migration integration: resolves existing definer without environment and replaces routine successfully\n";
     echo "PASS database integration: real schema, prepared queries, literal secrets, settings, group lookup, bulk insert IDs\n";
 } finally {
     $c->query("DROP DATABASE `$name`");

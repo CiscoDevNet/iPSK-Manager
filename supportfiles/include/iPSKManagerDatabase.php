@@ -198,8 +198,8 @@
 
 		function get_migrationReplacements($extraReplacements = Array()){
 			$replacements = Array(
-				"{{DB_NAME}}" => $this->dbDatabase,
-				"{{APP_DB_USERNAME}}" => $this->dbUsername
+				"{{DB_NAME}}" => str_replace("`", "``", $this->dbDatabase),
+				"{{APP_DB_USERNAME}}" => str_replace("`", "``", $this->dbUsername ?? "")
 			);
 
 			if(isset($_SERVER['IPSK_DB_USERNAME']) && $_SERVER['IPSK_DB_USERNAME'] != ""){
@@ -214,7 +214,18 @@
 				$replacements = array_merge($replacements, $extraReplacements);
 			}
 
-			return $replacements;
+            if (!isset($replacements['{{ISE_DB_DEFINER}}'])) {
+                if (!empty($_SERVER['ISE_DB_USERNAME'])) {
+                    $replacements['{{ISE_DB_DEFINER}}'] = '`'.str_replace('`','``',$_SERVER['ISE_DB_USERNAME']).'`@`%`';
+                } else {
+                    $result = $this->preparedQuery("SELECT DEFINER FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=? AND ROUTINE_NAME='iPSK_AttributeFetch' AND ROUTINE_TYPE='PROCEDURE'", [$this->dbDatabase]);
+                    $row = $result ? $result->fetch_assoc() : false;
+                    if ($row && ($at = strrpos($row['DEFINER'], '@')) !== false) {
+                        $replacements['{{ISE_DB_DEFINER}}'] = '`'.str_replace('`','``',substr($row['DEFINER'],0,$at)).'`@`'.str_replace('`','``',substr($row['DEFINER'],$at+1)).'`';
+                    }
+                }
+            }
+            return $replacements;
 		}
 
 		function getMigrationManager($extraReplacements = Array()){
