@@ -138,29 +138,30 @@
 			
 		}
 
-		function getGroupsForMember($ldap_conn, $member_dn, $already_seen = []) {
-			$groups = [];
-			// fix to escape the member_dn for when it contains special characters
-			$member_dn = ldap_escape($member_dn, '', LDAP_ESCAPE_FILTER);
-			// Search for groups that the member belongs to
-			$result = ldap_search($ldap_conn, $this->ldapBaseDN, '(member=' . $member_dn . ')', ['dn']);
-			$entries = ldap_get_entries($ldap_conn, $result);
-		
-			for ($i = 0; $i < $entries['count']; $i++) {
-				$groupName = $entries[$i]['dn'];
-				$groups[] = $groupName;
-		
-				// If the group has not been seen before, recursively fetch its members
-				if (!in_array($groupName, $already_seen)) {
-					$already_seen[] = $groupName;
-					$nestedGroups = $this->getGroupsForMember($ldap_conn, $entries[$i]['dn'], $already_seen);
-					$groups = array_merge($groups, $nestedGroups);
-				}
-			}
-		
-			return $groups;
-		}
-	
+        function getGroupsForMember($ldap_conn, $member_dn, $already_seen = []) {
+            $visited = array_fill_keys(array_map('strtolower', $already_seen), true);
+            $visited[strtolower($member_dn)] = true;
+            $queue = [$member_dn];
+            $groups = [];
+            for ($offset = 0; $offset < count($queue); $offset++) {
+                $filter = '(member='.ldap_escape($queue[$offset], '', LDAP_ESCAPE_FILTER).')';
+                $result = ldap_search($ldap_conn, $this->ldapBaseDN, $filter, ['dn']);
+                if ($result === false) { throw new RuntimeException('Unable to resolve directory groups'); }
+                $entries = ldap_get_entries($ldap_conn, $result);
+                if ($entries === false) { throw new RuntimeException('Unable to read directory groups'); }
+                for ($i = 0; $i < $entries['count']; $i++) {
+                    $dn = $entries[$i]['dn'];
+                    $key = strtolower($dn);
+                    if (!isset($groups[$key])) { $groups[$key] = $dn; }
+                    if (isset($visited[$key])) { continue; }
+                    // Fail closed rather than authorizing against an incomplete membership set.
+                    if (count($visited) >= 10000) { throw new RuntimeException('Directory group traversal limit exceeded'); }
+                    $visited[$key] = true;
+                    $queue[] = $dn;
+                }
+            }
+            return array_values($groups);
+        }
 
 		function authenticateUser($username, $password, $saml = false, $nestedGroup = false){
             ipskResetIdentity();
