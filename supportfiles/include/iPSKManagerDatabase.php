@@ -3487,6 +3487,19 @@
 			
 		}
 		
+        private function redactLogData($value) {
+            if (is_array($value) || is_object($value)) {
+                $clean = [];
+                foreach ((array)$value as $key => $entry) {
+                    $clean[$key] = preg_match('/password|passphrase|psk|preshared|secret|token|cookie|authorization|credential|enc.?key|api.?key/i', (string)$key)
+                        ? '[REDACTED]' : $this->redactLogData($entry);
+                }
+                return $clean;
+            }
+            if (is_string($value) && preg_match('/^(?:Authorization|Proxy-Authorization|Cookie|Set-Cookie):/i', $value)) return '[REDACTED]';
+            return $value;
+        }
+
 		function generateLogData(...$inputData){
 			$inputIndex = 0;
 			
@@ -3560,7 +3573,7 @@
 			if($inputIndex != 0){
 				$logData['variables']['count'] = $inputIndex;
 			
-				return json_encode($logData);
+				return json_encode($this->redactLogData($logData));
 			}else{
 				return "";
 			}
