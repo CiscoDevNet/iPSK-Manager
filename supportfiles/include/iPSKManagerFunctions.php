@@ -161,6 +161,10 @@
         return http_build_query(['portalId'=>$portalId] + $parameters, '', '&', PHP_QUERY_RFC3986);
     }
 
+    function ipskPskPlain($stored) {
+        return strncmp($stored, 'psk=', 4) === 0 ? substr($stored, 4) : $stored;
+    }
+
     function ipskHtml($value) {
         return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
