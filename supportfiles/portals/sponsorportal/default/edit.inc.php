@@ -128,7 +128,8 @@ HTML;
 		
 		$endpoint = $ipskISEDB->getEndpointByAssociationId($sanitizedInput['id']);
 
-		//Check if User is allowed to edit Endpoint
+		$storedPskForDisplay = $endpoint['pskValue'];
+        //Check if User is allowed to edit Endpoint
 		for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++){
 			if($endpoint['epGroupId'] == $_SESSION['authorizedEPGroups'][$count]['endpointGroupId']){
 				if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 256){
@@ -207,6 +208,8 @@ HTML;
 			$editGroup = '';
 		}
 	
+$endpoint['pskValue'] = ipskEndpointPermission($ipskISEDB, $sanitizedInput['id'], 8) ? ipskHtml(ipskPskPlain($storedPskForDisplay)) : '';
+
 		print <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="editEndpoint" tabindex="-1" role="dialog" aria-labelledby="editEndpointModal" aria-hidden="true">
