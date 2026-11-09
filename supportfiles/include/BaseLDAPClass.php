@@ -260,7 +260,7 @@
 							}else{
 								$_SESSION['userPrincipalName'] = $username.'@'.$this->ldapDomain;
 							}
-							$_SESSION['fullName'] = (isset($entries[0]['givenName'][0]) && isset($entries[0]['sn'][0])) ? $entries[0]['givenName'][0]." ".$entries[0]['sn'][0] : '';
+							$_SESSION['fullName'] = trim(($entries[0]['givenname'][0] ?? '').' '.($entries[0]['sn'][0] ?? ''));
 							$_SESSION['emailAddress'] = (isset($entries[0]['mail'][0])) ? $entries[0]['mail'][0] : '';
 							$_SESSION['logonUsername'] = $username;
 							$_SESSION['logonSID'] = $entries[0]['uid'][0]."-".$this->ldapDomain;
