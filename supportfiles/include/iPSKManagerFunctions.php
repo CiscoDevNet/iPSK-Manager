@@ -56,32 +56,24 @@
 		}
 	}
 
-	function ipskLoginSessionCheck(){
-		
-		if(isset($_SESSION)){
-			if(isset($_SESSION['loggedIn']) && isset($_SESSION['logonDN']) && isset($_SESSION['logonUsername']) && isset($_SESSION['authenticationGranted']) && isset($_SESSION['authorizationGranted'])){
-				if($_SESSION['loggedIn'] == true && $_SESSION['authenticationGranted'] == true && $_SESSION['authorizationGranted'] == true){
-					if(isset($_SESSION['logoutTimer'])){
-						if($_SESSION['authorizationGranted'] > time()){
-							return true;
-						}else{
-							return false;
-						}
-					}else{
-						return true;
-					}
-				}else{
-					return false;
-				}
-			}else{
-				return false;
-			}
-		}else{
-			return false;
-		}	
-	}
-	
-
+    function ipskLoginSessionCheck() {
+        if (empty($_SESSION['loggedIn']) || empty($_SESSION['authenticationGranted']) ||
+            empty($_SESSION['authorizationGranted']) || !isset($_SESSION['logonDN'], $_SESSION['logonUsername'])) {
+            return false;
+        }
+        $now = time();
+        // A 30-minute idle window and 12-hour absolute lifetime apply to all portals.
+        $started = $_SESSION['authenticationTimestamp'] ?? $now;
+        $last = $_SESSION['lastActivity'] ?? $started;
+        if ((isset($_SESSION['logoutTimer']) && (!is_numeric($_SESSION['logoutTimer']) || $_SESSION['logoutTimer'] <= $now)) ||
+            $started + 43200 <= $now || $last + 1800 <= $now) {
+            ipskResetIdentity();
+            return false;
+        }
+        $_SESSION['authenticationTimestamp'] = $started;
+        $_SESSION['lastActivity'] = $now;
+        return true;
+    }
 
     function ipskRotateSession() {
         if (session_status() === PHP_SESSION_ACTIVE && !session_regenerate_id(true)) {
