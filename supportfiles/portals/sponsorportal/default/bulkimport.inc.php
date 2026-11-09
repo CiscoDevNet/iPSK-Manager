@@ -155,6 +155,10 @@
 			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList,$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSKList, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID']);
 		}
 		
+        if (!$macAddressInsertID && !empty($ipskISEDB->lastError)) {
+            print '<div class="alert alert-danger">'.ipskHtml($ipskISEDB->lastError).'</div>';
+            return;
+        }
 		if($macAddressInsertID){
 			if($macAddressInsertID['processed'] > 0){
 				//LOG::Entry

@@ -38,6 +38,7 @@
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
 		public $systemConfigured;
+        public $lastError = '';
 		public $dbSchemaVersion;
 		public $loggingLevel;
 		public $passwordComplexity;
@@ -2159,6 +2160,16 @@
 			}
 		
 		function addBulkEndpoints($macAddress, $fullName, $description, $email, $psk, $vlan, $dacl, $expirationDate, $createdBy){
+            $this->lastError = '';
+            $seen = [];
+            foreach (is_array($macAddress) ? $macAddress : [] as $mac) {
+                $key = strtoupper(str_replace([':', '-'], '', $mac));
+                if (isset($seen[$key])) {
+                    $this->lastError = 'Duplicate MAC address in import: '.$mac.'. Remove duplicate rows and upload again.';
+                    return false;
+                }
+                $seen[$key] = true;
+            }
 			$multiInput = false;
 			$multipsk = false;
 			

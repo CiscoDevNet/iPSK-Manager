@@ -45,6 +45,12 @@ try {
     $db->getEndPointAssociationList($groups, 1, true, "CN=O'Connor");
     $db->getPortalByGuid('00112233-4455-6677-8899-aabbccddeeff');
     $db->getPortalbyHostname("host' OR 1=1 --");
+    foreach ([['AA:BB:CC:DD:09:01','AA:BB:CC:DD:09:01'],['aa-bb-cc-dd-09-02','AA:BB:CC:DD:09:02']] as $duplicates) {
+        $before=(int)$c->query('SELECT COUNT(*) FROM endpoints')->fetch_row()[0];
+        verify($db->addBulkEndpoints($duplicates,['One','Conflicting'],['',''],['',''],$psk,'','',0,$sid)===false,'Duplicate batch accepted');
+        verify(str_contains($db->lastError,'Duplicate MAC'),'Missing actionable duplicate error');
+        verify((int)$c->query('SELECT COUNT(*) FROM endpoints')->fetch_row()[0]===$before,'Rejected duplicate batch wrote records');
+    }
     $c->query('SET SESSION auto_increment_increment=2');
     $batch = $db->addBulkEndpoints(['AA:BB:CC:DD:EE:01','AA:BB:CC:DD:EE:02'], ['One',"Two's"], ['',''], ['',''], [$psk,$psk], '', '', 0, $sid);
     verify($batch['processed'] === 2, 'Bulk insert failed');
