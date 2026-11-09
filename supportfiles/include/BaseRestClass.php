@@ -33,6 +33,8 @@
 		private $restUsername;
 		private $restPassword;
 		private $restSSLVerifyPeer = true;
+        private $connectTimeoutMs = 5000;
+        private $transferTimeoutMs = 30000;
 		protected $iPSKManagerClass;
 		
 		function __construct($hostname = null, $username = null, $password = null, $sslVerifypeer = true, $ipskManagerClass = false) {		
@@ -75,6 +77,14 @@
 			return $this->restSSLVerifyPeer;
 		}
 		
+        function set_timeouts($connectMs, $transferMs) {
+            if (!is_int($connectMs) || !is_int($transferMs) || $connectMs < 1 || $transferMs < $connectMs || $transferMs > 300000) {
+                throw new InvalidArgumentException('Timeouts must be positive milliseconds, connect <= transfer <= 300000');
+            }
+            $this->connectTimeoutMs = $connectMs;
+            $this->transferTimeoutMs = $transferMs;
+        }
+
 		function restCall($restURLPath, $restMethod, $restCallHeader, $basicAuth = false, $data = null){
 			//Provides basic restAPI Call to a web based API interface
 			//This method is multi-use and provides flexibility to make calls with various inputs
@@ -106,6 +116,8 @@
 				//Create CURL object to prepare the HTTP(s) call
 				$curlCall = curl_init();
                 curl_setopt($curlCall, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curlCall, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
+                curl_setopt($curlCall, CURLOPT_TIMEOUT_MS, $this->transferTimeoutMs);
 				
 				//Set the request URL in the CURL object
 				curl_setopt($curlCall, CURLOPT_URL, $requestURL);
@@ -167,6 +179,8 @@
 				
 				//extract the CURL response parameters
 				$responseArray = curl_getinfo($curlCall);
+                $responseArray['error_code'] = curl_errno($curlCall);
+                $responseArray['error'] = curl_error($curlCall);
 				
 				//Close the CURL Object
 				curl_close ($curlCall);
