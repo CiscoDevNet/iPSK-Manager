@@ -206,7 +206,7 @@
 		}
 	}
 
-	function sendHTMLEmail($to, $macAddresses, $smtpSettings, $ipskISEDB){
+	function sendHTMLEmail($to, $macAddresses, $subject, $smtpSettings, $ipskISEDB){
 		$sendTo = filter_var($to, FILTER_SANITIZE_EMAIL);
 
 		if($sendTo != ""){
@@ -225,7 +225,6 @@
 			$headers .= "MIME-Version: 1.0\r\n";
 			$headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
 
-			$subject = $subject;
 			$body = htmlBody($macAddresses);
 
 			if(mail($to, $subject, $body, $headers, "-f ".$mailFrom)){
