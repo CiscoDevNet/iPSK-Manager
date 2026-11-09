@@ -92,6 +92,23 @@
         $_SESSION['portalAuthorization']['viewallDn'] = '';
     }
 
+
+    function ipskCreationGrant($database, $groupId, $permission = 512) {
+        if (!filter_var($groupId, FILTER_VALIDATE_INT) || $groupId < 1 || empty($_SESSION['portalSettings']['id'])) return false;
+        $groups = $database->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'], $_SESSION['authorizationGroups'] ?? []);
+        $_SESSION['authorizedEPGroups'] = $groups ?: ['count' => 0];
+        $grant = false;
+        for ($i = 0; $i < ($groups['count'] ?? 0); $i++) {
+            if ($groups[$i]['endpointGroupId'] == $groupId && ($groups[$i]['groupPermissions'] & $permission) === $permission) {
+                $grant = $groups[$i];
+            }
+        }
+        if (!$grant) return false;
+        $count = $database->getUserEndpointCount($groupId, $_SESSION['logonSID']);
+        if ($count === false || ($grant['maxDevices'] != 0 && $count >= $grant['maxDevices'])) return false;
+        return $grant;
+    }
+
     function ipskAdminSessionCheck() {
         return ipskLoginSessionCheck() && ($_SESSION['adminAuthorized'] ?? false) === true;
     }

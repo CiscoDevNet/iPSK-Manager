@@ -22,6 +22,12 @@
 	$pageData['hidePskFlag'] = "";
 	$wifiSsid = '';
 	
+    if (ipskLoginSessionCheck() && !ipskCreationGrant($ipskISEDB, $sanitizedInput['associationGroup'] ?? null, 512)) {
+        http_response_code(403);
+        print 'The selected group is not authorized or its device limit has been reached.';
+        return;
+    }
+
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;

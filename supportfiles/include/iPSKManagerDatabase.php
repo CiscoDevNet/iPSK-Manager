@@ -1010,12 +1010,12 @@
 						$row = $queryResult->fetch_assoc();
 						
 						if($row['createdBy'] == $sid){
-							return $row['deviceCount'];
+							return (int)$row['deviceCount'];
 						}else{
 							return false;
 						}
 					}else{
-						return false;
+						return 0;
 					}
 				}else{
 					return false;

@@ -13,6 +13,7 @@ try {
     foreach (array_merge($sqlTable, $sqlAlterTable, $sqlConstraint) as $sql) $c->query($sql);
     $db = connectionFor($c);
     $sid = "user'sid";
+    verify($db->getUserEndpointCount(99, $sid) === 0, 'New user must have zero quota usage');
     $psk = "psk=O'Connor&\\quote";
     $id = $db->addEndpoint('AA:BB:CC:DD:EE:FF', "O'Connor", 'fixture', 'a@example.test', $psk, '10', "acl's", 0, $sid);
     verify($id > 0, 'Insert ID lost');
