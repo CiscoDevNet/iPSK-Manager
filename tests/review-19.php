@@ -11,7 +11,7 @@ class BoundConnection {
             function __construct($db, $sql) { $this->db=$db; $this->sql=$sql; $this->field_count=str_starts_with($sql, 'SELECT') ? 1 : 0; }
             function bind_param($types, &...$values) { $this->values=$values; return true; }
             function execute() { $this->db->calls[]=[$this->sql,$this->values]; return true; }
-            function get_result() { return new class { public $num_rows=0; }; }
+            function get_result() { return new class { public $num_rows=0; function fetch_assoc() {return ['id'=>42];} }; }
             function close() {}
         };
     }

@@ -45,6 +45,7 @@ try {
     $db->getEndPointAssociationList($groups, 1, true, "CN=O'Connor");
     $db->getPortalByGuid('00112233-4455-6677-8899-aabbccddeeff');
     $db->getPortalbyHostname("host' OR 1=1 --");
+    $c->query('SET SESSION auto_increment_increment=2');
     $batch = $db->addBulkEndpoints(['AA:BB:CC:DD:EE:01','AA:BB:CC:DD:EE:02'], ['One',"Two's"], ['',''], ['',''], [$psk,$psk], '', '', 0, $sid);
     verify($batch['processed'] === 2, 'Bulk insert failed');
     foreach ([0,1] as $index) {
@@ -52,6 +53,7 @@ try {
         verify($row['macAddress'] === $batch[$index]['macAddress'], 'Bulk returned wrong record');
         verify($row['pskValue'] === $psk, 'Bulk secret changed');
     }
+    $c->query('SET SESSION auto_increment_increment=1');
     $template=$db->addAuthorizationTemplate('Quota policy','','validkey',0,8,'','','fixture');
     $group=$db->addEndpointGroup('Quota group','',$template,0,'fixture');
     verify($template && $group,'Quota fixture creation failed');

@@ -2223,13 +2223,16 @@
 						$bulkQueryResult = $this->preparedQuery($bulkQuery, $insertValues);
 						
 						if($bulkQueryResult){
-							$startInsertId = $this->dbConnection->insert_id;
+							
 							$affectRows = $this->dbConnection->affected_rows;
 							
 							foreach($macAddress as $entry => $key){
 								$macAddressAdd[$count]['macAddress'] = $key;
 								$macAddressAdd[$count]['exists'] = false;
-								$macAddressAdd[$count]['insertId'] = $startInsertId;
+								$inserted = $this->preparedQuery('SELECT id FROM endpoints WHERE macAddress=?', [$key]);
+                                $insertedRow = $inserted ? $inserted->fetch_assoc() : false;
+                                if (!$insertedRow) return false;
+                                $macAddressAdd[$count]['insertId'] = (int)$insertedRow['id'];
 								
 								if($multipsk){
 									$macAddressAdd[$count]['psk'] = $psk[$entry];
@@ -2239,7 +2242,7 @@
 								
 								$count++;
 								
-								$startInsertId++;
+								
 							}
 							
 							$macAddressAdd['count'] = $count;
@@ -2312,13 +2315,16 @@
 						$bulkQueryResult = $this->preparedQuery($bulkQuery, $insertValues);
 						
 						if($bulkQueryResult){
-							$startInsertId = $this->dbConnection->insert_id;
+							
 							$affectRows = $this->dbConnection->affected_rows;
 							
 							foreach($macAddress as $entry => $key){
 								$macAddressAdd[$count]['macAddress'] = $key;
 								$macAddressAdd[$count]['exists'] = false;
-								$macAddressAdd[$count]['insertId'] = $startInsertId;
+								$inserted = $this->preparedQuery('SELECT id FROM endpoints WHERE macAddress=?', [$key]);
+                                $insertedRow = $inserted ? $inserted->fetch_assoc() : false;
+                                if (!$insertedRow) return false;
+                                $macAddressAdd[$count]['insertId'] = (int)$insertedRow['id'];
 								
 								if($multipsk){
 									$macAddressAdd[$count]['psk'] = $psk[$entry];
@@ -2328,7 +2334,7 @@
 								
 								$count++;
 								
-								$startInsertId++;
+								
 							}
 							
 							$macAddressAdd['count'] = $count;
