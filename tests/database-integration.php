@@ -206,6 +206,47 @@ try {
     $_SESSION['logonSID']='actor';
     verify($db->getEndPointAssociationPermissions($association,['count'=>1,['groupDn'=>'CN=AdminFixture']],1)===false,'Actor acquired own-only visibility');
     echo "PASS review 47 integration: admin/sponsor moves preserve owner, own-key/quota, stable ID; failure rollback and legacy repair\n";
+    $db->set_encryptionKey(base64_encode(random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES)));
+    $primary=$db->addLdapServer('Trusted directory','directory1','same-domain','service','service','dc=fixture',0,1,'fixture',0);
+    $secondary=$db->addLdapServer('Independent directory','directory2','same-domain','service','service','dc=fixture',0,1,'fixture',0);
+    $alias=$db->addLdapServer('Trusted alternate','directory3','same-domain','service','service','dc=fixture',0,1,'fixture',$primary);
+    verify($primary && $secondary && $alias,'Directory fixtures failed');
+    verify($db->getLdapSettings($alias)['identitySourceId']===$primary && $db->getLdapSettings($secondary)['identitySourceId']===$secondary,'Configured identity source not resolved');
+    verify(!$db->setDirectoryIdentitySource($primary,$alias),'Alias cycle accepted');
+    $dn='cn=Managers,dc=fixture';
+    verify(!$db->addInternalGroup('Unbound',1,'',$dn,1,'fixture'),'Unbound external group accepted');
+    $external=$db->addInternalGroup('Trusted managers',1,'',$dn,1,'fixture',$primary);
+    verify($external && $db->getPortalAdminGroups($primary)['count']===1 && $db->getPortalAdminGroups($secondary)['count']===0,'Admin groups cross identity sources');
+    verify(!$db->setDirectoryIdentitySource($primary,$secondary) && !$db->deleteLdapServerById($primary),'Referenced identity source changed/deleted');
+    $db->addSponsorInternalGroupMapping([$external],$sponsor,513,'fixture');
+    $db->addWirelessNetwork('Scoped SSID','','fixture');$wireless=(int)$c->insert_id;
+    $db->addSponsorGroupSSIDMapping([$wireless],$sponsor,'fixture');
+    $groups=['count'=>1,['groupDn'=>$dn]];
+    foreach ([$primary=>true,$secondary=>false,$db->getDirectoryIdentitySource($alias)=>true] as $scope=>$allowed) {
+        $_SESSION=validSession();$_SESSION['identitySourceId']=$scope;$_SESSION['logonSID']=$sid;
+        verify(($db->getPortalAuthGroups(1)['count']>0)===$allowed,'Portal authentication grant crossed source');
+        verify(($db->getEndPointGroupAuthorizations(1,$groups)!==false)===$allowed,'Endpoint groups crossed source');
+        verify(($db->getEndPointAssociationPermissions($association,$groups,1)!==false)===$allowed,'Endpoint permissions crossed source');
+        verify(($db->getEndPointAssociationList($groups,1)!==false)===$allowed,'Endpoint listing crossed source');
+        verify(($db->getPortalWirelessNetworkAuthorization(1,$groups)!==false)===$allowed,'SSID grants crossed source');
+    }
+    $secondGrant=$db->addInternalGroup('Independent managers',1,'',$dn,1,'fixture',$secondary);
+    verify($secondGrant && $db->getPortalAdminGroups($secondary)['count']===1,'Explicit independent administrator grant rejected');
+    $db->addSponsorInternalGroupMapping([$secondGrant],$sponsor,513,'fixture');
+    $_SESSION['identitySourceId']=$secondary;
+    verify($db->getPortalAuthGroups(1)['count']===1,'Explicit independent portal grant rejected');
+    // Emulate a legacy database and a retry after the first ALTER was already committed.
+    $c->query('ALTER TABLE internalGroups DROP COLUMN directoryId');
+    $c->query('ALTER TABLE ldapServers DROP COLUMN identitySourceId');
+    verify($db->authenticateInternalUser('UniqueUser','validpass') && $db->getPortalAdminGroups(0)['count']>0,'Internal recovery login blocked before schema migration');
+    $c->query('ALTER TABLE ldapServers ADD COLUMN identitySourceId INT NULL DEFAULT NULL');
+    verify($db->runSchemaMigrations(12)['success'],'Directory binding migration/retry failed');
+    verify($db->getPortalAdminGroups($primary)['count']===0 && $db->getPortalAuthGroups(1,$primary)['count']===0,'Legacy external grant trusted without review');
+    verify($db->updateInternalGroup($external,'Trusted managers',1,'',$dn,1,'fixture',$primary),'Reviewed binding could not be saved');
+    verify($db->getPortalAdminGroups($primary)['count']===1,'Reviewed grant unavailable');
+    $db->dbSchemaVersion=11;verify($db->runSchemaMigrations(12)['success'],'Migration not retryable after version persistence failure');
+    verify($db->getPortalAdminGroups($primary)['count']===1,'Migration retry erased reviewed bindings');
+    echo "PASS review 56 integration: independent/aliased sources, all portal grants, explicit bindings and fail-closed retryable migration\n";
     echo "PASS migration integration: resolves existing definer without environment and replaces routine successfully\n";
     echo "PASS database integration: real schema, prepared queries, literal secrets, settings, group lookup, bulk insert IDs\n";
 } finally {

@@ -605,6 +605,14 @@ Active Directory nested group support can be enabled in the Platform Configurato
 **NOTE:**
 - To support nested groups, the LDAP process goes through each group assigned to a user and searches those groups to see if it is a member of another group. Depending on the number of groups assigned to a user and how many of those groups are nested groups, there could be a noticeable delay in logging in. The use of nested groups should be avoided if possible.
 
+## Directory-scoped group grants (schema 12)
+
+External identity groups must select an **Authentication directory** as well as the group DN. Administrator and portal grants apply only to that identity source. Identical DNs in independent directories do not share permissions.
+
+Every LDAP server is an independent identity source by default. In its **Identity source** selector, choose another directory only when the server is an alternate server for that same trusted directory. Such an explicit alias shares the primary source's group grants. Alias chains are rejected, and a source with existing grants or aliases cannot be reassigned until those references are reviewed and removed.
+
+Before upgrading, verify that you can sign in with an internal administrator account. Apply the schema migrations from the administrator portal. Schema 12 leaves legacy external group mappings unbound because their intended directory cannot be inferred. In **Groups**, edit each row marked **Review required**, select its intended directory, and save it. External administrator and portal access remains denied for unbound mappings. Internal groups remain available, including for applying the upgrade. Existing sessions must sign in again to establish their identity-source binding.
+
 ## Authors
 
 - Gary Oppel

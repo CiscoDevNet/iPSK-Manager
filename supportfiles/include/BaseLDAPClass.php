@@ -40,8 +40,9 @@
 		private $iPSKManagerClass;
 		private $sslDisableVerify;
 		private $directoryType;
+        private $identitySourceId;
 		
-		function __construct($ldapServer = null, $domainName = null, $username = null, $password = null, $baseDN = null, $ldaps = true, $sslCheck = false, $directoryType = 0, $ipskManagerClass = false) {		
+		function __construct($ldapServer = null, $domainName = null, $username = null, $password = null, $baseDN = null, $ldaps = true, $sslCheck = false, $directoryType = 0, $ipskManagerClass = false, $identitySourceId = null) {		
 			$this->ldapHost = $ldapServer;
 			$this->ldapDomain = $domainName;
 			$this->ldapUsername = $username;
@@ -51,6 +52,7 @@
 			$this->iPSKManagerClass = $ipskManagerClass;
 			$this->sslDisableVerify = $sslCheck;
 			$this->directoryType = $directoryType;
+            $this->identitySourceId = $identitySourceId;
 		}
 		
 		function set_ldapHost($hostname) {
@@ -222,7 +224,7 @@
 					if($ldapBind){
 						if($this->iPSKManagerClass){
 							//LOG::Entry
-							$logData = $this->iPSKManagerClass->generateLogData(Array("base64SID"=>base64_encode($entries[0]['objectsid'][0])));
+							$logData = $this->iPSKManagerClass->generateLogData(Array("base64SID"=>base64_encode($entries[0]['objectsid'][0] ?? '')));
 							$logMessage = "REQUEST:SUCCESS;ACTION:AUTHENTICATE-USER;USERNAME:".$username.";AUTHDIRECTORY:".$this->ldapDomain.";";
 							$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						}
@@ -232,7 +234,7 @@
 							$memberOfGroups['count'] = count($memberOfGroups);
 							$_SESSION['memberOf'] = $memberOfGroups;
 						} else {
-							$_SESSION['memberOf'] = $entries[0]['memberof'];
+							$_SESSION['memberOf'] = $entries[0]['memberof'] ?? ['count'=>0];
 						}
 						
 						if($this->directoryType == 0) {
@@ -245,6 +247,7 @@
 							$_SESSION['logonDN'] = $userDN;
 							$_SESSION['logonDomain'] = $this->ldapDomain;
 							ipskRotateSession();
+                            $_SESSION['identitySourceId'] = $this->identitySourceId;
                             $_SESSION['authenticationGranted'] = true;
 							$_SESSION['authenticationTimestamp'] = time();
 							$_SESSION['logonTime'] = time();
@@ -268,6 +271,7 @@
 							$_SESSION['logonDN'] = $userDN;
 							$_SESSION['logonDomain'] = $this->ldapDomain;
 							ipskRotateSession();
+                            $_SESSION['identitySourceId'] = $this->identitySourceId;
                             $_SESSION['authenticationGranted'] = true;
 							$_SESSION['authenticationTimestamp'] = time();
 							$_SESSION['logonTime'] = time();

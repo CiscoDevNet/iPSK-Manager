@@ -48,6 +48,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 			$internalGroup['permissionsCheck'] = "";
 		}
 
+$directoryOptions = ipskDirectoryOptions($ipskISEDB, $internalGroup['directoryId'] ?? 0);
 $htmlbody = <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="updateInternalGroup" tabindex="-1" role="dialog" aria-labelledby="updateInternalGroupModal" aria-hidden="true">
@@ -78,7 +79,9 @@ $htmlbody = <<<HTML
 		</div>
 		<div id="dnBlock" class="row$groupDn">
 			<div class="col">
-				<label class="fw-bold" for="groupDn">External Group Distinguished Name:</label>
+				<label class="fw-bold" for="directoryId">Authentication directory:</label>
+                <select id="directoryId" class="form-select mb-3">$directoryOptions</select>
+                <label class="fw-bold" for="groupDn">External Group Distinguished Name:</label>
 				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" validation-state="required"  class="form-control shadow" id="groupDn" value="{$internalGroup['groupDn']}">
 					<div class="invalid-feedback">Please enter a Distinguished Name</div>
@@ -129,6 +132,7 @@ $htmlbody = <<<HTML
 				description: $("#description").val(),
 				groupType: $("#groupType").val(),
 				groupDn: $("#groupDn").val(),
+                directoryId: $("#directoryId").val(),
 				permission: $("#permission").val()
 			},
 			type: "POST",

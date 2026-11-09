@@ -10,6 +10,6 @@ function connectionFor($connection) {
     return $db;
 }
 function validSession() {
-    return ['loggedIn'=>true, 'logonDN'=>'test', 'logonUsername'=>'test',
+    return ['identitySourceId'=>0, 'loggedIn'=>true, 'logonDN'=>'test', 'logonUsername'=>'test',
         'authenticationGranted'=>true, 'authorizationGranted'=>true];
 }

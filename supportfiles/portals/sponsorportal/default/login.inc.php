@@ -163,9 +163,9 @@
 
 				if($ldapCreds){
 				
-					$authorizedGroups = $ipskISEDB->getPortalAuthGroups($_SESSION['portalSettings']['id']);
+					$authorizedGroups = $ipskISEDB->getPortalAuthGroups($_SESSION['portalSettings']['id'], $ldapCreds['identitySourceId']);
 					
-					$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ldapCreds['directoryType'], $ipskISEDB);
+					$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ldapCreds['directoryType'], $ipskISEDB, $ldapCreds['identitySourceId']);
 
 					//START-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
 					unset($ldapCreds['adPassword']);

@@ -4,7 +4,7 @@ $secret='secret"&psk=literal';
 class PskDisplayDatabase {
     public $bits=257;
     function getEndPointAssociationPermissions(...$args) {return [['groupPermissions'=>$this->bits]];}
-    function getEndpointByAssociationId($id) {return ['endpointId'=>42,'epGroupId'=>7,'createdBy'=>'owner','pskValue'=>'psk='.$GLOBALS['secret'],'macAddress'=>'AA:BB:CC:DD:EE:FF','fullName'=>'Name','description'=>'','emailAddress'=>''];}
+    function getEndpointByAssociationId($id) {return ['id'=>$id,'endpointId'=>42,'epGroupId'=>7,'createdBy'=>'owner','pskValue'=>'psk='.$GLOBALS['secret'],'macAddress'=>'AA:BB:CC:DD:EE:FF','fullName'=>'Name','description'=>'','emailAddress'=>''];}
 }
 foreach ([false,true] as $allow) {
     $_SESSION=validSession()+['portalSettings'=>['id'=>3],'authorizationGroups'=>[],'logonSID'=>'owner','portalAuthorization'=>['create'=>false],

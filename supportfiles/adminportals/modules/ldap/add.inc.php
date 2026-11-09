@@ -25,6 +25,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 	
 
 	
+$identitySourceOptions = ipskDirectoryOptions($ipskISEDB, 0, 'Independent identity source', 0);
 $htmlbody = <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="addLdap" tabindex="-1" role="dialog" aria-labelledby="addLdapModal" aria-hidden="true">
@@ -65,7 +66,10 @@ $htmlbody = <<<HTML
 			<input type="text" validation-state="required" class="form-control shadow form-validation my-password-field" id="adBaseDN" value="">
 			<div class="invalid-feedback">Please enter a valid search base</div>
 		</div>
-		<label class="fw-bold" for="directoryType">Directory Type:</label>
+		<label class="fw-bold" for="identitySourceId">Identity source:</label>
+        <select id="identitySourceId" class="form-select mb-2">$identitySourceOptions</select>
+        <p class="small">Choose another directory only for an alternate server of the same trusted directory. Its group grants will apply to this server.</p>
+        <label class="fw-bold" for="directoryType">Directory Type:</label>
 		<div class="mb-3 input-group-sm fw-bold">
 			<select class="form-select form-select-sm shadow" id="directoryType">
 				<option value="0" selected>Active Directory</option>
@@ -127,7 +131,8 @@ $htmlbody = <<<HTML
 				adSecure: $("#adSecure").val(),
 				password: $("#password").val(),
 				confirmpassword: $("#confirmpassword").val(),
-				directoryType: $("#directoryType").val()
+				identitySourceId: $("#identitySourceId").val(),
+                directoryType: $("#directoryType").val()
 			},
 			type: "POST",
 			dataType: "html",

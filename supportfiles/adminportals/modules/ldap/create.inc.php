@@ -52,7 +52,7 @@ if($sanitizedInput['adConnectionName'] != "" && $sanitizedInput['adServer'] != "
 	if($sanitizedInput['password'] == $sanitizedInput['confirmpassword']){
 		if(strlen($sanitizedInput['confirmpassword']) > 4){
 					
-			$ipskISEDB->addLdapServer($sanitizedInput['adConnectionName'], $sanitizedInput['adServer'], $sanitizedInput['adDomain'], $sanitizedInput['adUsername'], $sanitizedInput['confirmpassword'], $sanitizedInput['adBaseDN'], $sanitizedInput['adSecure'], $sanitizedInput['directoryType'], $_SESSION['logonSID']);
+			if (!$ipskISEDB->addLdapServer($sanitizedInput['adConnectionName'], $sanitizedInput['adServer'], $sanitizedInput['adDomain'], $sanitizedInput['adUsername'], $sanitizedInput['confirmpassword'], $sanitizedInput['adBaseDN'], $sanitizedInput['adSecure'], $sanitizedInput['directoryType'], $_SESSION['logonSID'], $sanitizedInput['identitySourceId'] ?? null)) { http_response_code(400); print ipskHtml($ipskISEDB->lastError ?: 'Unable to save LDAP directory.'); return; }
 			print $htmlbody;
 			
 		}

@@ -26,7 +26,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 
 
 if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction']){
-	$ipskISEDB->deleteLdapServerById($sanitizedInput['id']);
+	if (!$ipskISEDB->deleteLdapServerById($sanitizedInput['id'])) { http_response_code(400); print ipskHtml($ipskISEDB->lastError ?: 'Unable to delete directory.'); return; }
 
 	print <<<HTML
 <script>

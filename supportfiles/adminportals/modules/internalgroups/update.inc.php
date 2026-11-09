@@ -50,10 +50,10 @@ HTML;
 
 if($sanitizedInput['groupName'] != "" && $sanitizedInput['id'] != ""){
 	if($sanitizedInput['groupType'] == "1" && $sanitizedInput['groupDn'] != ""){
-		$ipskISEDB->updateInternalGroup($sanitizedInput['id'], $sanitizedInput['groupName'], $sanitizedInput['groupType'], $sanitizedInput['description'], $sanitizedInput['groupDn'], $sanitizedInput['permission'], $_SESSION['logonSID']);
+		if (!$ipskISEDB->updateInternalGroup($sanitizedInput['id'], $sanitizedInput['groupName'], $sanitizedInput['groupType'], $sanitizedInput['description'], $sanitizedInput['groupDn'], $sanitizedInput['permission'], $_SESSION['logonSID'], $sanitizedInput['directoryId'] ?? null)) { http_response_code(400); print ipskHtml($ipskISEDB->lastError ?: 'Unable to save group.'); return; }
 		print $htmlbody;
 	}else{
-		$ipskISEDB->updateInternalGroup($sanitizedInput['id'], $sanitizedInput['groupName'], $sanitizedInput['groupType'], $sanitizedInput['description'], "", $sanitizedInput['permission'], $_SESSION['logonSID']);
+		if (!$ipskISEDB->updateInternalGroup($sanitizedInput['id'], $sanitizedInput['groupName'], $sanitizedInput['groupType'], $sanitizedInput['description'], "", $sanitizedInput['permission'], $_SESSION['logonSID'], $sanitizedInput['directoryId'] ?? null)) { http_response_code(400); print ipskHtml($ipskISEDB->lastError ?: 'Unable to save group.'); return; }
 		print $htmlbody;
 	}
 }

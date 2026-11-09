@@ -54,6 +54,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 			}
 		}
 	
+$identitySourceOptions = ipskDirectoryOptions($ipskISEDB, $ldapServer['identitySourceId'] ?? 0, 'Independent identity source', $id);
 $htmlbody = <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="viewldapserver" tabindex="-1" role="dialog" aria-labelledby="viewldapserverModal" aria-hidden="true">
@@ -90,7 +91,10 @@ $htmlbody = <<<HTML
 		<div class="mb-3 input-group-sm fw-bold">
 			<input type="text" class="form-control shadow" id="adBaseDN" value="{$ldapServer['adBaseDN']}" readonly>
 		</div>
-		<label class="fw-bold" for="directoryType">Directory Type:</label>
+		<label class="fw-bold" for="identitySourceId">Identity source:</label>
+        <select id="identitySourceId" class="form-select mb-2" disabled>$identitySourceOptions</select>
+        <p class="small">Choose another directory only for an alternate server of the same trusted directory. Its group grants will apply to this server.</p>
+        <label class="fw-bold" for="directoryType">Directory Type:</label>
 		<div class="mb-3 input-group-sm fw-bold">
 			<select class="form-select form-select-sm shadow" id="directoryType" disabled>
 				<option value="0"{$ldapServer['directoryType-ad']}>Active Directory</option>

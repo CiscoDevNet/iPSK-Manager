@@ -26,6 +26,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 
 
 	$internalGroups = $ipskISEDB->getInternalGroups();
+    $directoryNames = $ipskISEDB->getAuthDirectoryNames();
 ?>
 <div class="card">
 	<h4 class="text-center card-header bg-primary text-white pb-0 border-bottom-0">Identity Group Management</h4>
@@ -39,7 +40,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
     			<tr>
       				<th scope="col">Group Name</th>
       				<th scope="col">Description</th>
-	  				<th scope="col">Group Type</th>
+	  				<th scope="col">Group Type</th><th scope="col">Authentication directory</th>
 	  				<th scope="col">Admin Portal</th>
 	  				<th scope="col">View</th>
 	  				<th scope="col">Edit</th>
@@ -66,6 +67,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 				print '<td>'.$row['groupName'].'</td>';
 				print '<td>'.$row['description'].'</td>';
 				print '<td>'.$groupType.'</td>';
+                print '<td>'.ipskHtml($row['groupType'] == 0 ? 'Internal' : ($directoryNames[$row['directoryId']] ?? 'Review required — choose a directory')).'</td>';
 				print '<td><span class="epg-tableicons" data-feather="'.$adminPortal.'"></span></td>';
 				print '<td><a class="epg-tableicons" module="internalgroups" sub-module="view" row-id="'.$row['id'].'" href="#"><span data-feather="zoom-in"></span></a></td>';
 				if($row['id'] != 1){

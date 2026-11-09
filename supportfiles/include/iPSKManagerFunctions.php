@@ -1,5 +1,15 @@
 <?php
 
+function ipskDirectoryOptions($database, $selected = 0, $zeroLabel = 'Select an authentication directory', $exclude = 0) {
+    $options = '<option value="0">'.ipskHtml($zeroLabel).'</option>';
+    foreach ($database->getAuthDirectoryNames() ?: [] as $id=>$label) {
+        if ((int)$id === 0 || (int)$id === (int)$exclude) continue;
+        $options .= '<option value="'.(int)$id.'"'.((int)$selected === (int)$id ? ' selected' : '').'>'.ipskHtml($label).'</option>';
+    }
+    return $options;
+}
+
+
 function ipskRenderDatabaseOperation($database, $file, $variables) {
     ob_start();
     $result = $database->atomic(function () use ($file, $variables) {
@@ -340,7 +350,7 @@ function ipskTakePendingImport($token) {
     }
 
     function ipskAdminSessionCheck() {
-        return ipskLoginSessionCheck() && ($_SESSION['adminAuthorized'] ?? false) === true;
+        return ipskLoginSessionCheck() && isset($_SESSION['identitySourceId']) && ($_SESSION['adminAuthorized'] ?? false) === true;
     }
 
     // Routes are application capabilities, never filesystem paths supplied by callers.
@@ -478,6 +488,8 @@ function ipskTakePendingImport($token) {
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'termLengthSeconds'	=>	FILTER_VALIDATE_INT,
+            'directoryId' => FILTER_VALIDATE_INT,
+            'identitySourceId' => FILTER_VALIDATE_INT,
 			'ciscoAVPairPSK'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),

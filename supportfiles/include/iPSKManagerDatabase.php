@@ -34,7 +34,7 @@
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 11;
+		public $requiredSchemaVersion = 12;
 		public $autoMigrationBaselineVersion = 6;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
@@ -496,11 +496,43 @@
 			}
 		}
 
-		function getPortalAdminGroups(){
+        function getDirectoryIdentitySource($directoryId) {
+            if (!filter_var($directoryId, FILTER_VALIDATE_INT) || $directoryId < 1) return false;
+            $result = $this->preparedQuery('SELECT COALESCE(d.identitySourceId,d.id) AS source FROM ldapServers d LEFT JOIN ldapServers root ON root.id=d.identitySourceId WHERE d.id=? AND (d.identitySourceId IS NULL OR (root.id IS NOT NULL AND root.identitySourceId IS NULL))', [$directoryId]);
+            $row = $result ? $result->fetch_assoc() : false;
+            return $row ? (int)$row['source'] : false;
+        }
+
+        function setDirectoryIdentitySource($directoryId, $sourceId) {
+            if (!filter_var($directoryId,FILTER_VALIDATE_INT) || $directoryId < 1 || filter_var($sourceId,FILTER_VALIDATE_INT) === false || $sourceId < 0) return false;
+            if ($sourceId == $directoryId) $sourceId = 0;
+            if ($sourceId > 0 && $this->getDirectoryIdentitySource($sourceId) !== (int)$sourceId) return false;
+            // A primary source with grants or aliases cannot silently become another source.
+            if ($sourceId > 0) {
+                $used = $this->preparedQuery('SELECT (SELECT COUNT(*) FROM internalGroups WHERE directoryId=?) + (SELECT COUNT(*) FROM ldapServers WHERE identitySourceId=?) AS total', [$directoryId,$directoryId]);
+                if (!$used || (int)$used->fetch_assoc()['total'] > 0) return false;
+            }
+            return $this->preparedQuery('UPDATE ldapServers SET identitySourceId=? WHERE id=?', [$sourceId ?: null,$directoryId]);
+        }
+
+        private function scopedGroupQuery($sql, $values, $sourceId = null) {
+            $sourceId = $sourceId ?? ($_SESSION['identitySourceId'] ?? -1);
+            if (!is_int($sourceId) || $sourceId < 0) $sourceId = -1;
+            if ($sourceId === 0) {
+                $sql = str_replace('INNER JOIN internalGroups ON', 'INNER JOIN (SELECT * FROM internalGroups WHERE groupType=0 AND visible=1) internalGroups ON', $sql);
+                return $this->preparedQuery($sql, $values);
+            }
+            $sql = str_replace('INNER JOIN internalGroups ON', 'INNER JOIN (SELECT * FROM internalGroups WHERE directoryId=? AND groupType=? AND visible=1) internalGroups ON', $sql);
+            return $this->preparedQuery($sql, array_merge([$sourceId,$sourceId === 0 ? 0 : 1], $values));
+        }
+
+		function getPortalAdminGroups($sourceId = null){
 			$count = 0;
 			
-			$queryValues = [];
-			$query = "SELECT `groupDn` FROM `internalGroups` WHERE `permissions` = '1'";
+			$sourceId = $sourceId ?? ($_SESSION['identitySourceId'] ?? -1);
+            $queryValues = [is_int($sourceId) ? $sourceId : -1, $sourceId === 0 ? 0 : 1];
+			$query = "SELECT `groupDn` FROM `internalGroups` WHERE `permissions` = 1 AND visible=1 AND directoryId=? AND groupType=?";
+            if ($sourceId === 0) { $query = "SELECT groupDn FROM internalGroups WHERE permissions=1 AND visible=1 AND groupType=0"; $queryValues=[]; }
 			
 			$queryResult = $this->preparedQuery($query, $queryValues);
 			
@@ -515,10 +547,10 @@
 					
 					return $result;
 				}else{
-					return false;
+					return ['count'=>0];
 				}
 			}else{
-				return false;
+				return ['count'=>0];
 			}
 		}
 		
@@ -526,10 +558,10 @@
 			
 			if(is_null($groupType)){
 				$queryValues = [];
-				$query = "SELECT `id`, `groupName`, `description`, `groupType`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups`";
+				$query = "SELECT `id`, `groupName`, `description`, `groupType`, `directoryId`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups`";
 			}else{
 				$queryValues = [$groupType];
-				$query = "SELECT `id`, `groupName`, `description`, `groupType`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups` WHERE groupType = ?";
+				$query = "SELECT `id`, `groupName`, `description`, `groupType`, `directoryId`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups` WHERE groupType = ?";
 			}
 			
 			$queryResult = $this->preparedQuery($query, $queryValues);
@@ -548,7 +580,7 @@
 		function getInternalGroupById($groupId){
 			
 			$queryValues = [$groupId];
-			$query = "SELECT `id`, `groupName`, `description`, `groupType`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups` WHERE id = ?";
+			$query = "SELECT `id`, `groupName`, `description`, `groupType`, `directoryId`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups` WHERE id = ?";
 			
 			$queryResult = $this->preparedQuery($query, $queryValues);
 			
@@ -567,7 +599,7 @@
 		function getInternalUserGroupMembership($userId){
 
 			$queryValues = [$userId];
-			$query = "SELECT `internalUserGroupMapping`.`userId`,`internalUserGroupMapping`.`groupId`, `internalGroups`.`id`, `internalGroups`.`groupName`, `internalGroups`.`groupDn` FROM `internalUserGroupMapping` INNER JOIN `internalGroups` ON internalUserGroupMapping.groupId =  `internalGroups`.`id` WHERE `internalUserGroupMapping`.`userId` = ?";
+			$query = "SELECT `internalUserGroupMapping`.`userId`,`internalUserGroupMapping`.`groupId`, `internalGroups`.`id`, `internalGroups`.`groupName`, `internalGroups`.`groupDn` FROM `internalUserGroupMapping` INNER JOIN `internalGroups` ON internalUserGroupMapping.groupId =  `internalGroups`.`id` WHERE `internalUserGroupMapping`.`userId` = ? AND internalGroups.groupType=0 AND internalGroups.visible=1";
 			
 			$queryResult = $this->preparedQuery($query, $queryValues);
 			
@@ -660,7 +692,7 @@
 						
                         $memberOf = ['count'=>0];
 						$membershipQueryValues = [$user['id']];
-						$membershipQuery = "SELECT `internalUserGroupMapping`.`userId`,`internalUserGroupMapping`.`groupId`, `internalGroups`.`id`, `internalGroups`.`groupName`, `internalGroups`.`groupDn` FROM `internalUserGroupMapping` INNER JOIN `internalGroups` ON internalUserGroupMapping.groupId =  `internalGroups`.`id` WHERE `internalUserGroupMapping`.`userId` = ?";
+						$membershipQuery = "SELECT `internalUserGroupMapping`.`userId`,`internalUserGroupMapping`.`groupId`, `internalGroups`.`id`, `internalGroups`.`groupName`, `internalGroups`.`groupDn` FROM `internalUserGroupMapping` INNER JOIN `internalGroups` ON internalUserGroupMapping.groupId =  `internalGroups`.`id` WHERE `internalUserGroupMapping`.`userId` = ? AND internalGroups.groupType=0 AND internalGroups.visible=1";
 
 						$groupMembership = $this->preparedQuery($membershipQuery, $membershipQueryValues);
 						
@@ -683,6 +715,7 @@
 						$_SESSION['logonSID'] = $user['sid'];
 						$_SESSION['logonDN'] = $user['dn'];
 						$_SESSION['logonDomain'] = "System.Local";
+                        $_SESSION['identitySourceId'] = 0;
 						ipskRotateSession();
                             $_SESSION['authenticationGranted'] = true;
 						$_SESSION['authenticationTimestamp'] = time();
@@ -833,7 +866,7 @@
 		
 		function getLdapDirectoryById($directoryId){
 			$queryValues = [$directoryId];
-			$query = "SELECT id, adConnectionName, adServer, adDomain, adUsername, adPassword, adBaseDN, adSecure, directoryType, createdBy, createdDate FROM `ldapServers` WHERE id = ?";
+			$query = "SELECT id, adConnectionName, adServer, adDomain, adUsername, adPassword, adBaseDN, adSecure, directoryType, identitySourceId, createdBy, createdDate FROM `ldapServers` WHERE id = ?";
 		
 			$queryResult = $this->preparedQuery($query, $queryValues);
 			
@@ -861,7 +894,9 @@
 					if($queryResult->num_rows > 0){
 						$ldapServer = $queryResult->fetch_assoc();
 						
-						$result['adConnectionName'] = $ldapServer['adConnectionName'];
+						$result['identitySourceId'] = $this->getDirectoryIdentitySource($ldapID);
+                        if ($result['identitySourceId'] === false) return false;
+                        $result['adConnectionName'] = $ldapServer['adConnectionName'];
 						$result['adDomain'] = $ldapServer['adDomain'];
 						$result['adServer'] = $ldapServer['adServer'];
 						$result['adUsername'] = $ldapServer['adUsername'];
@@ -1193,7 +1228,7 @@
 				$query = "SELECT internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions, sponsorGroupEPGMapping.endpointGroupId, endpointGroups.groupName, sponsorGroups.maxDevices, sponsorGroupPortalMapping.sponsorGroupId, authorizationTemplates.termLengthSeconds, authorizationTemplates.ciscoAVPairPSK FROM sponsorGroupPortalMapping INNER JOIN sponsorGroups ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN internalGroups ON sponsorGroupInternalMapping.internalGroupId = internalGroups.id INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.sponsorGroupId = sponsorGroups.id INNER JOIN endpointGroups ON sponsorGroupEPGMapping.endpointGroupId = endpointGroups.id INNER JOIN authorizationTemplates ON endpointGroups.authzTemplateId = authorizationTemplates.id WHERE sponsorGroupPortalMapping.sponsorPortalId = ? AND internalGroups.groupDn IN ($searchDns) AND sponsorGroupInternalMapping.sponsorGroupId IN (SELECT id FROM sponsorGroups WHERE visible=1)";
 				array_splice($queryValues, 1, 0, $searchDnsValues);
 				
-				$queryResult = $this->preparedQuery($query, $queryValues);
+				$queryResult = $this->scopedGroupQuery($query, $queryValues);
 				
 				$listCount = 0;
 				
@@ -1363,7 +1398,7 @@
 					array_splice($queryValues, 0, 0, $searchDnsValues);
 				}
 				
-				$queryResult = $this->preparedQuery($query, $queryValues);
+				$queryResult = $this->scopedGroupQuery($query, $queryValues);
 				
 				if($queryResult){
 					if($queryResult->num_rows > 0){
@@ -1450,7 +1485,7 @@
 				$query = "SELECT id, endpointId, macAddress, createdBy, endpointGroupId, groupName, accountEnabled, expirationDate, accountExpired, pskValue, fullName, description, emailAddress, createdDate, groupDn, groupPermissions FROM (SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpoints.createdBy, endpoints.lastAccessed, endpointGroups.id as endpointGroupId, endpointGroups.groupName, endpoints.expirationDate, endpoints.accountEnabled, endpoints.accountExpired, endpoints.pskValue, endpoints.fullName, endpoints.description, endpoints.emailAddress, endpointAssociations.createdDate, sponsorGroupEPGMapping.sponsorGroupId, sponsorGroupInternalMapping.internalGroupId, internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions FROM endpointAssociations INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.endpointGroupId = endpointAssociations.epGroupId INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN sponsorGroupPortalMapping ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId WHERE endpointAssociations.id = ? AND groupDn IN ($searchDns) AND sponsorGroupInternalMapping.sponsorGroupId IN (SELECT id FROM sponsorGroups WHERE visible=1) AND sponsorGroupEPGMapping.sponsorGroupId IN (SELECT sponsorGroupId FROM `sponsorGroupPortalMapping` WHERE `sponsorPortalId` = ?)) AS completePermissions GROUP BY id, groupDn, groupPermissions";
 				array_splice($queryValues, 1, 0, $searchDnsValues);
 				
-				$queryResult = $this->preparedQuery($query, $queryValues);
+				$queryResult = $this->scopedGroupQuery($query, $queryValues);
 				
 				if($queryResult){
 					if($queryResult->num_rows > 0){
@@ -1823,7 +1858,7 @@
 				$query = "SELECT sponsorGroupPortalMapping.sponsorGroupId, sponsorGroupSSIDMapping.wirelessSSIDId, wirelessNetworks.ssidName, internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions FROM sponsorGroupPortalMapping INNER JOIN sponsorGroups ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroups.id  INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN internalGroups ON sponsorGroupInternalMapping.internalGroupId = internalGroups.id INNER JOIN sponsorGroupSSIDMapping ON sponsorGroupSSIDMapping.sponsorGroupId = sponsorGroups.id  INNER JOIN wirelessNetworks ON sponsorGroupSSIDMapping.wirelessSSIDId = wirelessNetworks.id WHERE sponsorGroupPortalMapping.sponsorPortalId = ? AND internalGroups.groupDn IN ($searchDns) AND sponsorGroupInternalMapping.sponsorGroupId IN (SELECT id FROM sponsorGroups WHERE visible=1)";
 				array_splice($queryValues, 1, 0, $searchDnsValues);
 				
-				$queryResult = $this->preparedQuery($query, $queryValues);
+				$queryResult = $this->scopedGroupQuery($query, $queryValues);
 				
 				$listCount = 0;
 				
@@ -1852,13 +1887,13 @@
 			}
 		}
 		
-		function getPortalAuthGroups($portalId){
+		function getPortalAuthGroups($portalId, $sourceId = null){
 			$count = 0;
 			
 			$queryValues = [$portalId];
 			$query = "SELECT internalGroups.groupDn, internalGroups.permissions, sponsorGroupInternalMapping.groupPermissions  FROM `sponsorGroupPortalMapping` INNER JOIN sponsorGroups ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN internalGroups ON sponsorGroupInternalMapping.internalGroupId = internalGroups.id  WHERE sponsorGroups.visible=1 AND sponsorGroupPortalMapping.sponsorPortalId = ?";
 			
-			$queryResult = $this->preparedQuery($query, $queryValues);
+			$queryResult = $this->scopedGroupQuery($query, $queryValues, $sourceId);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1873,10 +1908,10 @@
 					
 					return $result;
 				}else{
-					return false;
+					return ['count'=>0];
 				}
 			}else{
-				return false;
+				return ['count'=>0];
 			}
 		}
 
@@ -2526,7 +2561,12 @@
             });
 		}
 		
-		function addInternalGroup($groupName, $groupType, $groupDescription, $groupDn, $permission, $createdBy){
+		function addInternalGroup($groupName, $groupType, $groupDescription, $groupDn, $permission, $createdBy, $directoryId = null){
+            $sourceId = (int)$groupType === 0 ? 0 : $this->getDirectoryIdentitySource($directoryId);
+            if (!in_array((int)$groupType,[0,1],true) || $sourceId === false || ((int)$groupType === 1 && trim($groupDn) === '')) {
+                $this->lastError='Select a configured authentication directory for this external group.'; return false;
+            }
+
 			
 			if($groupType == 0){
 				$groupDnUpdate = "CN=".$groupName.",CN=Users,DC=System,DC=Local";
@@ -2534,8 +2574,8 @@
 				$groupDnUpdate = $groupDn;
 			}
 			
-			$queryValues = [$groupName, (int)($groupType), $groupDescription, $groupDnUpdate, (int)($permission), $createdBy];
-			$query = "INSERT INTO internalGroups (`groupName`, `groupType`, `description`, `groupDn`, `permissions`, `createdBy`) VALUES(?,?,?,?,?,?)";
+			$queryValues = [$groupName, (int)($groupType), $groupDescription, $groupDnUpdate, (int)($permission), $createdBy, $sourceId];
+			$query = "INSERT INTO internalGroups (`groupName`, `groupType`, `description`, `groupDn`, `permissions`, `createdBy`, `directoryId`) VALUES(?,?,?,?,?,?,?)";
 			
 			$queryResult = $this->preparedQuery($query, $queryValues);
 			
@@ -2707,7 +2747,8 @@
 			}
 		}
 		
-		function addLdapServer($adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy){
+		function addLdapServer($adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy, $identitySourceId = null){
+            return $this->atomic(function () use ($adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy, $identitySourceId) {
 			
 			
 			$nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
@@ -2722,10 +2763,13 @@
 			$queryResult = $this->preparedQuery($query, $queryValues);
 
 			if($queryResult){
-				return $this->dbConnection->insert_id;
+				$directoryId = $this->dbConnection->insert_id;
+                if ($identitySourceId !== null && !$this->setDirectoryIdentitySource($directoryId, $identitySourceId)) { $this->lastError='Invalid identity source alias.'; return false; }
+                return $directoryId;
 			}else{
 				return false;
 			}
+            });
 		}
 		
 		function addHostname($hostname, $createdBy){
@@ -2774,11 +2818,11 @@
         function canDeleteInternalObject($kind, $id) {
             if (!in_array($kind,['user','group'],true) || !filter_var($id,FILTER_VALIDATE_INT) || $id <= 1) return false;
             if ($kind === 'user') {
-                $target = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUserGroupMapping m JOIN internalGroups g ON g.id=m.groupId WHERE m.userId=? AND g.permissions=1',[$id]);
-                $remaining = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUsers u JOIN internalUserGroupMapping m ON m.userId=u.id JOIN internalGroups g ON g.id=m.groupId WHERE u.id<>? AND u.enabled=1 AND g.permissions=1',[$id]);
+                $target = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUserGroupMapping m JOIN internalGroups g ON g.id=m.groupId WHERE m.userId=? AND g.permissions=1 AND g.groupType=0 AND g.visible=1',[$id]);
+                $remaining = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUsers u JOIN internalUserGroupMapping m ON m.userId=u.id JOIN internalGroups g ON g.id=m.groupId WHERE u.id<>? AND u.enabled=1 AND g.permissions=1 AND g.groupType=0 AND g.visible=1',[$id]);
             } else {
                 $target = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalGroups WHERE id=? AND permissions=1',[$id]);
-                $remaining = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUsers u JOIN internalUserGroupMapping m ON m.userId=u.id JOIN internalGroups g ON g.id=m.groupId WHERE g.id<>? AND u.enabled=1 AND g.permissions=1',[$id]);
+                $remaining = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUsers u JOIN internalUserGroupMapping m ON m.userId=u.id JOIN internalGroups g ON g.id=m.groupId WHERE g.id<>? AND u.enabled=1 AND g.permissions=1 AND g.groupType=0 AND g.visible=1',[$id]);
             }
             return $target && $remaining && ((int)$target->fetch_assoc()['total']===0 || (int)$remaining->fetch_assoc()['total']>0);
         }
@@ -2864,6 +2908,9 @@
 		}
 		
 		function deleteLdapServerById($id){
+            $references = $this->preparedQuery('SELECT (SELECT COUNT(*) FROM internalGroups WHERE directoryId=?) + (SELECT COUNT(*) FROM ldapServers WHERE identitySourceId=?) AS total', [$id,$id]);
+            if (!$references || (int)$references->fetch_assoc()['total'] > 0) { $this->lastError='Remove or reassign this directory’s group grants and server aliases before deleting it.'; return false; }
+
 			
 			$queryValues = [$id];
 			$query = "DELETE FROM `ldapServers` WHERE `id` = ?";
@@ -3084,7 +3131,12 @@
             });
 		}
 		
-		function updateInternalGroup($groupId, $groupName, $groupType, $groupDescription, $groupDn, $permission, $createdBy){
+		function updateInternalGroup($groupId, $groupName, $groupType, $groupDescription, $groupDn, $permission, $createdBy, $directoryId = null){
+            $sourceId = (int)$groupType === 0 ? 0 : $this->getDirectoryIdentitySource($directoryId);
+            if (!in_array((int)$groupType,[0,1],true) || $sourceId === false || ((int)$groupType === 1 && trim($groupDn) === '')) {
+                $this->lastError='Select a configured authentication directory for this external group.'; return false;
+            }
+
 			
 			if($groupType == 0){
 				$groupDnUpdate = "CN=".$groupName.",CN=Users,DC=System,DC=Local";
@@ -3092,8 +3144,8 @@
 				$groupDnUpdate = $groupDn;
 			}
 			
-			$queryValues = [$groupName, (int)($groupType), $groupDescription, $groupDnUpdate, (int)($permission), (int)($groupId)];
-			$query = "UPDATE `internalGroups` SET `groupName`=?, `groupType`=?, `description`=?, `groupDn`=?, `permissions`=? WHERE `id` = ?";
+			$queryValues = [$groupName, (int)($groupType), $groupDescription, $groupDnUpdate, (int)($permission), $sourceId, (int)($groupId)];
+			$query = "UPDATE `internalGroups` SET `groupName`=?, `groupType`=?, `description`=?, `groupDn`=?, `permissions`=?, `directoryId`=? WHERE `id` = ?";
 			
 			try {
 				$queryResult = $this->preparedQuery($query, $queryValues);
@@ -3112,7 +3164,7 @@
             if ($userId == 1 && !in_array(1,$ids,true)) return false;
             if (!$this->canDeleteInternalObject('user',$userId)) {
                 if (!$ids) return false;
-                $admin=$this->preparedQuery('SELECT COUNT(*) AS total FROM internalGroups WHERE permissions=1 AND id IN ('.implode(',',array_fill(0,count($ids),'?')).')',$ids);
+                $admin=$this->preparedQuery('SELECT COUNT(*) AS total FROM internalGroups WHERE permissions=1 AND groupType=0 AND visible=1 AND id IN ('.implode(',',array_fill(0,count($ids),'?')).')',$ids);
                 if (!$admin || (int)$admin->fetch_assoc()['total']===0) return false;
             }
             return $this->atomic(function () use ($ids, $userId, $createdBy) {
@@ -3312,7 +3364,10 @@
 			}
 		}
 		
-		function updateLdapServer($serverId, $adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy){
+		function updateLdapServer($serverId, $adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy, $identitySourceId = null){
+            return $this->atomic(function () use ($serverId, $adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy, $identitySourceId) {
+            if ($identitySourceId !== null && !$this->setDirectoryIdentitySource($serverId, $identitySourceId)) { $this->lastError='Cannot change identity source: select an independent directory, and remove existing grants/aliases first.'; return false; }
+
 			
 			if($encryptedPassword != null){
 				$nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
@@ -3336,6 +3391,7 @@
 				//error_log("Caught Exception: $e");
 				return false;
 			}
+            });
 		}
 
 		function updateEndpoint($endpointId, $fullName, $description, $email, $createdBy, $psk = null, $vlan = null, $dacl = null, $expirationDate = null){
