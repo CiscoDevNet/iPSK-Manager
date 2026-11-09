@@ -48,14 +48,14 @@ $htmlbody = <<<HTML
 </script>
 HTML;
 	
-	if(isset($_POST['id']) && isset($_POST['memberof']) && is_array($_POST['memberof'])){
-			
-		$temp = $_POST['memberof'];
-		$sanitizedInternalGroups = filter_var_array($temp, FILTER_VALIDATE_INT);
-		$sanitizedId = filter_var($_POST['id'], FILTER_VALIDATE_INT);
-			
-		$ipskISEDB->updateInternalUserGroupMapping($sanitizedInternalGroups, $sanitizedId, $_SESSION['logonSID']);
-	}
+    $id=filter_var($_POST['id'] ?? null,FILTER_VALIDATE_INT);
+    $hasMembership=array_key_exists('memberof',$_POST);
+    if (!$id || (!$hasMembership && ($_POST['membershipSubmitted'] ?? null) != 1) ||
+        ($hasMembership && !is_array($_POST['memberof'])) ||
+        !$ipskISEDB->updateInternalUserGroupMapping($_POST['memberof'] ?? [],$id,$_SESSION['logonSID'])) {
+        print "<script>alert('Unable to update memberships. Check the submitted groups and administrator protection.');</script>";
+        return;
+    }
 
 	print $htmlbody;
 ?>

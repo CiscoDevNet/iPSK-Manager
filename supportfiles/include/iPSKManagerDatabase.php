@@ -3048,36 +3048,26 @@
 			}
 		}
 
-		function updateInternalUserGroupMapping($internalGroupIds, $userId, $createdBy){
-			$querysuffix = "";
-            $querysuffixValues = [];
-			
-			$deleteQueryValues = [$userId];
-			$deleteQuery = "DELETE FROM `internalUserGroupMapping` WHERE `userId` = ?";
-			
-			$queryResult = $this->preparedQuery($deleteQuery, $deleteQueryValues);
-	
-			for($idCount = 0; $idCount < count($internalGroupIds); $idCount++){
-				$querysuffix .= "(?,?,?),";
-				array_push($querysuffixValues, $internalGroupIds[$idCount], $userId, $createdBy);
-			}
-			
-			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
-			
-			$queryValues = [];
-			$query = sprintf("INSERT INTO `internalUserGroupMapping` (`groupId`, `userId`, `createdBy`) VALUES %s", $querysuffix);
-			$queryValues = $querysuffixValues;
+        function updateInternalUserGroupMapping($internalGroupIds, $userId, $createdBy) {
+            if (!is_array($internalGroupIds) || !filter_var($userId,FILTER_VALIDATE_INT) || $userId < 1) return false;
+            foreach ($internalGroupIds as $id) if (!filter_var($id,FILTER_VALIDATE_INT) || $id < 1) return false;
+            $ids=array_values(array_unique(array_map('intval',$internalGroupIds)));
+            if ($userId == 1 && !in_array(1,$ids,true)) return false;
+            if (!$this->canDeleteInternalObject('user',$userId)) {
+                if (!$ids) return false;
+                $admin=$this->preparedQuery('SELECT COUNT(*) AS total FROM internalGroups WHERE permissions=1 AND id IN ('.implode(',',array_fill(0,count($ids),'?')).')',$ids);
+                if (!$admin || (int)$admin->fetch_assoc()['total']===0) return false;
+            }
+            try {
+                if (!$this->dbConnection->begin_transaction()) return false;
+                if (!$this->preparedQuery('DELETE FROM internalUserGroupMapping WHERE userId=?',[$userId])) throw new RuntimeException('Delete failed');
+                foreach ($ids as $id) {
+                    if (!$this->preparedQuery('INSERT INTO internalUserGroupMapping (groupId,userId,createdBy) VALUES (?,?,?)',[$id,$userId,$createdBy])) throw new RuntimeException('Insert failed');
+                }
+                return $this->dbConnection->commit();
+            } catch (Throwable $error) { $this->dbConnection->rollback(); return false; }
+        }
 
-			try {
-				$queryResult = $this->preparedQuery($query, $queryValues);
-				return true;
-			}
-			catch (Exception $e) {
-				//error_log("Caught Exception: $e");
-				return false;
-			}
-		}
-		
 		function updateWirelessNetwork($ssidId, $ssidName, $ssidDescription, $createdBy){
 			
 			$queryValues = [$ssidName, $ssidDescription, (int)($ssidId)];

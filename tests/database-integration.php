@@ -99,6 +99,10 @@ try {
     verify(!$db->canDeleteInternalObject('user',$other) && !$db->canDeleteInternalObject('group',2),'Last administrator deletion allowed');
     $c->query('INSERT INTO internalUserGroupMapping (userId,groupId,createdBy) VALUES ('.(int)$user.",2,'fixture')");
     verify($db->canDeleteInternalObject('user',$other),'Ordinary administrator deletion blocked despite remaining admin');
+    verify($db->updateInternalUserGroupMapping([],$other,'fixture'),'Final membership removal failed');
+    verify($c->query('SELECT COUNT(*) FROM internalUserGroupMapping WHERE userId='.(int)$other)->fetch_row()[0]==0,'Membership remained');
+    verify(!$db->updateInternalUserGroupMapping(['invalid'],$other,'fixture'),'Malformed group accepted');
+    verify($db->authenticateInternalUser('OtherUser','otherpass') && $_SESSION['memberOf']['count']===0,'Fresh login retained removed group');
     $db->set_dbDatabase($name);
     $c->query('CREATE PROCEDURE iPSK_AttributeFetch (IN username VARCHAR(64), OUT result INT) SELECT 1');
     $runner=$db->getMigrationManager();

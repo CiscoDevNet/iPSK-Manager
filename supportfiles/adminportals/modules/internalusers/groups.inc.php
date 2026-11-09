@@ -91,7 +91,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 			<div class="row"></div>
 			<label class="fw-bold" for="memberof">Member Of:</label>
 			<div class="mb-3 input-group fw-bold">
-				<select class="form-select shadow form-validation" validation-state="required" id="memberof" multiple>
+				<select class="form-select shadow" id="memberof" multiple>
 					$memberGroups	
 				</select>
 			</div>
@@ -152,7 +152,8 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 				module: $(this).attr('module'),
 				'sub-module': $(this).attr('sub-module'),
 				id: $("#userId").val(),
-				memberof: $("#memberof").val()
+				membershipSubmitted: 1,
+                memberof: $("#memberof").val()
 			},
 			type: "POST",
 			dataType: "html",
