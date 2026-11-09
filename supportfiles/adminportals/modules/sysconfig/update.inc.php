@@ -45,7 +45,12 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
 
 		print true;
 	}elseif($sanitizedInput['module-action'] == "complexity"){
-		$passwordComplexity = $sanitizedInput['complexLowercase'] + $sanitizedInput['complexUppercase'] + $sanitizedInput['complexNumbers'] + $sanitizedInput['complexSpecial'] + $sanitizedInput['complexSimilar'];
+		foreach (['complexLowercase'=>1,'complexUppercase'=>2,'complexNumbers'=>4,'complexSpecial'=>8,'complexSimilar'=>16] as $field=>$bit) {
+            if (!isset($sanitizedInput[$field]) || !in_array($sanitizedInput[$field], [0,$bit], true)) {
+                http_response_code(400); print 'Invalid password complexity selection'; return;
+            }
+        }
+        $passwordComplexity = $sanitizedInput['complexLowercase'] + $sanitizedInput['complexUppercase'] + $sanitizedInput['complexNumbers'] + $sanitizedInput['complexSpecial'] + $sanitizedInput['complexSimilar'];
 		
 		$ipskISEDB->setGlobalSetting("advanced-settings","password-complexity", $passwordComplexity);
 		

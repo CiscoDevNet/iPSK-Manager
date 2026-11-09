@@ -152,7 +152,7 @@ print <<< HTML
 						<label class="form-check-label" for="complexSpecial">Enable Special Characters [ <span class="fw-bold">!?#$%@*()</span> ]</label>
 					</div>
 					<div class="form-check">
-						<input type="checkbox" class="form-check-input checkbox-update complexitytab" base-value="16" value="{$adminPortalSettings['complexity-similar-value']}}" id="complexSimilar"{$adminPortalSettings['complexity-similar']}>
+						<input type="checkbox" class="form-check-input checkbox-update complexitytab" base-value="16" value="{$adminPortalSettings['complexity-similar-value']}" id="complexSimilar"{$adminPortalSettings['complexity-similar']}>
 						<label class="form-check-label" for="complexSimilar">Enable Similar Characters [ <span class="fw-bold">lIO0</span> ]</label>
 					</div>
 				</div>
