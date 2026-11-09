@@ -26,9 +26,16 @@
 		die();
 	}
 	
-	if(isset($sessionData['portalGET']['client_mac'])){
-		$clientMac = str_replace("-",":",$_SESSION['portalGET']['client_mac']);
-	}
+    $associationId = isset($_SESSION['enrolledEndpointId'])
+        ? $ipskISEDB->getEndPointAssociationByEndpoint($_SESSION['enrolledEndpointId']) : false;
+    $enrollment = $associationId ? $ipskISEDB->getEndpointByAssociationId($associationId) : false;
+    $requestedMac = strtoupper(str_replace('-', ':', $_SESSION['portalGET']['client_mac'] ?? ''));
+    if (!$enrollment || $enrollment['createdBy'] !== $_SESSION['logonSID'] ||
+        strtoupper(str_replace('-', ':', $enrollment['macAddress'])) !== $requestedMac) {
+        http_response_code(403);
+        return;
+    }
+    $clientMac = strtoupper(str_replace('-', ':', $enrollment['macAddress']));
 
 	if($iseMNTIntegrationAvailable && isset($clientMac)){
 		//Get ISE MnT Persona Hostname from URL provided by Administrator

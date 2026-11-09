@@ -78,6 +78,7 @@
 			$smtpSettings = $ipskISEDB->getSmtpSettings();
 			
 			if($ipskISEDB->addEndpointAssociation($endpointId, $sanitizedInput['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID'])){
+                $_SESSION['enrolledEndpointId'] = $endpointId;
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
 				$logMessage = "REQUEST:SUCCESS;ACTION:CAPTIVECREATE;METHOD:ADD-ENDPOINT-ASSOCIATION;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";SID:".$_SESSION['logonSID'].";";
