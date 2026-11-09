@@ -68,7 +68,10 @@
 			$wifiSsid = $wirelessNetwork['ssidName'];
 		}
 		
-		if($endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID'])){
+		if (!$ipskISEDB->beginPortalEnrollment($sanitizedInput['associationGroup'], [$sanitizedInput['macAddress']])) {
+                http_response_code(409); print 'Device quota unavailable. Reload and try again.'; return;
+            }
+            if($endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID'])){
 			
 			//LOG::Entry
 			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
@@ -77,7 +80,7 @@
 			
 			$smtpSettings = $ipskISEDB->getSmtpSettings();
 			
-			if($ipskISEDB->addEndpointAssociation($endpointId, $sanitizedInput['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID'])){
+			if($ipskISEDB->addEndpointAssociation($endpointId, $sanitizedInput['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']) && $ipskISEDB->finishPortalEnrollment()){
                 $_SESSION['enrolledEndpointId'] = $endpointId;
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));

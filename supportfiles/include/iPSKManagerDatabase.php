@@ -1663,6 +1663,53 @@
 			}
 		}
 		
+        private $enrollmentLock = null;
+
+        function beginPortalEnrollment($groupId, $macs, $permission = 512) {
+            if ($this->enrollmentLock !== null || !is_array($macs) || !$macs) return false;
+            $lock = 'ipsk-quota-'.substr(hash('sha256', $this->dbDatabase.'|'.($_SESSION['logonSID'] ?? '').'|'.$groupId),0,53);
+            try {
+                $result = $this->preparedQuery('SELECT GET_LOCK(?, 10) AS acquired', [$lock]);
+                if (!$result || (int)$result->fetch_assoc()['acquired'] !== 1) return false;
+                $this->enrollmentLock = $lock;
+                if (!$this->dbConnection->begin_transaction()) { $this->abortPortalEnrollment(); return false; }
+                // Refresh grants and usage only after acquiring the cross-session lock.
+                $grant = ipskCreationGrant($this, $groupId, $permission);
+                if (!$grant) { $this->abortPortalEnrollment(); return false; }
+                $unique = array_values(array_unique(array_map(function ($mac) { return strtoupper(str_replace('-', ':', $mac)); }, $macs)));
+                $result = $this->preparedQuery('SELECT macAddress FROM endpoints WHERE macAddress IN ('.implode(',',array_fill(0,count($unique),'?')).')', $unique);
+                if (!$result) { $this->abortPortalEnrollment(); return false; }
+                $incoming = count($unique) - $result->num_rows;
+                if (!ipskQuotaAvailable($this->getUserEndpointCount($groupId, $_SESSION['logonSID']), $grant['maxDevices'], $incoming)) {
+                    $this->abortPortalEnrollment(); return false;
+                }
+                return true;
+            } catch (Throwable $error) {
+                $this->abortPortalEnrollment();
+                return false;
+            }
+        }
+
+        function finishPortalEnrollment() {
+            if ($this->enrollmentLock === null) return false;
+            try {
+                if (!$this->dbConnection->commit()) { $this->abortPortalEnrollment(); return false; }
+                $lock = $this->enrollmentLock;
+                $this->enrollmentLock = null;
+                $this->preparedQuery('SELECT RELEASE_LOCK(?)', [$lock]);
+                return true;
+            } catch (Throwable $error) { $this->abortPortalEnrollment(); return false; }
+        }
+
+        function abortPortalEnrollment() {
+            if ($this->enrollmentLock === null) return;
+            $lock = $this->enrollmentLock; $this->enrollmentLock = null;
+            try { $this->dbConnection->rollback(); } catch (Throwable $error) {}
+            try { $this->preparedQuery('SELECT RELEASE_LOCK(?)', [$lock]); } catch (Throwable $error) {}
+        }
+
+        function __destruct() { $this->abortPortalEnrollment(); }
+
         private function preparedQuery($sql, $values = []) {
             $statement = $this->dbConnection->prepare($sql);
             if (!$statement) return false;
@@ -2339,7 +2386,7 @@
 			
 			try {
 				$queryResult = $this->preparedQuery($query, [$endpointId, $macAddress, $epGroupID, $createdBy]);
-				return true;
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");

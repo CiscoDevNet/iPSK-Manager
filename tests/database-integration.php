@@ -52,6 +52,34 @@ try {
         verify($row['macAddress'] === $batch[$index]['macAddress'], 'Bulk returned wrong record');
         verify($row['pskValue'] === $psk, 'Bulk secret changed');
     }
+    $template=$db->addAuthorizationTemplate('Quota policy','','validkey',0,8,'','','fixture');
+    $group=$db->addEndpointGroup('Quota group','',$template,0,'fixture');
+    verify($template && $group,'Quota fixture creation failed');
+    $jobs=[];
+    foreach (['AA:BB:CC:DD:01:01','AA:BB:CC:DD:01:02'] as $mac) {
+        $process=proc_open([PHP_BINARY,__DIR__.'/quota-worker.php',$name,(string)$group,'1','commit',$mac],[['pipe','r'],['pipe','w'],['pipe','w']],$pipes);
+        $jobs[]=[$process,$pipes];
+    }
+    $out=[];
+    foreach ($jobs as [$process,$pipes]) {
+        $out[]=stream_get_contents($pipes[1]); $errors=stream_get_contents($pipes[2]);
+        foreach($pipes as $pipe) fclose($pipe);
+        verify(proc_close($process)===0,'Quota worker failed: '.$errors);
+    }
+    sort($out); verify($out===['committed','denied'],'Concurrent requests exceeded last quota slot');
+    verify($db->getUserEndpointCount($group,'quota-user')===1,'Concurrent quota oversubscribed');
+    $runWorker=function ($max,$mode,$macs) use ($name,$group) {
+        $p=proc_open([PHP_BINARY,__DIR__.'/quota-worker.php',$name,(string)$group,(string)$max,$mode,$macs],[['pipe','r'],['pipe','w'],['pipe','w']],$pipes);
+        $out=stream_get_contents($pipes[1]); $errors=stream_get_contents($pipes[2]);
+        foreach($pipes as $pipe) fclose($pipe);
+        verify(proc_close($p)===0,'Quota worker failed: '.$errors); return $out;
+    };
+    verify($runWorker(2,'commit','AA:BB:CC:DD:02:01,AA:BB:CC:DD:02:02')==='denied','Batch ignored incoming size');
+    verify($runWorker(2,'rollback','AA:BB:CC:DD:03:01')==='rollback','Failed insertion cleanup');
+    verify($c->query("SELECT COUNT(*) FROM endpoints WHERE macAddress='AA:BB:CC:DD:03:01'")->fetch_row()[0]==0,'Rollback left orphan endpoint');
+    verify($runWorker(2,'commit','AA:BB:CC:DD:03:01')==='committed','Failed insertion retained reservation');
+    verify($runWorker(0,'commit','AA:BB:CC:DD:04:01,AA:BB:CC:DD:04:02')==='committed','Unlimited batch rejected');
+    echo "PASS quota integration: independent concurrent connections, batch capacity, rollback/retry, unlimited\n";
     echo "PASS database integration: real schema, prepared queries, literal secrets, settings, group lookup, bulk insert IDs\n";
 } finally {
     $c->query("DROP DATABASE `$name`");
