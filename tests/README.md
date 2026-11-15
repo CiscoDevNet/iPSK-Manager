@@ -86,6 +86,9 @@ Then, in another terminal, with Playwright installed as described above:
 IPSK_NOTICE_TEST_URL=http://127.0.0.1:8088 node tests/login-notice-browser.cjs
 ```
 
-The browser test covers the shared settings editor, all three password/SSO flows,
-JavaScript enabled/disabled, unchecked-form rejection, safe text and mobile layout.
+The browser test renders the actual General tab and checks the compact, collapsed
+notice editor below existing cards, desktop/mobile layout, keyboard expansion, saved
+enabled/disabled status and settings save/reload. It also covers all three
+password/SSO flows with JavaScript enabled/disabled, unchecked-form rejection,
+safe text and mobile layout.
 Stop the fixture server when finished; do not expose the test directory publicly.

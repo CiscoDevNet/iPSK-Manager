@@ -45,7 +45,15 @@ if(in_array($_GET['action']??'', ['editor','save'],true)){
         chdir(__DIR__.'/../adminportal/ajax');
         try{eval(substr($source,strpos($source,'if(!ipskAdminSessionCheck())')));}finally{chdir($previousDirectory);restore_error_handler();}
     }
-    else{print '<!doctype html><html><head><meta charset="utf-8"><title>Notice editor</title><script src="scripts/jquery.min.js"></script></head><body>'.ipskLoginNoticeEditor($ipskISEDB).'</body></html>';}
+    else{
+        // Render the actual General tab so browser checks cover placement among existing settings.
+        $path=__DIR__.'/../supportfiles/adminportals/modules/sysconfig/general.inc.php';
+        preg_match_all('/\$(adminPortalSettings|ldapSettings|samlSettings)\[\x27([^\x27]+)\x27\]/',file_get_contents($path),$matches,PREG_SET_ORDER);
+        foreach($matches as $match)${$match[1]}[$match[2]]='';
+        print '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>General settings</title><link href="styles/bootstrap.min.css" rel="stylesheet"><script src="scripts/jquery.min.js"></script></head><body><main class="container py-3"><h1 class="h4">Platform Configuration</h1>';
+        include $path;
+        print '</main></body></html>';
+    }
     return;
 }
 if(($_GET['action']??'')==='login'){

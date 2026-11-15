@@ -45,26 +45,50 @@ if (!base || !/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(base)) throw new Er
     }
     const editorContext=await browser.newContext();
     await editorContext.route('**/scripts/jquery.min.js',route=>route.fulfill({path:path.join(__dirname,'../adminportal/scripts/jquery.min.js'),contentType:'text/javascript'}));
+    await editorContext.route('**/styles/bootstrap.min.css',route=>route.fulfill({path:path.join(__dirname,'../adminportal/styles/bootstrap.min.css'),contentType:'text/css'}));
     const editor=await editorContext.newPage();
     await editor.route('**/ajax/getmodule.php',route=>route.continue({url:base+'/login-notice-http-fixture.php?kind=admin&action=save'}));
     await editor.goto(base+'/login-notice-http-fixture.php?kind=admin&action=editor');
+    const panel=editor.locator('#login-notice-editor');
+    const summary=panel.locator('summary');
+    for(const width of [1280,390]){
+      await editor.setViewportSize({width,height:900});
+      assert.equal(await panel.getAttribute('open'),null,'Editor should start collapsed');
+      assert.equal(await panel.locator('textarea').isVisible(),false);
+      assert.ok((await panel.boundingBox()).height<80,'Collapsed editor dominates the page');
+      assert.equal(await editor.evaluate(()=>{
+        const notice=document.getElementById('login-notice-editor');
+        return ['updateGeneral','updateLdap','updateSaml','updateComplexity'].every(id=>
+          !!(document.getElementById(id).compareDocumentPosition(notice)&Node.DOCUMENT_POSITION_FOLLOWING));
+      }),true,'Notice displaced existing settings');
+      assert.equal(await editor.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true,'General settings overflow viewport');
+    }
+    await editor.setViewportSize({width:1280,height:1000});
+    await summary.focus();await editor.keyboard.press('Enter');
+    assert.equal(await panel.locator('textarea').isVisible(),true,'Keyboard cannot expand editor');
     const notice='Updated notice & café 👋 </textarea><script>window.noticeXss=true</script>';
     await editor.locator('textarea').fill(notice);
     await editor.locator('[data-notice-save]').click();
     await editor.waitForFunction(()=>document.querySelector('[data-notice-status]').textContent==='Login notice saved.');
     await editor.reload();
+    assert.equal(await panel.getAttribute('open'),null);
+    await summary.click();
+    assert.equal(await panel.locator('[data-notice-state]').textContent(),'Enabled');
     assert.equal(await editor.locator('textarea').inputValue(),notice);
     assert.equal(await editor.evaluate(()=>window.noticeXss),undefined);
-    await editor.locator('input[type=checkbox]').uncheck();
+    await editor.locator('#login-notice-editor-enabled').uncheck();
     await editor.locator('[data-notice-save]').click();
     await editor.waitForFunction(()=>document.querySelector('[data-notice-status]').textContent==='Login notice saved.');
+    assert.equal(await panel.locator('[data-notice-state]').textContent(),'Disabled');
     await editor.reload();
-    assert.equal(await editor.locator('input[type=checkbox]').isChecked(),false);
+    assert.equal(await panel.locator('[data-notice-state]').textContent(),'Disabled');
+    await summary.click();
+    assert.equal(await editor.locator('#login-notice-editor-enabled').isChecked(),false);
     assert.equal(await editor.locator('textarea').inputValue(),notice);
     await editor.route('**/ajax/getmodule.php',route=>route.fulfill({status:200,contentType:'text/html',body:'<script>window.location="./"</script>'}));
     await editor.locator('[data-notice-save]').click();
     await editor.waitForFunction(()=>document.querySelector('[data-notice-status]').textContent==='Could not save the notice. Reload and try again.');
     await editorContext.close();
-    console.log('PASS issue 105 browser: settings save/reload/disable/expired-session, admin/sponsor/captive password and SSO flows, JavaScript on/off, native checkbox enforcement, expandable safe text and mobile layout');
+    console.log('PASS issue 105 browser: compact General-tab placement, keyboard expansion, settings save/reload/disable/expired-session, admin/sponsor/captive password and SSO flows, JavaScript on/off, native checkbox enforcement, expandable safe text and mobile layout');
   } finally { await browser.close(); }
 })().catch(error=>{console.error(error);process.exit(1);});

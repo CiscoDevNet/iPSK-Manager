@@ -33,6 +33,7 @@ Identity PSK Manager enables the following features/functionality:
 **What's New (November 2026)**
 
 - Added an optional [shared login notice](#shared-login-notice) for administrator, sponsor and captive logins, including SSO (issue #105). Configure its plain text and acknowledgment requirement in Platform Configuration; schema 14 stores it in the database so Docker rebuilds preserve it.
+- Moved the shared login-notice editor below the existing General settings cards into a compact, collapsed section with an enabled/disabled status. Expand it to edit; no migration or configuration changes are required for this layout update.
 - Corrected the login-notice save route so the admin router accepts the new action; regression coverage now exercises the production dispatcher. Omitted optional fields no longer emit PHP 8.3 deprecation messages into the save response. Deploy this correction and reload Platform Configuration before retrying a failed save. No additional migration is needed if schema 14 is already applied.
 
 - Refreshed bundled libraries: Bootstrap 5.3.8, Chart.js 4.6.1, DataTables 2.3.8 and compatible extensions, PHPMailer 7.2.0, and standalone Popper 1.16.1. All deployed copies are pinned in the [vendor manifest](supportfiles/vendor-manifest.json), with browser and real SMTP regression coverage.
@@ -623,7 +624,7 @@ The expire-endpoints-cron-example.php script has been updated to support sending
 
 ## Shared login notice
 
-Issue [#105](https://github.com/CiscoDevNet/iPSK-Manager/issues/105) is implemented as **one shared, optional notice** stored in the application database. It applies to administrator, sponsor and captive sign-ins, including SSO. Configure it under **Platform Configuration → General → Shared login notice**, using **Save login notice** independently of the other settings on that page.
+Issue [#105](https://github.com/CiscoDevNet/iPSK-Manager/issues/105) is implemented as **one shared, optional notice** stored in the application database. It applies to administrator, sponsor and captive sign-ins, including SSO. Configure it under **Platform Configuration → General → Shared login notice** by expanding the compact **Shared login notice** section below the existing settings cards. It starts collapsed and shows whether the notice is enabled. Use **Save login notice** independently of the other settings on that page.
 
 - Enter plain text (up to 20,000 UTF-8 bytes) and select **Require agreement before sign-in**. Empty enabled notices and oversized/invalid input are rejected. HTML is displayed literally, including scripts and links; it is not executed. Line breaks and Unicode text are preserved.
 - Password login pages show an expandable notice and a required, initially unchecked acknowledgment. SSO users get an acknowledgment page before application login proceeds. The form works without JavaScript; the server also checks acceptance, the current notice revision and the session's CSRF token.

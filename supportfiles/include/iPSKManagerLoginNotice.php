@@ -49,15 +49,18 @@ function ipskRecordLoginNoticeAcceptance($database, $scope, $notice) {
 function ipskLoginNoticeEditor($database) {
     if (!$database->loginNoticesAvailable()) return '<p class="text-muted">Apply schema 14 to configure an optional login notice.</p>';
     $notice=$database->getLoginNotice();$id='login-notice-editor';
+    $state=$notice['enabled']?'Enabled':'Disabled';
     $checked=$notice['enabled']?' checked':'';$text=ipskHtml($notice['text']);$idJson=json_encode($id);
     return <<<HTML
-<section id="$id" class="border rounded p-3 my-3 text-start">
-<h3 class="h6">Shared login notice</h3>
+<details id="$id" class="border rounded mt-4 text-start">
+<summary class="p-3 bg-light rounded"><span class="fw-semibold">Shared login notice</span> <span class="small text-muted ms-2" data-notice-state>$state</span></summary>
+<div class="p-3 border-top">
 <div class="form-check mb-2"><input type="checkbox" class="form-check-input" id="$id-enabled"$checked><label class="form-check-label" for="$id-enabled">Require agreement before sign-in</label></div>
-<label class="form-label" for="$id-text">Notice text</label><textarea id="$id-text" class="form-control" rows="6" aria-describedby="$id-help">$text</textarea>
+<label class="form-label" for="$id-text">Notice text</label><textarea id="$id-text" class="form-control" rows="4" aria-describedby="$id-help">$text</textarea>
 <p class="form-text" id="$id-help">Plain text, up to 20,000 UTF-8 bytes. Saved separately from other settings. Applies to admin, sponsor and captive sign-ins, including SSO.</p>
 <button type="button" class="btn btn-primary btn-sm" data-notice-save>Save login notice</button><p class="mt-2 mb-0" role="status" aria-live="polite" data-notice-status></p>
-</section>
-<script>(function(){const root=document.getElementById($idJson);const button=root.querySelector('[data-notice-save]');const status=root.querySelector('[data-notice-status]');button.addEventListener('click',function(){button.disabled=true;status.textContent='Saving…';$.ajax({url:'ajax/getmodule.php',type:'POST',data:{module:'sysconfig','sub-module':'loginnotice',noticeEnabled:root.querySelector('input[type=checkbox]').checked?'1':'0',noticeText:root.querySelector('textarea').value},success:function(data){status.textContent=typeof data==='string'&&data.trim()==='Login notice saved.'?'Login notice saved.':'Could not save the notice. Reload and try again.';},error:function(xhr){status.textContent=xhr.status===400?xhr.responseText:'Could not save the notice. Reload and try again.';},complete:function(){button.disabled=false;}});});})();</script>
+</div>
+</details>
+<script>(function(){const root=document.getElementById($idJson);const button=root.querySelector('[data-notice-save]');const status=root.querySelector('[data-notice-status]');button.addEventListener('click',function(){const enabled=root.querySelector('input[type=checkbox]').checked;button.disabled=true;status.textContent='Saving…';$.ajax({url:'ajax/getmodule.php',type:'POST',data:{module:'sysconfig','sub-module':'loginnotice',noticeEnabled:enabled?'1':'0',noticeText:root.querySelector('textarea').value},success:function(data){const saved=typeof data==='string'&&data.trim()==='Login notice saved.';status.textContent=saved?'Login notice saved.':'Could not save the notice. Reload and try again.';if(saved)root.querySelector('[data-notice-state]').textContent=enabled?'Enabled':'Disabled';},error:function(xhr){status.textContent=xhr.status===400?xhr.responseText:'Could not save the notice. Reload and try again.';},complete:function(){button.disabled=false;}});});})();</script>
 HTML;
 }
