@@ -30,6 +30,12 @@
 	$validInput = false;
 	$deviceRandom = false;
 	
+    if (ipskLoginSessionCheck() && !ipskCreationGrant($ipskISEDB, $sanitizedInput['associationGroup'] ?? null, 2048)) {
+        http_response_code(403);
+        print 'The selected group is not authorized or its device limit has been reached.';
+        return;
+    }
+
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
@@ -66,7 +72,7 @@
 	
 	for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++) {
 		if($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'] == $sanitizedInput['associationGroup']){
-			$epGroupMax = $_SESSION['authorizedEPGroups'][$count]['maxDevices'];
+			$epGroupMax = $_SESSION['authorizedEPGroups'][$count]['bulkMaxDevices'];
 		}
 	}
 	
@@ -84,14 +90,7 @@
 			$deviceRandom = true;
 			
 		}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
-			$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'],$_SESSION['logonSID']);
-			if(!$userPsk){
-				$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-				$randomPSKList = "psk=".$randomPassword;
-			}else{
-				$randomPassword = $userPsk;
-				$randomPSKList = "psk=".$randomPassword;
-			}
+            // Resolve the shared user key only after acquiring the enrollment lock.
 		}else{
 			$randomPassword = $endpointGroupAuthorization['ciscoAVPairPSK'];
 			$randomPSKList = "psk=".$randomPassword;
@@ -104,9 +103,8 @@
 		}
 		
 		if($sanitizedInput['bulkImportType'] == 1){
-			$macaddressArray = $_SESSION['bulk-import'][$sanitizedInput['uploadkey']];
-			
-			unset($_SESSION['bulk-import'][$sanitizedInput['uploadkey']]);
+			$macaddressArray = ipskTakePendingImport($sanitizedInput['uploadkey']);
+            if ($macaddressArray === false) { print '<p class="text-danger">Upload expired or already imported. Upload the CSV again.</p>'; return; }
 			
 			if($macaddressArray){
 				if($macaddressArray['count'] > 0){
@@ -132,17 +130,37 @@
 			if($macaddressArray['SearchResult']['total'] > 0){
 				foreach($macaddressArray['SearchResult']['resources'] as $entry){
 					$macAddressList[$count] = $entry['name'];
+                    if ($deviceRandom) {
+                        $randomPSKList[$count] = 'psk='.$ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
+                    }
 					$count++;
 				}
 			}
 		}
 		
+        if (!$ipskISEDB->beginPortalEnrollment($sanitizedInput['associationGroup'], $macAddressList ?? [], 2048)) {
+            http_response_code(409); print 'The import exceeds the available device quota.'; return;
+        }
+        if ($endpointGroupAuthorization['ciscoAVPairPSK'] === '*userrandom*') {
+			$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'],$_SESSION['logonSID']);
+			if(!$userPsk){
+				$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
+				$randomPSKList = "psk=".$randomPassword;
+			}else{
+				$randomPassword = $userPsk;
+				$randomPSKList = "psk=".$randomPassword;
+			}
+        }
 		if($sanitizedInput['bulkImportType'] == 1 && $macAddressList){
 			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList, $fullnameList, $descriptionList, $emailaddressList, $randomPSKList, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID']);
 		}elseif($sanitizedInput['bulkImportType'] == 3 && $macAddressList){
 			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList,$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSKList, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID']);
 		}
 		
+        if (!$macAddressInsertID && !empty($ipskISEDB->lastError)) {
+            print '<div class="alert alert-danger">'.ipskHtml($ipskISEDB->lastError).'</div>';
+            return;
+        }
 		if($macAddressInsertID){
 			if($macAddressInsertID['processed'] > 0){
 				//LOG::Entry
@@ -151,7 +169,7 @@
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					
 					
-				if($ipskISEDB->addBulkEndpointAssociation($macAddressInsertID, $sanitizedInput['associationGroup'], $_SESSION['logonSID'])){
+				if($ipskISEDB->addBulkEndpointAssociation($macAddressInsertID, $sanitizedInput['associationGroup'], $_SESSION['logonSID']) && $ipskISEDB->finishPortalEnrollment()){
 					//LOG::Entry
 					$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput), Array("macAddressList"=>$macAddressList));
 					$logMessage = "BULKREQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT-ASSOCIATION;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
@@ -250,6 +268,7 @@
 		$pageData['bulkButton'] = '';
 	}
 	
+	$randomPassword = ipskHtml($randomPassword);
 	print <<< HTML
 <html lang="en">
   <head>

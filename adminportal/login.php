@@ -30,7 +30,8 @@
 	//Optional Components per Page
 	include("../supportfiles/include/BaseLDAPClass.php");
 	
-	ipskSessionHandler();
+	ipskSessionHandler('admin');
+    ipskResetIdentity();
 	
 	if(isset($_POST['logoff'])){
 		$_SESSION = null;
@@ -92,7 +93,7 @@
 		if($sanitizedInput['authDirectory'] == "0"){
 			if($ipskISEDB->authenticateInternalUser($sanitizedInput["inputUsername"], $inputPassword, $samlLogin)){
 								
-				$authorizedGroups = $ipskISEDB->getPortalAdminGroups();
+				$authorizedGroups = $ipskISEDB->getPortalAdminGroups(0);
 				
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("authorizedGroups"=>$authorizedGroups), Array("sanitizedInput"=>$sanitizedInput));
@@ -105,6 +106,7 @@
 							if($authorizedGroups[$count] == $_SESSION['memberOf'][$userCount]){
 								$_SESSION['authorizationGroup'] = $authorizedGroups[$count];
 								$_SESSION['authorizationGranted'] = true;
+                                $_SESSION['adminAuthorized'] = true;
 								$_SESSION['authorizationTimestamp'] = time();
 								
 								//LOG::Entry
@@ -152,12 +154,12 @@
 					$ldapSettings = $ipskISEDB->getGlobalClassSetting("ldap-settings");
 
 					if($ldapCreds){
-						$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ldapCreds['directoryType'], $ipskISEDB);
+						$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ldapCreds['directoryType'], $ipskISEDB, $ldapCreds['identitySourceId']);
 						//START-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
 						unset($ldapCreds['adPassword']);
 						//END-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
 					
-						$authorizedGroups = $ipskISEDB->getPortalAdminGroups();
+						$authorizedGroups = $ipskISEDB->getPortalAdminGroups($ldapCreds['identitySourceId']);
 
 						$validUser = $ldapClass->authenticateUser($sanitizedInput["inputUsername"], $inputPassword, $samlLogin, $ldapSettings['nested-groups']);
 
@@ -173,6 +175,7 @@
 										if($authorizedGroups[$count] == $_SESSION['memberOf'][$userCount]){
 											$_SESSION['authorizationGroup'] = $authorizedGroups[$count];
 											$_SESSION['authorizationGranted'] = true;
+                                $_SESSION['adminAuthorized'] = true;
 											$_SESSION['authorizationTimestamp'] = time();
 											
 											//LOG::Entry

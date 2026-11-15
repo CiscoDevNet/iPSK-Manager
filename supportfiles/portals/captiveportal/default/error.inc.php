@@ -31,7 +31,7 @@
 		$portalId = $_GET['portalId'];		
 		$_SESSION = null;
 		session_destroy();
-		header("Location: index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}");
+		header("Location: index.php?{$portalQuery}");
 		die();
 	}	
 	
@@ -73,7 +73,7 @@
 		$_SESSION['logoutTimer'] = time() + 5;
 	}
 
-	$homeUrl = "/index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}";
+	$homeUrl = ipskHtml("/index.php?{$portalQuery}");
 
 ?>
 <!doctype html>

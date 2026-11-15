@@ -40,8 +40,9 @@
 		private $iPSKManagerClass;
 		private $sslDisableVerify;
 		private $directoryType;
+        private $identitySourceId;
 		
-		function __construct($ldapServer = null, $domainName = null, $username = null, $password = null, $baseDN = null, $ldaps = true, $sslCheck = false, $directoryType = 0, $ipskManagerClass = false) {		
+		function __construct($ldapServer = null, $domainName = null, $username = null, $password = null, $baseDN = null, $ldaps = true, $sslCheck = false, $directoryType = 0, $ipskManagerClass = false, $identitySourceId = null) {		
 			$this->ldapHost = $ldapServer;
 			$this->ldapDomain = $domainName;
 			$this->ldapUsername = $username;
@@ -51,6 +52,7 @@
 			$this->iPSKManagerClass = $ipskManagerClass;
 			$this->sslDisableVerify = $sslCheck;
 			$this->directoryType = $directoryType;
+            $this->identitySourceId = $identitySourceId;
 		}
 		
 		function set_ldapHost($hostname) {
@@ -138,31 +140,33 @@
 			
 		}
 
-		function getGroupsForMember($ldap_conn, $member_dn, $already_seen = []) {
-			$groups = [];
-			// fix to escape the member_dn for when it contains special characters
-			$member_dn = ldap_escape($member_dn, '', LDAP_ESCAPE_FILTER);
-			// Search for groups that the member belongs to
-			$result = ldap_search($ldap_conn, $this->ldapBaseDN, '(member=' . $member_dn . ')', ['dn']);
-			$entries = ldap_get_entries($ldap_conn, $result);
-		
-			for ($i = 0; $i < $entries['count']; $i++) {
-				$groupName = $entries[$i]['dn'];
-				$groups[] = $groupName;
-		
-				// If the group has not been seen before, recursively fetch its members
-				if (!in_array($groupName, $already_seen)) {
-					$already_seen[] = $groupName;
-					$nestedGroups = $this->getGroupsForMember($ldap_conn, $entries[$i]['dn'], $already_seen);
-					$groups = array_merge($groups, $nestedGroups);
-				}
-			}
-		
-			return $groups;
-		}
-	
+        function getGroupsForMember($ldap_conn, $member_dn, $already_seen = []) {
+            $visited = array_fill_keys(array_map('strtolower', $already_seen), true);
+            $visited[strtolower($member_dn)] = true;
+            $queue = [$member_dn];
+            $groups = [];
+            for ($offset = 0; $offset < count($queue); $offset++) {
+                $filter = '(member='.ldap_escape($queue[$offset], '', LDAP_ESCAPE_FILTER).')';
+                $result = ldap_search($ldap_conn, $this->ldapBaseDN, $filter, ['dn']);
+                if ($result === false) { throw new RuntimeException('Unable to resolve directory groups'); }
+                $entries = ldap_get_entries($ldap_conn, $result);
+                if ($entries === false) { throw new RuntimeException('Unable to read directory groups'); }
+                for ($i = 0; $i < $entries['count']; $i++) {
+                    $dn = $entries[$i]['dn'];
+                    $key = strtolower($dn);
+                    if (!isset($groups[$key])) { $groups[$key] = $dn; }
+                    if (isset($visited[$key])) { continue; }
+                    // Fail closed rather than authorizing against an incomplete membership set.
+                    if (count($visited) >= 10000) { throw new RuntimeException('Directory group traversal limit exceeded'); }
+                    $visited[$key] = true;
+                    $queue[] = $dn;
+                }
+            }
+            return array_values($groups);
+        }
 
 		function authenticateUser($username, $password, $saml = false, $nestedGroup = false){
+            ipskResetIdentity();
 
 			if ($this->sslDisableVerify) {
 				ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP_OPT_X_TLS_ALLOW);
@@ -183,12 +187,12 @@
 
 				if($this->directoryType == 0) {
 					if(strpos($username,"@")){
-						$filter = '(userPrincipalName='.$username.')';
+						$filter = '(userPrincipalName='.ldap_escape($username, '', LDAP_ESCAPE_FILTER).')';
 					}elseif(strpos($username,"\\")){
 						$username = substr($username,strpos($username,"\\") + 1);
-						$filter = '(sAMAccountName='.$username.')';
+						$filter = '(sAMAccountName='.ldap_escape($username, '', LDAP_ESCAPE_FILTER).')';
 					}else{
-						$filter = '(sAMAccountName='.$username.')';
+						$filter = '(sAMAccountName='.ldap_escape($username, '', LDAP_ESCAPE_FILTER).')';
 					}
 				
 					$attributes = array("name", "mail", "samaccountname", "objectSid", "memberof", "userPrincipalName");
@@ -196,9 +200,9 @@
 
 				if($this->directoryType == 1) {
 					if(strpos($username,"@")){
-						$filter = '(mail='.$username.')';
+						$filter = '(mail='.ldap_escape($username, '', LDAP_ESCAPE_FILTER).')';
 					}else{
-						$filter = '(uid='.$username.')';
+						$filter = '(uid='.ldap_escape($username, '', LDAP_ESCAPE_FILTER).')';
 					}
 				
 					$attributes = array("sn", "givenName", "mail", "cn", "memberof", "uid");
@@ -220,7 +224,7 @@
 					if($ldapBind){
 						if($this->iPSKManagerClass){
 							//LOG::Entry
-							$logData = $this->iPSKManagerClass->generateLogData(Array("base64SID"=>base64_encode($entries[0]['objectsid'][0])));
+							$logData = $this->iPSKManagerClass->generateLogData(Array("base64SID"=>base64_encode($entries[0]['objectsid'][0] ?? '')));
 							$logMessage = "REQUEST:SUCCESS;ACTION:AUTHENTICATE-USER;USERNAME:".$username.";AUTHDIRECTORY:".$this->ldapDomain.";";
 							$this->iPSKManagerClass->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 						}
@@ -230,7 +234,7 @@
 							$memberOfGroups['count'] = count($memberOfGroups);
 							$_SESSION['memberOf'] = $memberOfGroups;
 						} else {
-							$_SESSION['memberOf'] = $entries[0]['memberof'];
+							$_SESSION['memberOf'] = $entries[0]['memberof'] ?? ['count'=>0];
 						}
 						
 						if($this->directoryType == 0) {
@@ -242,7 +246,10 @@
 							$_SESSION['logonSID'] = convertBinSID($entries[0]['objectsid'][0]);
 							$_SESSION['logonDN'] = $userDN;
 							$_SESSION['logonDomain'] = $this->ldapDomain;
-							$_SESSION['authenticationGranted'] = true;
+							ipskRotateSession();
+                            $_SESSION['identitySourceId'] = $this->identitySourceId;
+                            $_SESSION['identityFormatVersion'] = 1;
+                            $_SESSION['authenticationGranted'] = true;
 							$_SESSION['authenticationTimestamp'] = time();
 							$_SESSION['logonTime'] = time();
 							$_SESSION['loggedIn'] = true;
@@ -252,19 +259,24 @@
 						}
 
 						if($this->directoryType == 1) {
+                            $owner = ipskOpenLdapOwner($this->identitySourceId, $entries[0]['uid'][0] ?? null);
+                            if ($owner === false) { ipskResetIdentity(); return false; }
 							$_SESSION['sAMAccountName'] = $entries[0]['uid'][0];
 							if($entries[0]['mail'][0] != ''){
 								$_SESSION['userPrincipalName'] = $entries[0]['mail'][0];
 							}else{
 								$_SESSION['userPrincipalName'] = $username.'@'.$this->ldapDomain;
 							}
-							$_SESSION['fullName'] = (isset($entries[0]['givenName'][0]) && isset($entries[0]['sn'][0])) ? $entries[0]['givenName'][0]." ".$entries[0]['sn'][0] : '';
+							$_SESSION['fullName'] = trim(($entries[0]['givenname'][0] ?? '').' '.($entries[0]['sn'][0] ?? ''));
 							$_SESSION['emailAddress'] = (isset($entries[0]['mail'][0])) ? $entries[0]['mail'][0] : '';
 							$_SESSION['logonUsername'] = $username;
-							$_SESSION['logonSID'] = $entries[0]['uid'][0]."-".$this->ldapDomain;
+							$_SESSION['logonSID'] = $owner;
 							$_SESSION['logonDN'] = $userDN;
 							$_SESSION['logonDomain'] = $this->ldapDomain;
-							$_SESSION['authenticationGranted'] = true;
+							ipskRotateSession();
+                            $_SESSION['identitySourceId'] = $this->identitySourceId;
+                            $_SESSION['identityFormatVersion'] = 1;
+                            $_SESSION['authenticationGranted'] = true;
 							$_SESSION['authenticationTimestamp'] = time();
 							$_SESSION['logonTime'] = time();
 							$_SESSION['loggedIn'] = true;

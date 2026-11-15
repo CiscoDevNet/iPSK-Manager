@@ -33,6 +33,8 @@
 		private $restUsername;
 		private $restPassword;
 		private $restSSLVerifyPeer = true;
+        private $connectTimeoutMs = 5000;
+        private $transferTimeoutMs = 30000;
 		protected $iPSKManagerClass;
 		
 		function __construct($hostname = null, $username = null, $password = null, $sslVerifypeer = true, $ipskManagerClass = false) {		
@@ -68,13 +70,21 @@
 		}
 		
 		function set_SSLVerifyPeer($sslVerifypeer) {
-			$this->restSSLVerify = $sslVerifypeer;
+			$this->restSSLVerifyPeer = (bool)$sslVerifypeer;
 		}
 		
 		function get_SSLVerifyPeer() {
 			return $this->restSSLVerifyPeer;
 		}
 		
+        function set_timeouts($connectMs, $transferMs) {
+            if (!is_int($connectMs) || !is_int($transferMs) || $connectMs < 1 || $transferMs < $connectMs || $transferMs > 300000) {
+                throw new InvalidArgumentException('Timeouts must be positive milliseconds, connect <= transfer <= 300000');
+            }
+            $this->connectTimeoutMs = $connectMs;
+            $this->transferTimeoutMs = $transferMs;
+        }
+
 		function restCall($restURLPath, $restMethod, $restCallHeader, $basicAuth = false, $data = null){
 			//Provides basic restAPI Call to a web based API interface
 			//This method is multi-use and provides flexibility to make calls with various inputs
@@ -105,6 +115,9 @@
 			
 				//Create CURL object to prepare the HTTP(s) call
 				$curlCall = curl_init();
+                curl_setopt($curlCall, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curlCall, CURLOPT_CONNECTTIMEOUT_MS, $this->connectTimeoutMs);
+                curl_setopt($curlCall, CURLOPT_TIMEOUT_MS, $this->transferTimeoutMs);
 				
 				//Set the request URL in the CURL object
 				curl_setopt($curlCall, CURLOPT_URL, $requestURL);
@@ -112,11 +125,10 @@
 				//Set the SSL peer verification in the CURL object
 				curl_setopt($curlCall, CURLOPT_SSL_VERIFYPEER, $this->restSSLVerifyPeer );
 				
-				//Set the SSL status verification in the CURL object
-				curl_setopt($curlCall, CURLOPT_SSL_VERIFYSTATUS, $this->restSSLVerifyPeer );
+				// Certificate chain and hostname checks do not require optional OCSP stapling.
 
 				//Set the SSL host verification in the CURL object
-				curl_setopt($curlCall, CURLOPT_SSL_VERIFYHOST, $this->restSSLVerifyPeer );
+				curl_setopt($curlCall, CURLOPT_SSL_VERIFYHOST, $this->restSSLVerifyPeer ? 2 : 0 );
 				
 				//Set the Headers for the request in the CURL object
 				curl_setopt($curlCall, CURLOPT_HTTPHEADER, $restCallHeader);
@@ -125,7 +137,6 @@
 				if($restMethod == "GET"){
 					
 					//Method: GET
-					curl_setopt($curlCall, CURLOPT_RETURNTRANSFER, true);
 					
 				}elseif($restMethod == "POST"){
 					
@@ -137,14 +148,12 @@
 					
 					//Method: DELETE
 					curl_setopt($curlCall, CURLOPT_CUSTOMREQUEST, "DELETE");
-					curl_setopt($curlCall, CURLOPT_RETURNTRANSFER, true);
 				
 				}elseif($restMethod == "PUT"){
 					
 					//Method: PUT
 					curl_setopt($curlCall, CURLOPT_POSTFIELDS, $data);
 					curl_setopt($curlCall, CURLOPT_CUSTOMREQUEST, "PUT");
-					curl_setopt($curlCall, CURLOPT_RETURNTRANSFER, true);
 				
 				}else{
 					//Method Not Found 				
@@ -170,6 +179,8 @@
 				
 				//extract the CURL response parameters
 				$responseArray = curl_getinfo($curlCall);
+                $responseArray['error_code'] = curl_errno($curlCall);
+                $responseArray['error'] = curl_error($curlCall);
 				
 				//Close the CURL Object
 				curl_close ($curlCall);

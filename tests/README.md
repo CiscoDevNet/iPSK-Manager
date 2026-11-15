@@ -1,0 +1,66 @@
+Run the isolated PHP regressions and syntax checks:
+
+```sh
+docker run --rm --network none -v "$PWD:/app:ro" -w /app php:8.3-cli sh tests/run.sh
+```
+
+For actual SQL execution, build the test image and start a disposable database on an internal network. No application configuration is loaded. The integration test creates a randomly named database and removes it in a finally block.
+
+```sh
+docker build -t ipsk-review-php:local -f tests/Dockerfile .
+docker network create --internal ipsk-review-test
+docker run -d --rm --name ipsk-review-db --network ipsk-review-test -e MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1 mariadb:11.4
+# Wait until the database reports ready before running:
+docker run --rm --network ipsk-review-test -v "$PWD:/app:ro" -w /app ipsk-review-php:local php tests/database-integration.php
+docker stop ipsk-review-db
+docker network rm ipsk-review-test
+```
+
+The PHP suite also checks every deployed library copy against
+`supportfiles/vendor-manifest.json` and exercises the real bundled PHPMailer
+against a disposable loopback SMTP peer (authenticated and anonymous delivery,
+rejected recipients, MIME alternatives, and unchanged passwords/PSKs). No mail
+leaves the test container. The manifest records pinned download URLs and SHA-256
+checksums; the DataTables bundle concatenates its listed upstream files in order.
+
+Run the browser library regressions using a test-only Playwright installation:
+
+```sh
+npm install --prefix /tmp/ipsk-browser-tests --ignore-scripts --no-audit --no-fund playwright@1.65.0
+/tmp/ipsk-browser-tests/node_modules/.bin/playwright install chromium
+IPSK_PLAYWRIGHT_PATH=/tmp/ipsk-browser-tests/node_modules/playwright node tests/vendor-browser.cjs
+```
+
+Alternatively, set `IPSK_CHROME_PATH` to an installed Chrome executable. These
+checks load the actual admin/sponsor/captive library copies and the application's
+table/dashboard initializers into a synthetic local page. They cover pagination,
+sorting, column filtering and visibility, saved state, responsive layout, Bootstrap
+modals/dropdowns, menu keyboard navigation and Escape dismissal, icons, clipboard
+copying, all six dashboard charts, and the migration form's optional credentials
+and retry request. External browser requests are blocked; no application database or credentials are needed.
+Node, Playwright, and the browser are only test dependencies, not deployment
+requirements. SMTP TLS and live ISE/LDAP integrations still need deployment checks.
+
+
+Missing-routine recovery has an additional integration test. With the disposable
+MariaDB test server above running, execute:
+
+```sh
+docker run --rm --network ipsk-review-test -e IPSK_TEST_DB_HOST=ipsk-review-db -v "$PWD:/app:ro" -w /app ipsk-review-php:local php tests/migration-recovery-integration.php
+```
+
+Run this only on a disposable database server: it creates and removes temporary
+databases and users. It tests recovery of absent v7/v10 procedures, preservation
+of the ISE definer, failure with insufficient privileges, and refusal to guess
+between different owners. The same test supports an isolated MySQL 8 server via
+`IPSK_TEST_DB_HOST`; the test server must allow the fixture's root connection with
+an empty password. Never point this test at an existing deployment.
+
+
+The database integration suite also runs actual sponsor, captive and bulk handlers on
+independent connections released together at enrollment, verifying one shared user
+key alongside quota/rollback controls. OpenLDAP ownership coverage authenticates
+independent sources and explicit aliases, verifies PSK/ownership/quota separation,
+and applies schema 13 to legacy data, including ambiguous owners, non-ASCII UIDs,
+injected write failures, cache collisions and retries. LDAP transport is simulated;
+all ownership queries and migrations use the disposable database.

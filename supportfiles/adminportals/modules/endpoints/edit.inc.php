@@ -1,4 +1,9 @@
 <?php
+if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
+    http_response_code(403);
+    return;
+}
+
 	
 /**
  *@license
@@ -24,37 +29,16 @@
 			
 			$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 
-			if($sanitizedInput['editAssociation'] == 1){
-				
-				if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
-					$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-					$randomPSK = "psk=".$randomPassword;
-				}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
-					$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'], $endpoint['createdBy']);
-					if(!$userPsk){
-						$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-						$randomPSK = "psk=".$randomPassword;
-					}else{
-						$randomPassword = $userPsk;
-						$randomPSK = "psk=".$randomPassword;
-					}
-				}else{
-					$randomPassword = $endpointGroupAuthorization['ciscoAVPairPSK'];
-					$randomPSK = "psk=".$randomPassword;
-				}
-				
-				if($endpointGroupAuthorization['termLengthSeconds'] == 0){
-					$duration = $endpointGroupAuthorization['termLengthSeconds'];
-				}else{
-					$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
-				}
+            if($sanitizedInput['editAssociation'] == 1){
+                if (!$ipskISEDB->moveEndpointAssociation($sanitizedInput['id'], $sanitizedInput['associationGroup'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], false)) {
+                    http_response_code(400); print '<p class="text-danger">Unable to move endpoint. Check destination permissions and owner quota.</p>'; return;
+                }
 
-				$ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration);
-				$ipskISEDB->deleteEndpointAssociationbyId($sanitizedInput['id']);
-				$ipskISEDB->addEndpointAssociation($endpoint['endpointId'], $endpoint['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']);
-				
 			}elseif($sanitizedInput['editPSK'] == 1){
-				$randomPSK = "psk=".$sanitizedInput['presharedKey'];
+				if (!ipskValidPsk($sanitizedInput['presharedKey'] ?? null)) {
+                    http_response_code(400); print '<p class="text-danger">PSK must be 8–63 printable ASCII characters or 64 hexadecimal digits.</p>'; return;
+                }
+                $randomPSK = "psk=".$sanitizedInput['presharedKey'];
 				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
 			}else{
 				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], null, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
@@ -103,7 +87,7 @@ HTML;
 		$endpoint = $ipskISEDB->getEndpointByAssociationId($sanitizedInput['id']);
 		
 		$endpointGroups = $ipskISEDB->getEndpointGroupsAndAuthz();
-		$endpoint['pskValue'] = str_replace("psk=","",$endpoint['pskValue']);
+		$endpoint['pskValue'] = ipskHtml(ipskPskPlain($endpoint['pskValue']));
 		
 		$pageData['endpointGroupList'] .= '<select id="associationGroup" class="form-select mt-2 mb-3 shadow" disabled>';
 		
@@ -179,7 +163,7 @@ HTML;
 					</div>
 					<label class="fw-bold" for="psk">Pre-Shared Key:</label>
 					<div class="input-group mb-3 input-group-sm fw-bold">
-						<input type="password" id="presharedKey" class="form-control shadow" id="psk" value="{$endpoint['pskValue']}" disabled>
+						<input type="password" id="presharedKey" class="form-control shadow form-validation" validation-minimum-length="8" validation-maximum-length="64" value="{$endpoint['pskValue']}" disabled>
 						<div class="input-group-append shadow">
 							<span class="input-group-text fw-bold" id="basic-addon1"><a id="showpassword" href="#"><span id="passwordfeather" data-feather="eye"></span></a></span>
 						</div>

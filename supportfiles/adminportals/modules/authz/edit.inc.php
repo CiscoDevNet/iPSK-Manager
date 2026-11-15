@@ -1,4 +1,9 @@
 <?php
+if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
+    http_response_code(403);
+    return;
+}
+
 	
 /**
  *@license
@@ -52,7 +57,7 @@
 	}else{
 		$pageiPSKType .= '<option value="0">Unique PSK per Device</option>';
 		$pageiPSKType .= '<option value="1">Unique PSK per User</option>';
-		$password = $authorizationTemplate['ciscoAVPairPSK'];
+		$password = ipskHtml($authorizationTemplate['ciscoAVPairPSK']);
 		$readonlyFlag = "";
 		$minLength = '8';
 		$passwordFeather = "refresh-cw";
@@ -101,7 +106,7 @@ $htmlbody = <<<HTML
 				<label class="fw-bold" for="pskLength">Pre-Shared Key Length:</label>
 				<div class="mb-3 input-group-sm fw-bold">
 					<input type="text" class="form-control shadow form-validation" validation-state="required" id="pskLength" value="{$authorizationTemplate['pskLength']}">
-					<div class="invalid-feedback">Please enter a PSK length greater than 8 and less than 64</div>
+					<div class="invalid-feedback">Please enter a PSK length between 8 and 63</div>
 				</div>
 				<div class="mb-3 input-group-sm fw-bold">
 					<label class="fw-bold" for="keyType">Pre-Shared Key Type:</label>

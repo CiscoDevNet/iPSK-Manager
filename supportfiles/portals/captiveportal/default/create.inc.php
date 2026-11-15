@@ -22,17 +22,38 @@
 	$pageData['hidePskFlag'] = "";
 	$wifiSsid = '';
 	
+    if (ipskLoginSessionCheck() && !ipskCreationGrant($ipskISEDB, $sanitizedInput['associationGroup'] ?? null, 512)) {
+        http_response_code(403);
+        print 'The selected group is not authorized or its device limit has been reached.';
+        return;
+    }
+
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
 		session_destroy();
-		header("Location: index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}");
+		header("Location: index.php?{$portalQuery}");
 		die();
 	}
 	
 	if(isset($sanitizedInput['associationGroup']) && isset($sanitizedInput['macAddress']) && isset($sanitizedInput['endpointDescription']) && isset($sanitizedInput['emailAddress']) && isset($sanitizedInput['fullName'])) {	
 		$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 		
+		if($endpointGroupAuthorization['termLengthSeconds'] == 0){
+			$duration = $endpointGroupAuthorization['termLengthSeconds'];
+		}else{
+			$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
+		}
+		
+		$wirelessNetwork = $ipskISEDB->getWirelessNetworkById($sanitizedInput['wirelessSSID']);
+			
+		if($wirelessNetwork){
+			$wifiSsid = $wirelessNetwork['ssidName'];
+		}
+		
+		if (!$ipskISEDB->beginPortalEnrollment($sanitizedInput['associationGroup'], [$sanitizedInput['macAddress']])) {
+                http_response_code(409); print 'Device quota unavailable. Reload and try again.'; return;
+            }
 		if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
 			$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
 			$randomPSK = "psk=".$randomPassword;
@@ -50,19 +71,7 @@
 			$randomPSK = "psk=".$randomPassword;
 		}
 		
-		if($endpointGroupAuthorization['termLengthSeconds'] == 0){
-			$duration = $endpointGroupAuthorization['termLengthSeconds'];
-		}else{
-			$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
-		}
-		
-		$wirelessNetwork = $ipskISEDB->getWirelessNetworkById($sanitizedInput['wirelessSSID']);
-			
-		if($wirelessNetwork){
-			$wifiSsid = $wirelessNetwork['ssidName'];
-		}
-		
-		if($endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID'])){
+            if($endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID'])){
 			
 			//LOG::Entry
 			$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
@@ -71,7 +80,8 @@
 			
 			$smtpSettings = $ipskISEDB->getSmtpSettings();
 			
-			if($ipskISEDB->addEndpointAssociation($endpointId, $sanitizedInput['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID'])){
+			if($ipskISEDB->addEndpointAssociation($endpointId, $sanitizedInput['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']) && $ipskISEDB->finishPortalEnrollment()){
+                $_SESSION['enrolledEndpointId'] = $endpointId;
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
 				$logMessage = "REQUEST:SUCCESS;ACTION:CAPTIVECREATE;METHOD:ADD-ENDPOINT-ASSOCIATION;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";SID:".$_SESSION['logonSID'].";";
@@ -115,6 +125,7 @@
 		}
 	}
 
+	$randomPassword = ipskHtml($randomPassword);
 	print <<< HTML
 <html lang="en">
   <head>
@@ -197,7 +208,7 @@
 			type: "POST",
 			dataType: "html",
 			success: function (data) {
-				window.location = "index.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}";
+				window.location = $portalHomeJson;
 			}
 		});
 		

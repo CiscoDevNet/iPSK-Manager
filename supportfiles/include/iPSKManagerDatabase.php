@@ -30,14 +30,16 @@
  */
 
 	include_once(__DIR__."/iPSKManagerMigration.php");
+    require_once(__DIR__."/iPSKManagerFunctions.php");
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 7;
+		public $requiredSchemaVersion = 13;
 		public $autoMigrationBaselineVersion = 6;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
 		public $systemConfigured;
+        public $lastError = '';
 		public $dbSchemaVersion;
 		public $loggingLevel;
 		public $passwordComplexity;
@@ -65,9 +67,10 @@
 					die('Connect Error (' . $this->dbConnection->connect_errno . ') '  . $this->dbConnection->connect_error);
 				}
 				
+				$queryValues = [];
 				$query = "SELECT `value` FROM `settings` WHERE `page` = 'global' AND `settingClass` = 'platform-config' AND `keyName` = 'system-configured' LIMIT 1";
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 			
 				if($queryResult){
 					$row = $queryResult->fetch_assoc();
@@ -75,9 +78,10 @@
 					$this->systemConfigured = $row["value"];
 				}
 				
+				$queryValues = [];
 				$query = "SELECT `value` FROM `settings` WHERE `page` = 'global' AND `settingClass` = 'db-schema' AND `keyName` = 'version' LIMIT 1";
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 			
 				if($queryResult){
 					$row = $queryResult->fetch_assoc();
@@ -85,9 +89,10 @@
 					$this->dbSchemaVersion = $row["value"];
 				}
 				
+				$queryValues = [];
 				$query = "SELECT `value` FROM `settings` WHERE `page` = 'global' AND `settingClass` = 'platform-config' AND `keyName` = 'logging-level' LIMIT 1";
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 			
 				if($queryResult){
 					$row = $queryResult->fetch_assoc();
@@ -97,9 +102,10 @@
 					$this->loggingLevel = 0;
 				}
 				
+				$queryValues = [];
 				$query = "SELECT `value` FROM `settings` WHERE `page` = 'global' AND `settingClass` = 'advanced-settings' AND `keyName` = 'password-complexity' LIMIT 1";
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 			
 				if($queryResult){
 					if($queryResult->num_rows > 0){
@@ -159,29 +165,11 @@
 			return $this->requiredSchemaVersion;
 		}
 
-		function set_dbSchemaVersion($version){
-			$version = (int)$version;
-			$this->dbSchemaVersion = $version;
-
-			$updateStmt = $this->dbConnection->prepare("UPDATE `settings` SET `value` = ? WHERE `page` = 'global' AND `settingClass` = 'db-schema' AND `keyName` = 'version' LIMIT 1");
-			
-			if($updateStmt){
-				$updateStmt->bind_param("i", $version);
-				$updateStmt->execute();
-				
-				if($updateStmt->affected_rows == 0){
-					$insertStmt = $this->dbConnection->prepare("INSERT INTO `settings` (`page`, `settingClass`, `keyName`, `value`) VALUES ('global', 'db-schema', 'version', ?)");
-					
-					if($insertStmt){
-						$insertStmt->bind_param("i", $version);
-						$insertStmt->execute();
-						$insertStmt->close();
-					}
-				}
-				
-				$updateStmt->close();
-			}
-		}
+        function set_dbSchemaVersion($version) {
+            if (!$this->setGlobalSetting('db-schema','version',(int)$version)) return false;
+            $this->dbSchemaVersion = (int)$version;
+            return true;
+        }
 
 		function check_dbSchemaUpdates(){
 			if($this->requiredSchemaVersion > $this->dbSchemaVersion){
@@ -193,8 +181,8 @@
 
 		function get_migrationReplacements($extraReplacements = Array()){
 			$replacements = Array(
-				"{{DB_NAME}}" => $this->dbDatabase,
-				"{{APP_DB_USERNAME}}" => $this->dbUsername
+				"{{DB_NAME}}" => str_replace("`", "``", $this->dbDatabase),
+				"{{APP_DB_USERNAME}}" => str_replace("`", "``", $this->dbUsername ?? "")
 			);
 
 			if(isset($_SERVER['IPSK_DB_USERNAME']) && $_SERVER['IPSK_DB_USERNAME'] != ""){
@@ -209,7 +197,39 @@
 				$replacements = array_merge($replacements, $extraReplacements);
 			}
 
-			return $replacements;
+            $routineDefiners = ['{{ISE_DB_DEFINER}}'=>'iPSK_AttributeFetch', '{{PLAIN_MAC_DEFINER}}'=>'iPSK_AuthMACPlain'];
+            $iseRoutines = ['iPSK_AttributeFetch', 'iPSK_AuthMACPlain', 'iPSK_AuthMACPlainNonExpired',
+                'iPSK_FetchGroups', 'iPSK_FetchPasswordForMAC', 'iPSK_FetchPasswordForMACNonExpired',
+                'iPSK_MACLookup', 'iPSK_MACLookupNonExpired'];
+            $siblingDefiner = null;
+            foreach ($routineDefiners as $token=>$routine) {
+                if (isset($replacements[$token])) continue;
+                if (!empty($_SERVER['ISE_DB_USERNAME'])) {
+                    $replacements[$token] = '`'.str_replace('`','``',$_SERVER['ISE_DB_USERNAME']).'`@`%`';
+                    continue;
+                }
+                $result = $this->preparedQuery("SELECT DEFINER FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=? AND ROUTINE_NAME=? AND ROUTINE_TYPE='PROCEDURE'", [$this->dbDatabase, $routine]);
+                $row = $result ? $result->fetch_assoc() : false;
+                $definer = $row['DEFINER'] ?? null;
+                // A previous failed upgrade may have dropped the target routine. Only
+                // recover its owner if all visible, known ISE routines agree; never use
+                // the migration login or an unrelated application's routine owner.
+                if (!$row && $result) {
+                    if ($siblingDefiner === null) {
+                        $placeholders = implode(',', array_fill(0, count($iseRoutines), '?'));
+                        $siblings = $this->preparedQuery("SELECT DISTINCT DEFINER FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA=? AND ROUTINE_TYPE='PROCEDURE' AND ROUTINE_NAME IN ($placeholders)", array_merge([$this->dbDatabase], $iseRoutines));
+                        $siblingDefiner = false;
+                        if ($siblings && $siblings->num_rows === 1) {
+                            $siblingDefiner = $siblings->fetch_assoc()['DEFINER'] ?? false;
+                        }
+                    }
+                    $definer = $siblingDefiner;
+                }
+                if (is_string($definer) && ($at = strrpos($definer, '@')) !== false) {
+                    $replacements[$token] = '`'.str_replace('`','``',substr($definer,0,$at)).'`@`'.str_replace('`','``',substr($definer,$at+1)).'`';
+                }
+            }
+            return $replacements;
 		}
 
 		function getMigrationManager($extraReplacements = Array()){
@@ -224,48 +244,46 @@
 			return $migrationRunner->getPendingMigrations($currentVersion, $target);
 		}
 
-		function runSchemaMigrations($targetVersion = null){
-			$response = Array(
-				"success" => true,
-				"applied" => Array(),
-				"error" => "",
-				"targetVersion" => ($targetVersion != null) ? (int)$targetVersion : (int)$this->requiredSchemaVersion
-			);
-
-			$migrationRunner = $this->getMigrationManager();
-			$currentVersionRaw = (int)$this->dbSchemaVersion;
-			$baselineVersion = (int)$this->autoMigrationBaselineVersion;
-
-			if($currentVersionRaw < $baselineVersion){
-				$response["success"] = false;
-				$response["error"] = "Automatic migrations begin at schema version ".$baselineVersion.". Please apply earlier updates manually.";
-				return $response;
-			}
-
-			$currentVersion = max($currentVersionRaw, $baselineVersion);
-			$pendingMigrations = $migrationRunner->getPendingMigrations($currentVersion, $response["targetVersion"]);
-
-			foreach($pendingMigrations as $migration){
-				$execResult = $migrationRunner->executeMigration($migration);
-
-				if(!$execResult["success"]){
-					$response["success"] = false;
-					$response["error"] = $execResult["error"];
-					return $response;
-				}
-
-				$this->set_dbSchemaVersion($migration["version"]);
-				$response["applied"][] = $migration["filename"];
-			}
-
-			return $response;
-		}
+        function runSchemaMigrations($targetVersion = null) {
+            $target = $targetVersion === null ? (int)$this->requiredSchemaVersion : (int)$targetVersion;
+            $current = (int)$this->dbSchemaVersion;
+            $response = ['success'=>false,'applied'=>[],'error'=>'','currentVersion'=>$current,'targetVersion'=>$target];
+            if ($current >= $target) { $response['success']=true; return $response; }
+            if ($current < $this->autoMigrationBaselineVersion) {
+                $response['error']='Apply legacy schema upgrades before automatic migrations.';
+                return $response;
+            }
+            try {
+                $runner = new iPSKManagerMigration($this->dbConnection,$this->dbDatabase,$this->migrationPath);
+                $pending = $runner->getPendingMigrations($current,$target);
+                $expected = $current + 1;
+                foreach ($pending as $migration) {
+                    if ($migration['version'] !== $expected++) throw new RuntimeException('Missing or duplicate migration version in deployment.');
+                }
+                if ($expected !== $target + 1) throw new RuntimeException('Missing migration files required to reach schema '.$target.'.');
+                $runner->set_replacements($this->get_migrationReplacements());
+                foreach ($pending as $migration) {
+                    $result = $runner->executeMigration($migration);
+                    if (!$result['success']) {
+                        $response['error']=$result['error'];
+                        if (isset($result['recoverySql'])) $response['recoverySql']=$result['recoverySql'];
+                        return $response;
+                    }
+                    if (!$this->set_dbSchemaVersion($migration['version'])) throw new RuntimeException('Could not persist schema version.');
+                    $response['currentVersion']=(int)$this->dbSchemaVersion;
+                    $response['applied'][]=$migration['filename'];
+                }
+                $response['success']=$response['currentVersion'] >= $target;
+            } catch (Throwable $error) { $response['error']=$error->getMessage(); }
+            return $response;
+        }
 
 		function check_newInstall(){
 
 			$checkTableEmpty = function ($table) {
+				$queryValues = [];
 				$query = "SELECT COUNT(id) as count FROM `$table`";
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 		
 				if ($queryResult) {
 					$row = $queryResult->fetch_assoc();
@@ -311,13 +329,15 @@
 				}
 			}
 			
-			//Limit the maximum length to 64 Characters
-			if($length > 64){ $length = 64;}
+			if ($alphabet === '') { throw new InvalidArgumentException('Password alphabet must not be empty'); }
+			// Generated passphrases use the printable ASCII limit.
+			if (filter_var($length, FILTER_VALIDATE_INT) === false || $length < 8) { throw new InvalidArgumentException('PSK length must be at least 8'); }
+            if($length > 63){ $length = 63;}
 			
 			$generatedPsk = "";
 			//Loop through and select random characters from the alphabet
 			for($char = 0; $char < $length; $char++){
-				$generatedPsk .= substr($alphabet, random_int(0,strlen($alphabet)) - 1, 1);
+				$generatedPsk .= substr($alphabet, random_int(0,strlen($alphabet) - 1), 1);
 			}
 
 			return $generatedPsk;
@@ -325,9 +345,10 @@
 		
 		function checkGlobalSettingCount($settingClass, $settingName, $settingIndex = 0){
 			
-			$query = "SELECT `value` FROM `settings` WHERE `page` = 'global' AND `settingClass` = '".$settingClass."' AND `keyName` = '".$settingName."' AND `optionIndex` = '".$settingIndex."'";
+			$queryValues = [$settingClass, $settingName, $settingIndex];
+			$query = "SELECT `value` FROM `settings` WHERE `page` = 'global' AND `settingClass` = ? AND `keyName` = ? AND `optionIndex` = ?";
 		
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				return $queryResult->num_rows;
@@ -337,9 +358,10 @@
 		}
 
 		function getGlobalClassSetting($className){
-			$query = "SELECT * from settings WHERE settingClass='".$className."' AND page='global' AND encrypted='0'";
+			$queryValues = [$className];
+			$query = "SELECT * from settings WHERE settingClass=? AND page='global' AND encrypted='0'";
 		
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -357,9 +379,10 @@
 			
 		function getGlobalSetting($settingClass, $settingName, $settingIndex = 0){
 			
-			$query = "SELECT `value`, `encrypted` FROM `settings` WHERE `page` = 'global' AND `settingClass` = '".$settingClass."' AND `keyName` = '".$settingName."' AND `optionIndex` = '".$settingIndex."' LIMIT 1";
+			$queryValues = [$settingClass, $settingName, $settingIndex];
+			$query = "SELECT `value`, `encrypted` FROM `settings` WHERE `page` = 'global' AND `settingClass` = ? AND `keyName` = ? AND `optionIndex` = ? LIMIT 1";
 		
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -384,9 +407,9 @@
 			
 			if($settingCheck > 0){
 			
-				$queryUpdate = sprintf("UPDATE `settings` SET `value` = '%s',`encrypted` = '%d' WHERE `page` = 'global' AND `settingClass` = '%s' AND `keyName` = '%s' AND `optionIndex` = %d", $this->dbConnection->real_escape_string($value), $this->dbConnection->real_escape_string($encryptedField), $this->dbConnection->real_escape_string($settingClass), $this->dbConnection->real_escape_string($settingName), $this->dbConnection->real_escape_string($settingIndex));
+				$queryUpdate = "UPDATE `settings` SET `value` = ?,`encrypted` = ? WHERE `page` = 'global' AND `settingClass` = ? AND `keyName` = ? AND `optionIndex` = ?";
 			
-				$queryResult = $this->dbConnection->query($queryUpdate);
+				$queryResult = $this->preparedQuery($queryUpdate, [$value, $encryptedField, $settingClass, $settingName, $settingIndex]);
 
 				if($queryResult){
 					return true;
@@ -395,9 +418,9 @@
 				}
 
 			}else{	
-				$queryInsert = sprintf("INSERT INTO `settings` (`value`, `page`, `settingClass`, `keyName`, `optionIndex`,`encrypted`) VALUES('%s','global','%s','%s',%d,%d)", $this->dbConnection->real_escape_string($value), $this->dbConnection->real_escape_string($settingClass), $this->dbConnection->real_escape_string($settingName), $this->dbConnection->real_escape_string($settingIndex), $this->dbConnection->real_escape_string($encryptedField));
+				$queryInsert = "INSERT INTO `settings` (`value`, `page`, `settingClass`, `keyName`, `optionIndex`,`encrypted`) VALUES(?,'global',?,?,?,?)";
 				
-				$queryResult = $this->dbConnection->query($queryInsert);
+				$queryResult = $this->preparedQuery($queryInsert, [$value, $settingClass, $settingName, $settingIndex, $encryptedField]);
 				
 				if($queryResult){
 					return true;
@@ -439,9 +462,10 @@
 
 		function getSmtpSettings(){
 			if($this->encryptionKey != ""){
+				$queryValues = [];
 				$query = "SELECT `keyName`, `value`, `encrypted` FROM `settings` WHERE `page`='global' AND `settingClass`='smtp-settings'";
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 				
 				if($queryResult){
 					if($queryResult->num_rows > 0){
@@ -491,12 +515,45 @@
 			}
 		}
 
-		function getPortalAdminGroups(){
+        function getDirectoryIdentitySource($directoryId) {
+            if (!filter_var($directoryId, FILTER_VALIDATE_INT) || $directoryId < 1) return false;
+            $result = $this->preparedQuery('SELECT COALESCE(d.identitySourceId,d.id) AS source FROM ldapServers d LEFT JOIN ldapServers root ON root.id=d.identitySourceId WHERE d.id=? AND (d.identitySourceId IS NULL OR (root.id IS NOT NULL AND root.identitySourceId IS NULL))', [$directoryId]);
+            $row = $result ? $result->fetch_assoc() : false;
+            return $row ? (int)$row['source'] : false;
+        }
+
+        function setDirectoryIdentitySource($directoryId, $sourceId) {
+            if (!filter_var($directoryId,FILTER_VALIDATE_INT) || $directoryId < 1 || filter_var($sourceId,FILTER_VALIDATE_INT) === false || $sourceId < 0) return false;
+            if ($sourceId == $directoryId) $sourceId = 0;
+            if ($sourceId > 0 && $this->getDirectoryIdentitySource($sourceId) !== (int)$sourceId) return false;
+            // A primary source with grants or aliases cannot silently become another source.
+            if ($sourceId > 0) {
+                $used = $this->preparedQuery('SELECT (SELECT COUNT(*) FROM internalGroups WHERE directoryId=?) + (SELECT COUNT(*) FROM ldapServers WHERE identitySourceId=?) AS total', [$directoryId,$directoryId]);
+                if (!$used || (int)$used->fetch_assoc()['total'] > 0) return false;
+            }
+            return $this->preparedQuery('UPDATE ldapServers SET identitySourceId=? WHERE id=?', [$sourceId ?: null,$directoryId]);
+        }
+
+        private function scopedGroupQuery($sql, $values, $sourceId = null) {
+            $sourceId = $sourceId ?? ($_SESSION['identitySourceId'] ?? -1);
+            if (!is_int($sourceId) || $sourceId < 0) $sourceId = -1;
+            if ($sourceId === 0) {
+                $sql = str_replace('INNER JOIN internalGroups ON', 'INNER JOIN (SELECT * FROM internalGroups WHERE groupType=0 AND visible=1) internalGroups ON', $sql);
+                return $this->preparedQuery($sql, $values);
+            }
+            $sql = str_replace('INNER JOIN internalGroups ON', 'INNER JOIN (SELECT * FROM internalGroups WHERE directoryId=? AND groupType=? AND visible=1) internalGroups ON', $sql);
+            return $this->preparedQuery($sql, array_merge([$sourceId,$sourceId === 0 ? 0 : 1], $values));
+        }
+
+		function getPortalAdminGroups($sourceId = null){
 			$count = 0;
 			
-			$query = "SELECT `groupDn` FROM `internalGroups` WHERE `permissions` = '1'";
+			$sourceId = $sourceId ?? ($_SESSION['identitySourceId'] ?? -1);
+            $queryValues = [is_int($sourceId) ? $sourceId : -1, $sourceId === 0 ? 0 : 1];
+			$query = "SELECT `groupDn` FROM `internalGroups` WHERE `permissions` = 1 AND visible=1 AND directoryId=? AND groupType=?";
+            if ($sourceId === 0) { $query = "SELECT groupDn FROM internalGroups WHERE permissions=1 AND visible=1 AND groupType=0"; $queryValues=[]; }
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -509,22 +566,24 @@
 					
 					return $result;
 				}else{
-					return false;
+					return ['count'=>0];
 				}
 			}else{
-				return false;
+				return ['count'=>0];
 			}
 		}
 		
 		function getInternalGroups($groupType = null){
 			
 			if(is_null($groupType)){
-				$query = "SELECT `id`, `groupName`, `description`, `groupType`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups`";
+				$queryValues = [];
+				$query = "SELECT `id`, `groupName`, `description`, `groupType`, `directoryId`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups`";
 			}else{
-				$query = "SELECT `id`, `groupName`, `description`, `groupType`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups` WHERE groupType = '$groupType'";
+				$queryValues = [$groupType];
+				$query = "SELECT `id`, `groupName`, `description`, `groupType`, `directoryId`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups` WHERE groupType = ?";
 			}
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -539,9 +598,10 @@
 		
 		function getInternalGroupById($groupId){
 			
-			$query = "SELECT `id`, `groupName`, `description`, `groupType`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups` WHERE id = '$groupId'";
+			$queryValues = [$groupId];
+			$query = "SELECT `id`, `groupName`, `description`, `groupType`, `directoryId`, `groupDn`, `permissions`, `visible`, `createdBy`, `createdDate` FROM `internalGroups` WHERE id = ?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -557,9 +617,10 @@
 
 		function getInternalUserGroupMembership($userId){
 
-			$query = sprintf("SELECT `internalUserGroupMapping`.`userId`,`internalUserGroupMapping`.`groupId`, `internalGroups`.`id`, `internalGroups`.`groupName`, `internalGroups`.`groupDn` FROM `internalUserGroupMapping` INNER JOIN `internalGroups` ON internalUserGroupMapping.groupId =  `internalGroups`.`id` WHERE `internalUserGroupMapping`.`userId` = '%s'", $this->dbConnection->real_escape_string($userId));
+			$queryValues = [$userId];
+			$query = "SELECT `internalUserGroupMapping`.`userId`,`internalUserGroupMapping`.`groupId`, `internalGroups`.`id`, `internalGroups`.`groupName`, `internalGroups`.`groupDn` FROM `internalUserGroupMapping` INNER JOIN `internalGroups` ON internalUserGroupMapping.groupId =  `internalGroups`.`id` WHERE `internalUserGroupMapping`.`userId` = ? AND internalGroups.groupType=0 AND internalGroups.visible=1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -574,9 +635,10 @@
 
 		function getInternalUser($username){
 
-			$query = sprintf("SELECT `id`,`userName`,`fullName`,`description`,`createdBy`,`createdDate` FROM `internalUsers` WHERE userName = '%s' LIMIT 1", $this->dbConnection->real_escape_string($username));
+			$queryValues = [$username];
+			$query = "SELECT `id`,`userName`,`fullName`,`description`,`createdBy`,`createdDate` FROM `internalUsers` WHERE userName = ? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -592,9 +654,10 @@
 		
 		function getInternalUsers(){
 			
+			$queryValues = [];
 			$query = "SELECT `id`, `userName`, `description`, `fullName` FROM `internalUsers`";
 
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -609,9 +672,10 @@
 		
 		function getInternalUserById($userId){
 			
-			$query = "SELECT `id`, `userName`, `description`, `fullName`, `email`, `dn`, `sid`, `enabled`, `createdBy`, `createdDate` FROM `internalUsers` WHERE id = '$userId'";
+			$queryValues = [$userId];
+			$query = "SELECT `id`, `userName`, `description`, `fullName`, `email`, `dn`, `sid`, `enabled`, `createdBy`, `createdDate` FROM `internalUsers` WHERE id = ?";
 
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -626,15 +690,17 @@
 		}
 
 		function authenticateInternalUser($username,$password,$saml = false){
+            ipskResetIdentity();
 			
 			$passwordVerify = false;
 			
-			$authQuery = sprintf("SELECT password FROM `internalUsers` WHERE userName = '%s' LIMIT 1", $this->dbConnection->real_escape_string($username));
+			$authQueryValues = [$username];
+			$authQuery = "SELECT * FROM `internalUsers` WHERE userName = ? LIMIT 2";
 			
-			$authQueryResult = $this->dbConnection->query($authQuery);
+			$authQueryResult = $this->preparedQuery($authQuery, $authQueryValues);
 			
 			if($authQueryResult){
-				if($authQueryResult->num_rows > 0){
+				if($authQueryResult->num_rows === 1){
 					$user = $authQueryResult->fetch_assoc();
 					
 					if($saml == false) {
@@ -643,18 +709,13 @@
 
 					if($passwordVerify == true || $saml == true){
 						
-						$userQuery = sprintf("SELECT `id`,`userName`,`fullName`,`description`, `email`, `dn`,`sid`,`createdBy`,`createdDate` FROM `internalUsers` WHERE userName = '%s' LIMIT 1", $this->dbConnection->real_escape_string($username));
-			
-						$userQueryResult = $this->dbConnection->query($userQuery);
-						
-						$user = $userQueryResult->fetch_assoc();
-					
+                        $memberOf = ['count'=>0];
+						$membershipQueryValues = [$user['id']];
+						$membershipQuery = "SELECT `internalUserGroupMapping`.`userId`,`internalUserGroupMapping`.`groupId`, `internalGroups`.`id`, `internalGroups`.`groupName`, `internalGroups`.`groupDn` FROM `internalUserGroupMapping` INNER JOIN `internalGroups` ON internalUserGroupMapping.groupId =  `internalGroups`.`id` WHERE `internalUserGroupMapping`.`userId` = ? AND internalGroups.groupType=0 AND internalGroups.visible=1";
 
-						$membershipQuery = "SELECT `internalUserGroupMapping`.`userId`,`internalUserGroupMapping`.`groupId`, `internalGroups`.`id`, `internalGroups`.`groupName`, `internalGroups`.`groupDn` FROM `internalUserGroupMapping` INNER JOIN `internalGroups` ON internalUserGroupMapping.groupId =  `internalGroups`.`id` WHERE `internalUserGroupMapping`.`userId` = '".$user['id']."'";
-
-						$groupMembership = $this->dbConnection->query($membershipQuery);
+						$groupMembership = $this->preparedQuery($membershipQuery, $membershipQueryValues);
 						
-						if($groupMembership->num_rows > 0){
+						if($groupMembership && $groupMembership->num_rows > 0){
 							$count = 0;
 							
 							while($row = $groupMembership->fetch_assoc()){
@@ -673,7 +734,9 @@
 						$_SESSION['logonSID'] = $user['sid'];
 						$_SESSION['logonDN'] = $user['dn'];
 						$_SESSION['logonDomain'] = "System.Local";
-						$_SESSION['authenticationGranted'] = true;
+                        $_SESSION['identitySourceId'] = 0;
+						ipskRotateSession();
+                            $_SESSION['authenticationGranted'] = true;
 						$_SESSION['authenticationTimestamp'] = time();
 						$_SESSION['logonTime'] = time();
 						$_SESSION['loggedIn'] = true;
@@ -694,9 +757,10 @@
 		}
 
 		function getHostnameList(){
+			$queryValues = [];
 			$query = "SELECT * FROM portalHostnames WHERE enabled = '1' AND visible = '1'";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -710,9 +774,10 @@
 		}
 
 		function getTcpPortListById($id){
-			$query = "SELECT `id`, `portalPort`, `portalSecure` FROM `portalPorts` WHERE enabled = '1' AND visible = '1' AND `id` = '$id'";
+			$queryValues = [$id];
+			$query = "SELECT `id`, `portalPort`, `portalSecure` FROM `portalPorts` WHERE enabled = '1' AND visible = '1' AND `id` = ?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -727,9 +792,10 @@
 		}
 		
 		function getTcpPortList(){
+			$queryValues = [];
 			$query = "SELECT `id`, `portalPort`, `portalSecure` FROM `portalPorts` WHERE enabled = '1' AND visible = '1'";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -743,9 +809,10 @@
 		}
 		
 		function getAuthDirectoryNames(){
+			$queryValues = [];
 			$query = "SELECT id, adConnectionName FROM `ldapServers`";
 		
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -765,9 +832,10 @@
 		}
 	
 		function getLdapDirectoryCount(){
+			$queryValues = [];
 			$query = "SELECT COUNT(id) as ldapCount FROM `ldapServers`";
 		
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -782,9 +850,10 @@
 		}
 		
 		function getLdapDirectoryListing(){
+			$queryValues = [];
 			$query = "SELECT id, adConnectionName FROM `ldapServers`";
 		
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -798,9 +867,10 @@
 		}
 
 		function getLdapDirectories(){
+			$queryValues = [];
 			$query = "SELECT id, adConnectionName, adServer, adDomain, adUsername, adPassword, adBaseDN, adSecure, createdBy, createdDate FROM `ldapServers`";
 		
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -814,9 +884,10 @@
 		}
 		
 		function getLdapDirectoryById($directoryId){
-			$query = "SELECT id, adConnectionName, adServer, adDomain, adUsername, adPassword, adBaseDN, adSecure, directoryType, createdBy, createdDate FROM `ldapServers` WHERE id = '$directoryId'";
+			$queryValues = [$directoryId];
+			$query = "SELECT id, adConnectionName, adServer, adDomain, adUsername, adPassword, adBaseDN, adSecure, directoryType, identitySourceId, createdBy, createdDate FROM `ldapServers` WHERE id = ?";
 		
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -832,16 +903,19 @@
 
 		function getLdapSettings($ldapID){
 			
-			$query = "SELECT adConnectionName, adServer, adDomain, adUsername, adPassword, adBaseDN, adSecure, directoryType FROM `ldapServers` WHERE id = '$ldapID' LIMIT 1";
+			$queryValues = [$ldapID];
+			$query = "SELECT adConnectionName, adServer, adDomain, adUsername, adPassword, adBaseDN, adSecure, directoryType FROM `ldapServers` WHERE id = ? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($this->encryptionKey != ''){
 				if($queryResult){
 					if($queryResult->num_rows > 0){
 						$ldapServer = $queryResult->fetch_assoc();
 						
-						$result['adConnectionName'] = $ldapServer['adConnectionName'];
+						$result['identitySourceId'] = $this->getDirectoryIdentitySource($ldapID);
+                        if ($result['identitySourceId'] === false) return false;
+                        $result['adConnectionName'] = $ldapServer['adConnectionName'];
 						$result['adDomain'] = $ldapServer['adDomain'];
 						$result['adServer'] = $ldapServer['adServer'];
 						$result['adUsername'] = $ldapServer['adUsername'];
@@ -870,9 +944,10 @@
 		}
 	
 		function getUserPrincipalNameFromCache($sid){
-			$query = "SELECT `id`, `userPrincipalName` FROM `userSidCache` WHERE `sid`='$sid' LIMIT 1";
+			$queryValues = [$sid];
+			$query = "SELECT `id`, `userPrincipalName` FROM `userSidCache` WHERE `sid`=? LIMIT 1";
 		
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -888,9 +963,10 @@
 	
 		function getISEMnTSettings($instanceId = 0){
 			if($this->encryptionKey != ''){
-				$query = "SELECT * from settings WHERE settingClass='ise-mnt-credentials' AND page='global' AND optionIndex='".$instanceId."'";
+				$queryValues = [$instanceId];
+				$query = "SELECT * from settings WHERE settingClass='ise-mnt-credentials' AND page='global' AND optionIndex=?";
 			
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 				
 				if($queryResult){
 					if($queryResult->num_rows > 0){	
@@ -926,9 +1002,10 @@
 		
 		function getISEERSSettings($instanceId = 0){
 			if($this->encryptionKey != ""){
-				$query = "SELECT * from settings WHERE settingClass='ise-ers-credentials' AND page='global' AND optionIndex='".$instanceId."'";
+				$queryValues = [$instanceId];
+				$query = "SELECT * from settings WHERE settingClass='ise-ers-credentials' AND page='global' AND optionIndex=?";
 			
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 				
 				if($queryResult){
 					if($queryResult->num_rows > 0){				
@@ -962,42 +1039,21 @@
 			}
 		}
 		
-		function getUserEndpointCount($endpointGroupId, $sid){
-			
-			if(isset($endpointGroupId) && isset($sid)){
-				
-				$query = "SELECT endpoints.createdBy, COUNT(endpointAssociations.epGroupId) as deviceCount FROM endpointAssociations INNER JOIN endpoints ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.epGroupId = '$endpointGroupId' AND endpoints.createdBy = '$sid' GROUP BY endpoints.createdBy";
-				
-				$queryResult = $this->dbConnection->query($query);
-				
-				if($queryResult){
-					if($queryResult->num_rows > 0){
-						$row = $queryResult->fetch_assoc();
-						
-						if($row['createdBy'] == $sid){
-							return $row['deviceCount'];
-						}else{
-							return false;
-						}
-					}else{
-						return false;
-					}
-				}else{
-					return false;
-				}
-			}else{
-				return false;
-			}
-			
-		}
-		
+        function getUserEndpointCount($endpointGroupId, $sid) {
+            if (!isset($endpointGroupId, $sid)) return false;
+            // Locking read observes committed usage even inside a larger request transaction.
+            $result = $this->preparedQuery('SELECT a.id FROM endpointAssociations a JOIN endpoints e ON e.id=a.endpointId WHERE a.epGroupId=? AND e.createdBy=? LOCK IN SHARE MODE', [$endpointGroupId,$sid]);
+            return $result ? $result->num_rows : false;
+        }
+
 		function getUserPreSharedKey($endpointGroupId, $sid){
 			
 			if(isset($endpointGroupId) && isset($sid)){
 				
-				$query = "SELECT endpoints.createdBy, COUNT(endpointAssociations.epGroupId) as deviceCount, endpoints.pskValue FROM endpointAssociations INNER JOIN endpoints ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.epGroupId = '$endpointGroupId' AND endpoints.createdBy = '$sid' GROUP BY endpoints.createdBy, endpoints.pskValue";
+				$queryValues = [$endpointGroupId, $sid];
+				$query = "SELECT endpoints.createdBy, COUNT(endpointAssociations.epGroupId) as deviceCount, endpoints.pskValue FROM endpointAssociations INNER JOIN endpoints ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.epGroupId = ? AND endpoints.createdBy = ? GROUP BY endpoints.createdBy, endpoints.pskValue LOCK IN SHARE MODE";
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 				
 				if($queryResult){
 					if($queryResult->num_rows > 0){
@@ -1021,9 +1077,10 @@
 		}
 		
 		function getWirelessNetworks(){
+			$queryValues = [];
 			$query = "SELECT * from wirelessNetworks WHERE visible = 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1037,9 +1094,10 @@
 		}
 		
 		function emailEndpointGroup($endpointGroupId){
-			$query = "SELECT endpointGroups.id, endpointGroups.groupName, endpointGroups.notificationPermission FROM endpointGroups WHERE endpointGroups.id = '$endpointGroupId' LIMIT 1";
+			$queryValues = [$endpointGroupId];
+			$query = "SELECT endpointGroups.id, endpointGroups.groupName, endpointGroups.notificationPermission FROM endpointGroups WHERE endpointGroups.id = ? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult->num_rows > 0){
 				$row = $queryResult->fetch_assoc();
@@ -1055,13 +1113,15 @@
 		}
 
 		function purgeLogs($interval){
-			$query = "DELETE FROM logging WHERE dateCreated < NOW() - INTERVAL $interval DAY";
+			$queryValues = [(int)$interval];
+			$query = "DELETE FROM logging WHERE dateCreated < NOW() - INTERVAL ? DAY";
 
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 
 		}
 		
 		function getPxGridDirectEndpoints(){
+			$queryValues = [];
 			$query = "SELECT endpoints.id, endpoints.macAddress, 
 						CASE endpoints.accountEnabled
 							WHEN 0 THEN 'False'
@@ -1071,7 +1131,7 @@
 						FROM endpoints JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId 
 						JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id;";
 
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1085,9 +1145,10 @@
 		}
 		
 		function getEndpointGroups(){
+			$queryValues = [];
 			$query = "SELECT `id`,`groupName`,`description`, `enabled`, `authzTemplateId`, `visible`, `notificationPermission`, `createdBy`, `createdDate` FROM `endpointGroups` WHERE visible=1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1101,9 +1162,10 @@
 		}
 		
 		function getEndpointGroupsAndAuthz(){
+			$queryValues = [];
 			$query = "SELECT endpointGroups.id, endpointGroups.groupName, endpointGroups.authzTemplateId, endpointGroups.description, endpointGroups.enabled, endpointGroups.visible, endpointGroups.notificationPermission, endpointGroups.parentSite, authorizationTemplates.authzPolicyName, authorizationTemplates.authzPolicyDescription, authorizationTemplates.ciscoAVPairPSKMode, authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, endpointGroups.createdBy, endpointGroups.createdDate FROM endpointGroups INNER JOIN authorizationTemplates ON authorizationTemplates.id = endpointGroups.authzTemplateId";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1117,9 +1179,10 @@
 		}
 		
 		function getEndpointGroupById($endpointGroupId){
-			$query = "SELECT endpointGroups.id, endpointGroups.groupName, endpointGroups.authzTemplateId, endpointGroups.description, endpointGroups.enabled, endpointGroups.visible, endpointGroups.notificationPermission, endpointGroups.parentSite, authorizationTemplates.authzPolicyName, authorizationTemplates.authzPolicyDescription, authorizationTemplates.ciscoAVPairPSKMode, authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, endpointGroups.createdBy, endpointGroups.createdDate FROM endpointGroups INNER JOIN authorizationTemplates ON authorizationTemplates.id = endpointGroups.authzTemplateId WHERE endpointGroups.id = '$endpointGroupId' LIMIT 1";
+			$queryValues = [$endpointGroupId];
+			$query = "SELECT endpointGroups.id, endpointGroups.groupName, endpointGroups.authzTemplateId, endpointGroups.description, endpointGroups.enabled, endpointGroups.visible, endpointGroups.notificationPermission, endpointGroups.parentSite, authorizationTemplates.authzPolicyName, authorizationTemplates.authzPolicyDescription, authorizationTemplates.ciscoAVPairPSKMode, authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, endpointGroups.createdBy, endpointGroups.createdDate FROM endpointGroups INNER JOIN authorizationTemplates ON authorizationTemplates.id = endpointGroups.authzTemplateId WHERE endpointGroups.id = ? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1134,9 +1197,10 @@
 		}
 
 		function getEndpointGroupByPortalId($portalId){
-			$query = "SELECT endpointGroups.id,endpointGroups.groupName FROM `endpointGroups` INNER JOIN sponsorGroupEPGMapping ON endpointGroups.id = sponsorGroupEPGMapping.endpointGroupId INNER JOIN sponsorGroupPortalMapping ON sponsorGroupEPGMapping.sponsorGroupId = sponsorGroupPortalMapping.sponsorGroupId WHERE endpointGroups.enabled = 1 AND endpointGroups.visible = 1 AND sponsorGroupPortalMapping.sponsorPortalId = '$portalId'";
+			$queryValues = [$portalId];
+			$query = "SELECT endpointGroups.id,endpointGroups.groupName FROM `endpointGroups` INNER JOIN sponsorGroupEPGMapping ON endpointGroups.id = sponsorGroupEPGMapping.endpointGroupId INNER JOIN sponsorGroupPortalMapping ON sponsorGroupEPGMapping.sponsorGroupId = sponsorGroupPortalMapping.sponsorGroupId WHERE endpointGroups.enabled = 1 AND endpointGroups.visible = 1 AND sponsorGroupPortalMapping.sponsorPortalId = ?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1150,9 +1214,10 @@
 		}
 		
 		function getEndpointGroupListing(){
+			$queryValues = [];
 			$query = "SELECT id,groupName FROM endpointGroups WHERE visible=1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1169,16 +1234,20 @@
 			
 			if(is_array($authorizationGroups)){
 				$searchDns = "";
+                $searchDnsValues = [];
 								
 				for($count = 0; $count < $authorizationGroups['count']; $count++){
-					$searchDns .= "'".$authorizationGroups[$count]['groupDn']."',";
+					$searchDns .= "?,";
+                    $searchDnsValues[] = $authorizationGroups[$count]['groupDn'];
 				}
 				
-				$searchDns = substr($searchDns, 0, -1);
+				$searchDns = $searchDnsValues ? substr($searchDns, 0, -1) : "NULL";
 				
-				$query = "SELECT internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions, sponsorGroupEPGMapping.endpointGroupId, endpointGroups.groupName, sponsorGroups.maxDevices, sponsorGroupPortalMapping.sponsorGroupId, authorizationTemplates.termLengthSeconds, authorizationTemplates.ciscoAVPairPSK FROM sponsorGroupPortalMapping INNER JOIN sponsorGroups ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN internalGroups ON sponsorGroupInternalMapping.internalGroupId = internalGroups.id INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.sponsorGroupId = sponsorGroups.id INNER JOIN endpointGroups ON sponsorGroupEPGMapping.endpointGroupId = endpointGroups.id INNER JOIN authorizationTemplates ON endpointGroups.authzTemplateId = authorizationTemplates.id WHERE sponsorGroupPortalMapping.sponsorPortalId = '$portalId' AND internalGroups.groupDn IN ($searchDns)";
+				$queryValues = [$portalId];
+				$query = "SELECT internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions, sponsorGroupEPGMapping.endpointGroupId, endpointGroups.groupName, sponsorGroups.maxDevices, sponsorGroupPortalMapping.sponsorGroupId, authorizationTemplates.termLengthSeconds, authorizationTemplates.ciscoAVPairPSK FROM sponsorGroupPortalMapping INNER JOIN sponsorGroups ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN internalGroups ON sponsorGroupInternalMapping.internalGroupId = internalGroups.id INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.sponsorGroupId = sponsorGroups.id INNER JOIN endpointGroups ON sponsorGroupEPGMapping.endpointGroupId = endpointGroups.id INNER JOIN authorizationTemplates ON endpointGroups.authzTemplateId = authorizationTemplates.id WHERE sponsorGroupPortalMapping.sponsorPortalId = ? AND internalGroups.groupDn IN ($searchDns) AND sponsorGroupInternalMapping.sponsorGroupId IN (SELECT id FROM sponsorGroups WHERE visible=1)";
+				array_splice($queryValues, 1, 0, $searchDnsValues);
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->scopedGroupQuery($query, $queryValues);
 				
 				$listCount = 0;
 				
@@ -1200,7 +1269,7 @@
 						}
 						$queryData['count'] = $listCount;
 						
-						return $queryData;
+						return ipskMergeGroupGrants($queryData);
 					}else{
 						return false;
 					}
@@ -1213,9 +1282,10 @@
 		}
 		
 		function getEndpointByAssociationId($associationId){
-			$query = "SELECT authorizationTemplates.termLengthSeconds, endpointAssociations.id, endpointAssociations.epGroupId, endpointAssociations.macAddress, endpoints.fullName, endpoints.id as endpointId, endpoints.description, endpoints.emailAddress, endpoints.pskValue, endpoints.createdBy FROM endpointAssociations INNER JOIN endpointGroups  ON endpointAssociations.epGroupId = endpointGroups.id INNER JOIN authorizationTemplates  ON authorizationTemplates.id = endpointGroups.authzTemplateId INNER JOIN endpoints  ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.id = '$associationId' LIMIT 1";
+			$queryValues = [$associationId];
+			$query = "SELECT authorizationTemplates.termLengthSeconds, endpointAssociations.id, endpointAssociations.epGroupId, endpointAssociations.macAddress, endpoints.fullName, endpoints.id as endpointId, endpoints.description, endpoints.emailAddress, endpoints.pskValue, endpoints.createdBy FROM endpointAssociations INNER JOIN endpointGroups  ON endpointAssociations.epGroupId = endpointGroups.id INNER JOIN authorizationTemplates  ON authorizationTemplates.id = endpointGroups.authzTemplateId INNER JOIN endpoints  ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.id = ? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1230,9 +1300,10 @@
 		}
 
 		function getEndpointsByAuthZPolicy($id){
-			$query = "SELECT endpoints.id, endpoints.macAddress, endpoints.createdBy, endpointGroups.authzTemplateId FROM `endpoints` INNER JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id WHERE endpointGroups.authzTemplateId = '$id'";
+			$queryValues = [$id];
+			$query = "SELECT endpoints.id, endpoints.macAddress, endpoints.createdBy, endpointGroups.authzTemplateId FROM `endpoints` INNER JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id WHERE endpointGroups.authzTemplateId = ?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1261,9 +1332,10 @@
 		}
 		
 		function getEndPointAssociations(){
+			$queryValues = [];
 			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, endpoints.macAddress, endpoints.createdBy, endpoints.description, endpointGroups.groupName as epGroupName, endpoints.accountEnabled, endpoints.expirationDate, endpointAssociations.createdDate, endpoints.fullName, endpoints.emailAddress FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId ORDER BY endpoints.macAddress ASC";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1298,9 +1370,10 @@
 		}
 		
 		function getEndPointAuthorizationPolicy($associationId){
-			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, authorizationTemplates.pskLength FROM endpointAssociations INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id INNER JOIN authorizationTemplates ON authorizationTemplates.id = endpointGroups.authzTemplateId INNER JOIN endpoints  ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.id = '$associationId' LIMIT 1";
+			$queryValues = [$associationId];
+			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, authorizationTemplates.id AS policyId, authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, authorizationTemplates.vlan, authorizationTemplates.dacl, authorizationTemplates.pskLength FROM endpointAssociations INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id INNER JOIN authorizationTemplates ON authorizationTemplates.id = endpointGroups.authzTemplateId INNER JOIN endpoints  ON endpointAssociations.endpointId = endpoints.id WHERE endpointAssociations.id = ? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1316,6 +1389,7 @@
 		
 		function getEndPointAssociationList($authorizationGroups, $sponsorPortalId = 0, $viewAll = false, $viewallDn = ""){
 			$searchDns = "";
+                $searchDnsValues = [];
 			
 			if($sponsorPortalId == 0){
 				return false;
@@ -1323,21 +1397,27 @@
 			
 			if(is_array($authorizationGroups)){
 				$searchDns = "";
+                $searchDnsValues = [];
 				
 				
 				for($count = 0; $count < $authorizationGroups['count']; $count++){
-					$searchDns .= "'".$authorizationGroups[$count]['groupDn']."',";
+					$searchDns .= "?,";
+                    $searchDnsValues[] = $authorizationGroups[$count]['groupDn'];
 				}
 				
-				$searchDns = substr($searchDns, 0, -1);
+				$searchDns = $searchDnsValues ? substr($searchDns, 0, -1) : "NULL";
 				
 				if($viewAll == true){
-					$query = "SELECT id, endpointId, epGroupId, sponsorGroupId, macAddress, createdBy, expirationDate, accountEnabled, accountExpired, pskValue, fullName, description, emailAddress, createdDate, groupDn, groupPermissions, groupName FROM (SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, sponsorGroupEPGMapping.sponsorGroupId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.expirationDate, endpoints.accountEnabled, endpoints.accountExpired, endpoints.pskValue, endpoints.fullName, endpoints.description, endpoints.emailAddress, endpointAssociations.createdDate, internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions, endpointGroups.groupName FROM endpoints INNER JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.endpointGroupId = endpointAssociations.epGroupId INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id WHERE internalGroups.groupDn IN ($searchDns) AND sponsorGroupEPGMapping.sponsorGroupId IN (SELECT sponsorGroupId FROM `sponsorGroupPortalMapping` WHERE `sponsorPortalId` = '$sponsorPortalId') UNION SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, '0' as sponsorGroupId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.expirationDate, endpoints.accountEnabled, endpoints.accountExpired, endpoints.pskValue, endpoints.fullName, endpoints.description, endpoints.emailAddress, endpointAssociations.createdDate, '$viewallDn' as groupDn, '4' as groupPermissions, endpointGroups.groupName FROM endpointAssociations INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.endpointGroupId = endpointAssociations.epGroupId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id GROUP BY endpointAssociations.id, endpointAssociations.endpointId) AS completeEndpointList ORDER BY macAddress ASC";
+					$queryValues = [$sponsorPortalId, $viewallDn];
+					$query = "SELECT id, endpointId, epGroupId, sponsorGroupId, macAddress, createdBy, expirationDate, accountEnabled, accountExpired, pskValue, fullName, description, emailAddress, createdDate, groupDn, groupPermissions, groupName FROM (SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, sponsorGroupEPGMapping.sponsorGroupId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.expirationDate, endpoints.accountEnabled, endpoints.accountExpired, endpoints.pskValue, endpoints.fullName, endpoints.description, endpoints.emailAddress, endpointAssociations.createdDate, internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions, endpointGroups.groupName FROM endpoints INNER JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.endpointGroupId = endpointAssociations.epGroupId INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id WHERE internalGroups.groupDn IN ($searchDns) AND sponsorGroupInternalMapping.sponsorGroupId IN (SELECT id FROM sponsorGroups WHERE visible=1) AND sponsorGroupEPGMapping.sponsorGroupId IN (SELECT sponsorGroupId FROM `sponsorGroupPortalMapping` WHERE `sponsorPortalId` = ?) UNION SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, '0' as sponsorGroupId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.expirationDate, endpoints.accountEnabled, endpoints.accountExpired, endpoints.pskValue, endpoints.fullName, endpoints.description, endpoints.emailAddress, endpointAssociations.createdDate, ? as groupDn, '4' as groupPermissions, endpointGroups.groupName FROM endpointAssociations INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.endpointGroupId = endpointAssociations.epGroupId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id GROUP BY endpointAssociations.id, endpointAssociations.endpointId) AS completeEndpointList ORDER BY macAddress ASC";
+					array_splice($queryValues, 0, 0, $searchDnsValues);
 				}else{
-					$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.expirationDate, endpoints.accountEnabled, endpoints.accountExpired, endpoints.pskValue, endpoints.fullName, endpoints.description, endpoints.emailAddress, endpointAssociations.createdDate, internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions, endpointGroups.groupName FROM endpoints INNER JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.endpointGroupId = endpointAssociations.epGroupId INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id WHERE internalGroups.groupDn IN ($searchDns) AND sponsorGroupEPGMapping.sponsorGroupId IN (SELECT sponsorGroupId FROM `sponsorGroupPortalMapping` WHERE `sponsorPortalId` = '$sponsorPortalId') ORDER BY endpointAssociations.macAddress ASC";
+					$queryValues = [$sponsorPortalId];
+					$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.epGroupId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.expirationDate, endpoints.accountEnabled, endpoints.accountExpired, endpoints.pskValue, endpoints.fullName, endpoints.description, endpoints.emailAddress, endpointAssociations.createdDate, internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions, endpointGroups.groupName FROM endpoints INNER JOIN endpointAssociations ON endpoints.id = endpointAssociations.endpointId INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.endpointGroupId = endpointAssociations.epGroupId INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId INNER JOIN endpointGroups ON endpointAssociations.epGroupId = endpointGroups.id WHERE internalGroups.groupDn IN ($searchDns) AND sponsorGroupInternalMapping.sponsorGroupId IN (SELECT id FROM sponsorGroups WHERE visible=1) AND sponsorGroupEPGMapping.sponsorGroupId IN (SELECT sponsorGroupId FROM `sponsorGroupPortalMapping` WHERE `sponsorPortalId` = ?) ORDER BY endpointAssociations.macAddress ASC";
+					array_splice($queryValues, 0, 0, $searchDnsValues);
 				}
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->scopedGroupQuery($query, $queryValues);
 				
 				if($queryResult){
 					if($queryResult->num_rows > 0){
@@ -1411,20 +1491,27 @@
 			
 			if(is_array($authorizationGroups)){
 				$searchDns = "";
+                $searchDnsValues = [];
 				
 				for($count = 0; $count < $authorizationGroups['count']; $count++){
-					$searchDns .= "'".$authorizationGroups[$count]['groupDn']."',";
+					$searchDns .= "?,";
+                    $searchDnsValues[] = $authorizationGroups[$count]['groupDn'];
 				}
 				
-				$searchDns = substr($searchDns, 0, -1);
+				$searchDns = $searchDnsValues ? substr($searchDns, 0, -1) : "NULL";
 				
-				$query = "SELECT id, endpointId, macAddress, createdBy, endpointGroupId, groupName, accountEnabled, expirationDate, accountExpired, pskValue, fullName, description, emailAddress, createdDate, groupDn, groupPermissions FROM (SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpoints.createdBy, endpoints.lastAccessed, endpointGroups.id as endpointGroupId, endpointGroups.groupName, endpoints.expirationDate, endpoints.accountEnabled, endpoints.accountExpired, endpoints.pskValue, endpoints.fullName, endpoints.description, endpoints.emailAddress, endpointAssociations.createdDate, sponsorGroupEPGMapping.sponsorGroupId, sponsorGroupInternalMapping.internalGroupId, internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions FROM endpointAssociations INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.endpointGroupId = endpointAssociations.epGroupId INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN sponsorGroupPortalMapping ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId WHERE endpointAssociations.id = '$endpointAssociationId' AND groupDn IN ($searchDns) AND sponsorGroupEPGMapping.sponsorGroupId IN (SELECT sponsorGroupId FROM `sponsorGroupPortalMapping` WHERE `sponsorPortalId` = '$sponsorPortalId')) AS completePermissions GROUP BY id, groupDn, groupPermissions";
+				$queryValues = [$endpointAssociationId, $sponsorPortalId];
+				$query = "SELECT id, endpointId, macAddress, createdBy, endpointGroupId, groupName, accountEnabled, expirationDate, accountExpired, pskValue, fullName, description, emailAddress, createdDate, groupDn, groupPermissions FROM (SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpoints.createdBy, endpoints.lastAccessed, endpointGroups.id as endpointGroupId, endpointGroups.groupName, endpoints.expirationDate, endpoints.accountEnabled, endpoints.accountExpired, endpoints.pskValue, endpoints.fullName, endpoints.description, endpoints.emailAddress, endpointAssociations.createdDate, sponsorGroupEPGMapping.sponsorGroupId, sponsorGroupInternalMapping.internalGroupId, internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions FROM endpointAssociations INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN sponsorGroupEPGMapping ON sponsorGroupEPGMapping.endpointGroupId = endpointAssociations.epGroupId INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN sponsorGroupPortalMapping ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId WHERE endpointAssociations.id = ? AND groupDn IN ($searchDns) AND sponsorGroupInternalMapping.sponsorGroupId IN (SELECT id FROM sponsorGroups WHERE visible=1) AND sponsorGroupEPGMapping.sponsorGroupId IN (SELECT sponsorGroupId FROM `sponsorGroupPortalMapping` WHERE `sponsorPortalId` = ?)) AS completePermissions GROUP BY id, groupDn, groupPermissions";
+				array_splice($queryValues, 1, 0, $searchDnsValues);
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->scopedGroupQuery($query, $queryValues);
 				
 				if($queryResult){
 					if($queryResult->num_rows > 0){
 						while($row = $queryResult->fetch_assoc()){
+                            // Apply visibility scope before merging action bits from multiple grants.
+                            if (!(($row['groupPermissions'] & 6) ||
+                                (($row['groupPermissions'] & 1) && $row['createdBy'] === ($_SESSION['logonSID'] ?? null)))) continue;
 							
 							if(isset($associationSeen[$row['macAddress']])){
 								$rawEndpointList[$row['macAddress']]['viewPermissions'] =$rawEndpointList[$row['macAddress']]['viewPermissions'] | ($row['groupPermissions'] & 15);
@@ -1443,7 +1530,7 @@
 						
 						$listCount = 0;
 						
-						foreach($rawEndpointList as $endPoint){
+						foreach($rawEndpointList ?? [] as $endPoint){
 							$mergedEndpointList[$listCount]['id'] = $endPoint['id'];
 							$mergedEndpointList[$listCount]['endpointId'] = $endPoint['endpointId'];
 							$mergedEndpointList[$listCount]['macAddress'] = $endPoint['macAddress'];
@@ -1454,7 +1541,8 @@
 							$listCount++;
 						}
 						
-						$mergedEndpointList['count'] = $listCount;					
+						if ($listCount === 0) return false;
+                        $mergedEndpointList['count'] = $listCount;					
 						
 						return $mergedEndpointList;
 					}else{
@@ -1469,9 +1557,10 @@
 		}
 		
 		function getEndPointAssociationById($endpointGroupId){
-			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.createdDate as epCreatedDate, endpointGroups.id as epGroupId, endpointGroups.groupName as epGroupName, endpoints.macAddress, endpoints.expirationDate, endpoints.accountExpired, endpoints.accountEnabled, endpoints.fullName, endpoints.description, endpoints.pskValue, endpoints.lastAccessed, endpoints.emailAddress, endpointAssociations.createdDate, endpoints.vlan, endpoints.dacl FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId WHERE endpointAssociations.id = '$endpointGroupId' LIMIT 1";
+			$queryValues = [$endpointGroupId];
+			$query = "SELECT endpointAssociations.id, endpointAssociations.endpointId, endpointAssociations.macAddress, endpointAssociations.createdBy, endpoints.createdDate as epCreatedDate, endpointGroups.id as epGroupId, endpointGroups.groupName as epGroupName, endpoints.macAddress, endpoints.expirationDate, endpoints.accountExpired, endpoints.accountEnabled, endpoints.fullName, endpoints.description, endpoints.pskValue, endpoints.lastAccessed, endpoints.emailAddress, endpointAssociations.createdDate, endpoints.vlan, endpoints.dacl FROM endpointAssociations INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId WHERE endpointAssociations.id = ? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1486,9 +1575,10 @@
 		}
 		
 		function getEndPointAssociationByEndpoint($endpointId){
-			$query = "SELECT id FROM `endpointAssociations` WHERE endpointId = '$endpointId' LIMIT 1";
+			$queryValues = [$endpointId];
+			$query = "SELECT id FROM `endpointAssociations` WHERE endpointId = ? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1503,9 +1593,10 @@
 		}
 		
 		function getAuthorizationTemplates(){
+			$queryValues = [];
 			$query = "SELECT * FROM authorizationTemplates WHERE visible = 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1519,9 +1610,10 @@
 		}
 		
 		function getAuthorizationTemplatesNames(){
+			$queryValues = [];
 			$query = "SELECT id,authzPolicyName FROM authorizationTemplates";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult->num_rows > 0){
 				while($row = $queryResult->fetch_assoc()) {
@@ -1539,9 +1631,10 @@
 		}
 		
 		function getAuthorizationTemplatesById($templateId){
-			$query = "SELECT * FROM authorizationTemplates WHERE id = '$templateId'";
+			$queryValues = [$templateId];
+			$query = "SELECT * FROM authorizationTemplates WHERE id = ?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 		
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1556,9 +1649,10 @@
 		}
 
 		function getAuthorizationTemplatesbyEPGroupId($id){
-			$query = "SELECT authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, authorizationTemplates.pskLength, authorizationTemplates.vlan, authorizationTemplates.dacl, endpointGroups.groupName FROM `authorizationTemplates` INNER JOIN endpointGroups ON authorizationTemplates.id = endpointGroups.authzTemplateId WHERE endpointGroups.id = '$id'";
+			$queryValues = [$id];
+			$query = "SELECT authorizationTemplates.ciscoAVPairPSK, authorizationTemplates.termLengthSeconds, authorizationTemplates.pskLength, authorizationTemplates.vlan, authorizationTemplates.dacl, endpointGroups.groupName FROM `authorizationTemplates` INNER JOIN endpointGroups ON authorizationTemplates.id = endpointGroups.authzTemplateId WHERE endpointGroups.id = ?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 		
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1573,9 +1667,10 @@
 		}	
 		
 		function getPortals(){
+			$queryValues = [];
 			$query = "SELECT * FROM sponsorPortals WHERE visible = '1'";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1588,10 +1683,133 @@
 			}
 		}
 		
+        private $enrollmentLock = null;
+
+        function beginPortalEnrollment($groupId, $macs, $permission = 512) {
+            if ($this->enrollmentLock !== null || !is_array($macs) || !$macs) return false;
+            $lock = 'ipsk-quota-'.substr(hash('sha256', $this->dbDatabase.'|'.($_SESSION['logonSID'] ?? '').'|'.$groupId),0,53);
+            try {
+                $result = $this->preparedQuery('SELECT GET_LOCK(?, 10) AS acquired', [$lock]);
+                if (!$result || (int)$result->fetch_assoc()['acquired'] !== 1) return false;
+                $this->enrollmentLock = $lock;
+                $this->queryFailed = false;
+                if (!$this->dbConnection->begin_transaction()) { $this->abortPortalEnrollment(); return false; }
+                // Refresh grants and usage only after acquiring the cross-session lock.
+                $grant = ipskCreationGrant($this, $groupId, $permission);
+                if (!$grant) { $this->abortPortalEnrollment(); return false; }
+                $unique = array_values(array_unique(array_map(function ($mac) { return strtoupper(str_replace('-', ':', $mac)); }, $macs)));
+                $result = $this->preparedQuery('SELECT macAddress FROM endpoints WHERE macAddress IN ('.implode(',',array_fill(0,count($unique),'?')).')', $unique);
+                if (!$result) { $this->abortPortalEnrollment(); return false; }
+                $incoming = count($unique) - $result->num_rows;
+                if (!ipskQuotaAvailable($this->getUserEndpointCount($groupId, $_SESSION['logonSID']), $grant['maxDevices'], $incoming)) {
+                    $this->abortPortalEnrollment(); return false;
+                }
+                return true;
+            } catch (Throwable $error) {
+                $this->abortPortalEnrollment();
+                return false;
+            }
+        }
+
+        function finishPortalEnrollment() {
+            if ($this->enrollmentLock === null) return false;
+            try {
+                if ($this->queryFailed || !$this->dbConnection->commit()) { $this->abortPortalEnrollment(); return false; }
+                $lock = $this->enrollmentLock;
+                $this->enrollmentLock = null;
+                $this->preparedQuery('SELECT RELEASE_LOCK(?)', [$lock]);
+                return true;
+            } catch (Throwable $error) { $this->abortPortalEnrollment(); return false; }
+        }
+
+        function abortPortalEnrollment() {
+            if ($this->enrollmentLock === null) return;
+            $lock = $this->enrollmentLock; $this->enrollmentLock = null;
+            try { $this->dbConnection->rollback(); } catch (Throwable $error) {}
+            try { $this->preparedQuery('SELECT RELEASE_LOCK(?)', [$lock]); } catch (Throwable $error) {}
+        }
+
+        function __destruct() { $this->abortPortalEnrollment(); }
+
+        function moveEndpointAssociation($associationId, $groupId, $fullName, $description, $email, $actor, $portal = false) {
+            $lookup = 'SELECT a.*, e.createdBy AS owner FROM endpointAssociations a JOIN endpoints e ON e.id=a.endpointId WHERE a.id=?';
+            $result = $this->preparedQuery($lookup, [$associationId]);
+            $before = $result ? $result->fetch_assoc() : false;
+            if (!$before) return false;
+            $lock = 'ipsk-quota-'.substr(hash('sha256', $this->dbDatabase.'|'.$before['owner'].'|'.$groupId),0,53);
+            $acquired = $this->preparedQuery('SELECT GET_LOCK(?, 10) AS acquired', [$lock]);
+            if (!$acquired || (int)$acquired->fetch_assoc()['acquired'] !== 1) return false;
+            $this->atomicLocks[] = $lock;
+            return $this->atomic(function () use ($lookup, $before, $associationId, $groupId, $fullName, $description, $email, $actor, $portal) {
+                $result = $this->preparedQuery($lookup.' FOR UPDATE', [$associationId]);
+                $endpoint = $result ? $result->fetch_assoc() : false;
+                if (!$endpoint || $endpoint['owner'] !== $before['owner']) return false;
+                if ($portal && (!ipskEndpointPermission($this, $associationId, 256) || !ipskCreationGrant($this, $groupId, 512, $endpoint['owner'], $endpoint['epGroupId'] == $groupId ? 0 : 1))) return false;
+                $policy = $this->getAuthorizationTemplatesbyEPGroupId($groupId);
+                if (!$policy) return false;
+                if ($policy['ciscoAVPairPSK'] === '*userrandom*') {
+                    $key = $this->getUserPreSharedKey($groupId, $endpoint['owner']) ?: $this->generateRandomPassword($policy['pskLength']);
+                } elseif ($policy['ciscoAVPairPSK'] === '*devicerandom*') {
+                    $key = $this->generateRandomPassword($policy['pskLength']);
+                } else { $key = $policy['ciscoAVPairPSK']; }
+                $expiry = (int)$policy['termLengthSeconds'] === 0 ? 0 : time() + (int)$policy['termLengthSeconds'];
+                if (!$this->updateEndpoint($endpoint['endpointId'], $fullName, $description, $email, $actor, 'psk='.$key, $policy['vlan'], $policy['dacl'], $expiry)) return false;
+                return $this->preparedQuery('UPDATE endpointAssociations SET epGroupId=?, createdBy=? WHERE id=?', [$groupId,$endpoint['owner'],$associationId]);
+            });
+        }
+
+        private $atomicLocks = [];
+        private $atomicDepth = 0;
+        private $queryFailed = false;
+
+        function atomic($operation) {
+            $outer = $this->atomicDepth === 0;
+            if ($outer) { $this->queryFailed = false; $this->lastError = ''; }
+            try {
+                if ($outer && !$this->dbConnection->begin_transaction()) throw new RuntimeException('Unable to start transaction');
+                $this->atomicDepth++;
+                try { $result = $operation(); } finally { $this->atomicDepth--; }
+                if ($result === false || $this->queryFailed) throw new RuntimeException('Database operation failed');
+                if ($outer && !$this->dbConnection->commit()) throw new RuntimeException('Unable to commit transaction');
+                return $result;
+            } catch (Throwable $error) {
+                $this->queryFailed = true;
+                if ($this->lastError === '') $this->lastError = 'Changes could not be saved. No changes from this operation were committed.';
+                if ($outer) { try { $this->dbConnection->rollback(); } catch (Throwable $ignored) {} }
+                return false;
+            } finally {
+                if ($outer) {
+                    $locks = array_unique($this->atomicLocks); $this->atomicLocks = [];
+                    foreach ($locks as $lock) $this->preparedQuery('SELECT RELEASE_LOCK(?)', [$lock]);
+                }
+            }
+        }
+
+        private function preparedQuery($sql, $values = []) {
+            if ($this->atomicDepth > 0 && $this->queryFailed) return false;
+            $statement = null;
+            try {
+                $statement = $this->dbConnection->prepare($sql);
+                if (!$statement) throw new RuntimeException('Prepare failed');
+                if ($values && !$statement->bind_param(str_repeat('s', count($values)), ...$values)) throw new RuntimeException('Bind failed');
+                if (!$statement->execute()) throw new RuntimeException('Execute failed');
+                $result = $statement->field_count ? $statement->get_result() : true;
+                if ($result === false) throw new RuntimeException('Result retrieval failed');
+                return $result;
+            } catch (Throwable $error) {
+                $this->queryFailed = true;
+                $this->lastError = 'Database operation failed. Check the database connection and configuration, then retry.';
+                return false;
+            } finally {
+                if ($statement) $statement->close();
+            }
+        }
+
 		function getPortalbyHostname($portalFQDN){
-			$query = "SELECT * FROM sponsorPortals WHERE portalHostname='$portalFQDN' AND enabled = '1' AND visible = '1' LIMIT 1";
+			$queryValues = [];
+			$query = "SELECT * FROM sponsorPortals WHERE portalHostname=? AND enabled = '1' AND visible = '1' LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, [$portalFQDN]);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1605,10 +1823,12 @@
 			}
 		}
 		
-		function getPortalByGuid($portalGuid){
-			$query = "SELECT sponsorPortals.id, sponsorPortals.portalName, sponsorPortals.description, sponsorPortals.portalId, sponsorPortals.portalType, sponsorPortals.enabled, sponsorPortals.visible, sponsorPortals.portalHostname, sponsorPortals.portalTcpPort, sponsorPortals.enforceTcpPort, sponsorPortals.enforceSecure, sponsorPortals.enforceHostname, sponsorPortals.portalSecure, sponsorPortals.portalTemplate, sponsorPortals.authenticationDirectory, sponsorPortals.createdBy, sponsorPortals.createdDate, sponsorPortalTypes.portalTypeName, sponsorPortalTypes.portalTypeDescription, sponsorPortalTypes.maxSponsorGroups, sponsorPortalTypes.maxEndpointsOverride, sponsorPortalTypes.portalClass, sponsorPortalTypes.portalModule FROM sponsorPortals INNER JOIN sponsorPortalTypes ON sponsorPortalTypes.id = sponsorPortals.portalType WHERE sponsorPortals.portalId='$portalGuid'";
+        function getPortalByGuid($portalGuid){
+            if (!is_string($portalGuid) || !preg_match('/\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z/iD', $portalGuid)) return false;
+			$queryValues = [];
+			$query = "SELECT sponsorPortals.id, sponsorPortals.portalName, sponsorPortals.description, sponsorPortals.portalId, sponsorPortals.portalType, sponsorPortals.enabled, sponsorPortals.visible, sponsorPortals.portalHostname, sponsorPortals.portalTcpPort, sponsorPortals.enforceTcpPort, sponsorPortals.enforceSecure, sponsorPortals.enforceHostname, sponsorPortals.portalSecure, sponsorPortals.portalTemplate, sponsorPortals.authenticationDirectory, sponsorPortals.createdBy, sponsorPortals.createdDate, sponsorPortalTypes.portalTypeName, sponsorPortalTypes.portalTypeDescription, sponsorPortalTypes.maxSponsorGroups, sponsorPortalTypes.maxEndpointsOverride, sponsorPortalTypes.portalClass, sponsorPortalTypes.portalModule FROM sponsorPortals INNER JOIN sponsorPortalTypes ON sponsorPortalTypes.id = sponsorPortals.portalType WHERE sponsorPortals.portalId=? AND sponsorPortals.enabled=1 AND sponsorPortals.visible=1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, [$portalGuid]);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1623,9 +1843,10 @@
 		}
 		
 		function getPortalById($id){
-			$query = "SELECT sponsorPortals.id, sponsorPortals.portalName, sponsorPortals.description, sponsorPortals.portalId, sponsorPortals.portalType, sponsorPortals.enabled, sponsorPortals.visible, sponsorPortals.portalHostname, sponsorPortals.portalTcpPort, sponsorPortals.enforceTcpPort, sponsorPortals.enforceSecure, sponsorPortals.enforceHostname, sponsorPortals.portalSecure, sponsorPortals.portalTemplate, sponsorPortals.authenticationDirectory, sponsorPortals.createdBy, sponsorPortals.createdDate, sponsorPortalTypes.portalTypeName, sponsorPortalTypes.portalTypeDescription, sponsorPortalTypes.maxSponsorGroups, sponsorPortalTypes.maxEndpointsOverride, sponsorPortalTypes.portalClass, sponsorPortalTypes.portalModule FROM sponsorPortals INNER JOIN sponsorPortalTypes ON sponsorPortalTypes.id = sponsorPortals.portalType WHERE sponsorPortals.id='$id'";
+			$queryValues = [$id];
+			$query = "SELECT sponsorPortals.id, sponsorPortals.portalName, sponsorPortals.description, sponsorPortals.portalId, sponsorPortals.portalType, sponsorPortals.enabled, sponsorPortals.visible, sponsorPortals.portalHostname, sponsorPortals.portalTcpPort, sponsorPortals.enforceTcpPort, sponsorPortals.enforceSecure, sponsorPortals.enforceHostname, sponsorPortals.portalSecure, sponsorPortals.portalTemplate, sponsorPortals.authenticationDirectory, sponsorPortals.createdBy, sponsorPortals.createdDate, sponsorPortalTypes.portalTypeName, sponsorPortalTypes.portalTypeDescription, sponsorPortalTypes.maxSponsorGroups, sponsorPortalTypes.maxEndpointsOverride, sponsorPortalTypes.portalClass, sponsorPortalTypes.portalModule FROM sponsorPortals INNER JOIN sponsorPortalTypes ON sponsorPortalTypes.id = sponsorPortals.portalType WHERE sponsorPortals.id=?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1643,16 +1864,20 @@
 			
 			if(is_array($authorizationGroups)){
 				$searchDns = "";
+                $searchDnsValues = [];
 								
 				for($count = 0; $count < $authorizationGroups['count']; $count++){
-					$searchDns .= "'".$authorizationGroups[$count]['groupDn']."',";
+					$searchDns .= "?,";
+                    $searchDnsValues[] = $authorizationGroups[$count]['groupDn'];
 				}
 				
-				$searchDns = substr($searchDns, 0, -1);
+				$searchDns = $searchDnsValues ? substr($searchDns, 0, -1) : "NULL";
 				
-				$query = "SELECT sponsorGroupPortalMapping.sponsorGroupId, sponsorGroupSSIDMapping.wirelessSSIDId, wirelessNetworks.ssidName, internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions FROM sponsorGroupPortalMapping INNER JOIN sponsorGroups ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroups.id  INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN internalGroups ON sponsorGroupInternalMapping.internalGroupId = internalGroups.id INNER JOIN sponsorGroupSSIDMapping ON sponsorGroupSSIDMapping.sponsorGroupId = sponsorGroups.id  INNER JOIN wirelessNetworks ON sponsorGroupSSIDMapping.wirelessSSIDId = wirelessNetworks.id WHERE sponsorGroupPortalMapping.sponsorPortalId = '$portalId' AND internalGroups.groupDn IN ($searchDns)";
+				$queryValues = [$portalId];
+				$query = "SELECT sponsorGroupPortalMapping.sponsorGroupId, sponsorGroupSSIDMapping.wirelessSSIDId, wirelessNetworks.ssidName, internalGroups.groupDn, sponsorGroupInternalMapping.groupPermissions FROM sponsorGroupPortalMapping INNER JOIN sponsorGroups ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroups.id  INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN internalGroups ON sponsorGroupInternalMapping.internalGroupId = internalGroups.id INNER JOIN sponsorGroupSSIDMapping ON sponsorGroupSSIDMapping.sponsorGroupId = sponsorGroups.id  INNER JOIN wirelessNetworks ON sponsorGroupSSIDMapping.wirelessSSIDId = wirelessNetworks.id WHERE sponsorGroupPortalMapping.sponsorPortalId = ? AND internalGroups.groupDn IN ($searchDns) AND sponsorGroupInternalMapping.sponsorGroupId IN (SELECT id FROM sponsorGroups WHERE visible=1)";
+				array_splice($queryValues, 1, 0, $searchDnsValues);
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->scopedGroupQuery($query, $queryValues);
 				
 				$listCount = 0;
 				
@@ -1681,12 +1906,13 @@
 			}
 		}
 		
-		function getPortalAuthGroups($portalId){
+		function getPortalAuthGroups($portalId, $sourceId = null){
 			$count = 0;
 			
-			$query = "SELECT internalGroups.groupDn, internalGroups.permissions, sponsorGroupInternalMapping.groupPermissions  FROM `sponsorGroupPortalMapping` INNER JOIN sponsorGroups ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN internalGroups ON sponsorGroupInternalMapping.internalGroupId = internalGroups.id  WHERE sponsorGroupPortalMapping.sponsorPortalId = '$portalId'";
+			$queryValues = [$portalId];
+			$query = "SELECT internalGroups.groupDn, internalGroups.permissions, sponsorGroupInternalMapping.groupPermissions  FROM `sponsorGroupPortalMapping` INNER JOIN sponsorGroups ON sponsorGroupPortalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN sponsorGroupInternalMapping ON sponsorGroupInternalMapping.sponsorGroupId = sponsorGroups.id INNER JOIN internalGroups ON sponsorGroupInternalMapping.internalGroupId = internalGroups.id  WHERE sponsorGroups.visible=1 AND sponsorGroupPortalMapping.sponsorPortalId = ?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->scopedGroupQuery($query, $queryValues, $sourceId);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1701,18 +1927,19 @@
 					
 					return $result;
 				}else{
-					return false;
+					return ['count'=>0];
 				}
 			}else{
-				return false;
+				return ['count'=>0];
 			}
 		}
 
 		function getPortalURL($id){
 			
-			$query = "SELECT sponsorPortals.portalId, sponsorPortals.portalHostname, sponsorPortals.portalTcpPort, sponsorPortals.portalSecure FROM sponsorPortals WHERE sponsorPortals.id='$id' LIMIT 1";
+			$queryValues = [$id];
+			$query = "SELECT sponsorPortals.portalId, sponsorPortals.portalHostname, sponsorPortals.portalTcpPort, sponsorPortals.portalSecure FROM sponsorPortals WHERE sponsorPortals.id=? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1736,9 +1963,10 @@
 		}
 		
 		function getSponsorGroupWirelessNetworks($portalId){
-			$query = "SELECT sponsorGroupSSIDMapping.id, wirelessNetworks.id as wirelessNetworkId, wirelessNetworks.ssidName FROM `sponsorGroupSSIDMapping` INNER JOIN sponsorGroups ON sponsorGroups.id = sponsorGroupSSIDMapping.sponsorGroupId INNER JOIN wirelessNetworks ON wirelessNetworks.id = sponsorGroupSSIDMapping.wirelessSSIDId WHERE sponsorGroupSSIDMapping.sponsorGroupId = '$portalId'";
+			$queryValues = [$portalId];
+			$query = "SELECT sponsorGroupSSIDMapping.id, wirelessNetworks.id as wirelessNetworkId, wirelessNetworks.ssidName FROM `sponsorGroupSSIDMapping` INNER JOIN sponsorGroups ON sponsorGroups.id = sponsorGroupSSIDMapping.sponsorGroupId INNER JOIN wirelessNetworks ON wirelessNetworks.id = sponsorGroupSSIDMapping.wirelessSSIDId WHERE sponsorGroupSSIDMapping.sponsorGroupId = ?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1754,12 +1982,14 @@
 		function getSponsorGroupInternalGroups($portalId, $full = false){
 			
 			if($full == true){
-				$query = "SELECT sponsorGroupInternalMapping.id, sponsorGroupInternalMapping.groupPermissions, sponsorGroups.id as sponsorGroupId, sponsorGroups.sponsorGroupName, internalGroups.id as internalGroupId, internalGroups.groupName as internalGroupName, internalGroups.groupDn as internalGroupDn FROM `sponsorGroupInternalMapping` INNER JOIN sponsorGroups ON sponsorGroups.id = sponsorGroupInternalMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId WHERE sponsorGroupInternalMapping.sponsorGroupId = '$portalId'";
+				$queryValues = [$portalId];
+				$query = "SELECT sponsorGroupInternalMapping.id, sponsorGroupInternalMapping.groupPermissions, sponsorGroups.id as sponsorGroupId, sponsorGroups.sponsorGroupName, internalGroups.id as internalGroupId, internalGroups.groupName as internalGroupName, internalGroups.groupDn as internalGroupDn FROM `sponsorGroupInternalMapping` INNER JOIN sponsorGroups ON sponsorGroups.id = sponsorGroupInternalMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId WHERE sponsorGroupInternalMapping.sponsorGroupId = ?";
 			}else{
-				$query = "SELECT sponsorGroupInternalMapping.id, sponsorGroupInternalMapping.groupPermissions, sponsorGroups.id as sponsorGroupId, sponsorGroups.sponsorGroupName, internalGroups.id as internalGroupId, internalGroups.groupName as internalGroupName FROM `sponsorGroupInternalMapping` INNER JOIN sponsorGroups ON sponsorGroups.id = sponsorGroupInternalMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId WHERE sponsorGroupInternalMapping.sponsorGroupId = '$portalId'";
+				$queryValues = [$portalId];
+				$query = "SELECT sponsorGroupInternalMapping.id, sponsorGroupInternalMapping.groupPermissions, sponsorGroups.id as sponsorGroupId, sponsorGroups.sponsorGroupName, internalGroups.id as internalGroupId, internalGroups.groupName as internalGroupName FROM `sponsorGroupInternalMapping` INNER JOIN sponsorGroups ON sponsorGroups.id = sponsorGroupInternalMapping.sponsorGroupId INNER JOIN internalGroups ON internalGroups.id = sponsorGroupInternalMapping.internalGroupId WHERE sponsorGroupInternalMapping.sponsorGroupId = ?";
 			}
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1773,9 +2003,10 @@
 		}
 
 		function getSponsorPortalTypes(){
+			$queryValues = [];
 			$query = "SELECT `id`, `portalTypeName`, `portalTypeDescription`, `maxSponsorGroups`, `maxEndpointsOverride`, `maxEndpointsAllowed`, `portalClass`, `portalModule` FROM `sponsorPortalTypes`";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1789,9 +2020,10 @@
 		}
 
 		function getSponsorGroups(){
+			$queryValues = [];
 			$query = "SELECT * FROM sponsorGroups WHERE visible = 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1805,9 +2037,10 @@
 		}
 		
 		function getSponsorGroupById($id){
-			$query = "SELECT * FROM sponsorGroups WHERE id='$id'";
+			$queryValues = [$id];
+			$query = "SELECT * FROM sponsorGroups WHERE id=?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1822,9 +2055,10 @@
 		}
 		
 		function getSponsorGroupsByPortalId($portalId){
-			$query = "SELECT sponsorGroupPortalMapping.id, sponsorGroups.sponsorGroupName, sponsorGroupPortalMapping.sponsorGroupId, sponsorGroupPortalMapping.sponsorPortalId FROM `sponsorGroupPortalMapping` INNER JOIN sponsorGroups ON sponsorGroups.id = sponsorGroupPortalMapping.sponsorGroupId WHERE sponsorGroupPortalMapping.sponsorPortalId = '$portalId'";
+			$queryValues = [$portalId];
+			$query = "SELECT sponsorGroupPortalMapping.id, sponsorGroups.sponsorGroupName, sponsorGroupPortalMapping.sponsorGroupId, sponsorGroupPortalMapping.sponsorPortalId FROM `sponsorGroupPortalMapping` INNER JOIN sponsorGroups ON sponsorGroups.id = sponsorGroupPortalMapping.sponsorGroupId WHERE sponsorGroupPortalMapping.sponsorPortalId = ?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1838,9 +2072,10 @@
 		}
 		
 		function getSponsorGroupEPGroups($id){
-			$query = "SELECT endpointGroups.id, endpointGroups.groupName FROM `sponsorGroupEPGMapping` INNER JOIN sponsorGroups ON sponsorGroups.id = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN endpointGroups ON endpointGroups.id = sponsorGroupEPGMapping.endpointGroupId WHERE sponsorGroupEPGMapping.sponsorGroupId='$id'";
+			$queryValues = [$id];
+			$query = "SELECT endpointGroups.id, endpointGroups.groupName FROM `sponsorGroupEPGMapping` INNER JOIN sponsorGroups ON sponsorGroups.id = sponsorGroupEPGMapping.sponsorGroupId INNER JOIN endpointGroups ON endpointGroups.id = sponsorGroupEPGMapping.endpointGroupId WHERE sponsorGroupEPGMapping.sponsorGroupId=?";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1854,9 +2089,11 @@
 		}
 
 		function getLogging($minute = 60){
-			$query = "SELECT `id`, `dateCreated`, `sessionID`, `fileName`, `functionName`, `className`, `classMethodName`, `lineNumber`, `message` FROM `logging` WHERE `dateCreated` BETWEEN DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL $minute MINUTE) AND CURRENT_TIMESTAMP() ORDER BY `dateCreated` DESC";
+			$queryValues = [];
+			$query = "SELECT `id`, `dateCreated`, `sessionID`, `fileName`, `functionName`, `className`, `classMethodName`, `lineNumber`, `message` FROM `logging` WHERE `dateCreated` BETWEEN DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL ? MINUTE) AND CURRENT_TIMESTAMP() ORDER BY `dateCreated` DESC";
+			$queryValues = [(int)$minute];
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1870,9 +2107,10 @@
 		}
 		
 		function getLoggingById($id){
-			$query = "SELECT * FROM `logging` WHERE `id`='$id' LIMIT 1";
+			$queryValues = [$id];
+			$query = "SELECT * FROM `logging` WHERE `id`=? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1887,9 +2125,10 @@
 		}
 		
 		function getSponsorLoginsLastSevenDays() {
+			$queryValues = [];
 			$query = "SELECT COUNT(*) AS count, DATE(dateCreated) as date FROM `logging` WHERE `message` LIKE 'REQUEST:SUCCESS;ACTION:SPONSORAUTHN%' AND dateCreated >= date_sub(curdate(), interval 7 day) GROUP BY date;";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1904,9 +2143,10 @@
 		}
 
 		function getCaptiveLoginsLastSevenDays() {
+			$queryValues = [];
 			$query = "SELECT COUNT(*) AS count, DATE(dateCreated) as date FROM `logging` WHERE `message` LIKE 'REQUEST:SUCCESS;ACTION:CAPTIVEAUTHN%' AND dateCreated >= date_sub(curdate(), interval 7 day) GROUP BY date;";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1921,9 +2161,10 @@
 		}
 
 		function getAdminLoginsLastSevenDays() {
+			$queryValues = [];
 			$query = "SELECT COUNT(*) AS count, DATE(dateCreated) as date FROM `logging` WHERE `message` LIKE 'REQUEST:SUCCESS;ACTION:ADMINAUTHN%' AND dateCreated >= date_sub(curdate(), interval 7 day) GROUP BY date;";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1938,9 +2179,10 @@
 		}
 
 		function getAddedEndpointsLastSevenDays() {
+			$queryValues = [];
 			$query = "SELECT COUNT(*) AS count, DATE(createdDate) as date FROM `endpoints` WHERE createdDate >= date_sub(curdate(), interval 7 day) GROUP BY date;";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1957,9 +2199,10 @@
 		
 
 		function getWirelessNetworkById($wirelessId){
-			$query = "SELECT * FROM wirelessNetworks WHERE id = '$wirelessId' LIMIT 1";
+			$queryValues = [$wirelessId];
+			$query = "SELECT * FROM wirelessNetworks WHERE id = ? LIMIT 1";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -1973,16 +2216,22 @@
 			}
 		}
 		
-		function addEndpoint($macAddress, $fullName, $description, $email, $psk, $vlan = null, $dacl = null, $expirationDate, $createdBy){
+		function addEndpoint($macAddress, $fullName, $description, $email, $psk, $vlan, $dacl, $expirationDate, $createdBy){
+            if (!ipskValidPsk(ipskPskPlain($psk))) { $this->lastError='PSK must be 8–63 printable ASCII characters or 64 hexadecimal digits.'; return false; }
+            $macAddress = ipskCanonicalMac($macAddress);
+            if ($macAddress === false) return false;
 			
-			$endpointQuery = sprintf("SELECT id FROM `endpoints` WHERE `macAddress` = '%s'", $this->dbConnection->real_escape_string($macAddress));
+            $endpointQueryValues = [];
+            $endpointQuery = "SELECT id FROM `endpoints` WHERE `macAddress` = ?";
 			
-			$endpointQueryResult = $this->dbConnection->query($endpointQuery);
+			$endpointQueryResult = $this->preparedQuery($endpointQuery, [$macAddress]);
 			
-			if($endpointQueryResult->num_rows < 1){
-				$query = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `vlan`, `dacl`, `expirationDate`, `createdBy`) VALUES('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s')", $this->dbConnection->real_escape_string($macAddress), $this->dbConnection->real_escape_string($macAddress), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+			if (!$endpointQueryResult) return false;
+            if($endpointQueryResult->num_rows < 1){
+                $queryValues = [];
+                $query = "INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `vlan`, `dacl`, `expirationDate`, `createdBy`) VALUES (?,LCASE(REPLACE(REPLACE(?,':',''),'-','')),?,?,?,?,?,?,?,?)";
 			
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, [$macAddress, $macAddress, $fullName, $description, $email, $psk, $vlan, $dacl, $expirationDate, $createdBy]);
 				
 				if($queryResult){
 					return $this->dbConnection->insert_id;
@@ -1996,7 +2245,21 @@
 			}
 			}
 		
-		function addBulkEndpoints($macAddress, $fullName, $description, $email, $psk, $vlan = null, $dacl = null, $expirationDate, $createdBy){
+		function addBulkEndpoints($macAddress, $fullName, $description, $email, $psk, $vlan, $dacl, $expirationDate, $createdBy){
+            foreach (is_array($psk) ? $psk : [$psk] as $key) { if (!ipskValidPsk(ipskPskPlain($key))) { $this->lastError='Invalid PSK in import.'; return false; } }
+            if (!is_array($macAddress)) return false;
+            $macAddress = array_map('ipskCanonicalMac', $macAddress);
+            if (in_array(false, $macAddress, true)) { $this->lastError='Invalid MAC address in import.'; return false; }
+            $this->lastError = '';
+            $seen = [];
+            foreach (is_array($macAddress) ? $macAddress : [] as $mac) {
+                $key = strtoupper(str_replace([':', '-'], '', $mac));
+                if (isset($seen[$key])) {
+                    $this->lastError = 'Duplicate MAC address in import: '.$mac.'. Remove duplicate rows and upload again.';
+                    return false;
+                }
+                $seen[$key] = true;
+            }
 			$multiInput = false;
 			$multipsk = false;
 			
@@ -2012,17 +2275,20 @@
 				$searchMacAddress = "";
 				
 				foreach($macAddress as $entry){
-					$searchMacAddress .= "'".$entry."',";
+					$searchMacAddress .= "?,";
 				}
 					
 				$searchMacAddress = substr($searchMacAddress, 0, -1);
 				
+				$endpointQueryValues = [];
 				$endpointQuery = sprintf("SELECT id, macAddress FROM `endpoints` WHERE `macAddress` IN (%s)", $searchMacAddress);
 				
-				$endpointQueryResult = $this->dbConnection->query($endpointQuery);
+				$endpointQueryResult = $this->preparedQuery($endpointQuery, array_values($macAddress));
 								
-				if($endpointQueryResult->num_rows < 1){
+				if (!$endpointQueryResult) return false;
+            if($endpointQueryResult->num_rows < 1){
 					$insertMacAddress = "";
+                    $insertValues = [];
 					$macAddressAdd['count'] = 0;
 					$macAddressAdd['skipped'] = 0;
 					$macAddressAdd['processed'] = 0;
@@ -2032,35 +2298,43 @@
 						if($multiInput == true){
 							foreach($macAddress as $entry => $key){
 								if($multipsk){
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk[$entry], $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= "(?,LCASE(REPLACE(REPLACE(?,':',''),'-','')),?,?,?,?,?,?,?,?),";
+									array_push($insertValues, $key, $key, $fullName[$entry], $description[$entry], $email[$entry], $psk[$entry], $vlan, $dacl, $expirationDate, $createdBy);
 								}else{
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= "(?,LCASE(REPLACE(REPLACE(?,':',''),'-','')),?,?,?,?,?,?,?,?),";
+									array_push($insertValues, $key, $key, $fullName[$entry], $description[$entry], $email[$entry], $psk, $vlan, $dacl, $expirationDate, $createdBy);
 								}
 							}
 						}else{
 							foreach($macAddress as $entry => $key){
 								if($multipsk){
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk[$entry], $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= "(?,LCASE(REPLACE(REPLACE(?,':',''),'-','')),?,?,?,?,?,?,?,?),";
+									array_push($insertValues, $key, $key, $fullName, $description, $email, $psk[$entry], $vlan, $dacl, $expirationDate, $createdBy);
 								}else{
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= "(?,LCASE(REPLACE(REPLACE(?,':',''),'-','')),?,?,?,?,?,?,?,?),";
+									array_push($insertValues, $key, $key, $fullName, $description, $email, $psk, $vlan, $dacl, $expirationDate, $createdBy);
 								}
 							}
 						}
 						
 						$insertMacAddress = substr($insertMacAddress, 0, -1);
 						
+						$bulkQueryValues = [];
 						$bulkQuery = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `vlan`, `dacl`, `expirationDate`, `createdBy`) VALUES%s", $insertMacAddress);
 						
-						$bulkQueryResult = $this->dbConnection->query($bulkQuery);
+						$bulkQueryResult = $this->preparedQuery($bulkQuery, $insertValues);
 						
 						if($bulkQueryResult){
-							$startInsertId = $this->dbConnection->insert_id;
+							
 							$affectRows = $this->dbConnection->affected_rows;
 							
 							foreach($macAddress as $entry => $key){
 								$macAddressAdd[$count]['macAddress'] = $key;
 								$macAddressAdd[$count]['exists'] = false;
-								$macAddressAdd[$count]['insertId'] = $startInsertId;
+								$inserted = $this->preparedQuery('SELECT id FROM endpoints WHERE macAddress=?', [$key]);
+                                $insertedRow = $inserted ? $inserted->fetch_assoc() : false;
+                                if (!$insertedRow) return false;
+                                $macAddressAdd[$count]['insertId'] = (int)$insertedRow['id'];
 								
 								if($multipsk){
 									$macAddressAdd[$count]['psk'] = $psk[$entry];
@@ -2070,7 +2344,7 @@
 								
 								$count++;
 								
-								$startInsertId++;
+								
 							}
 							
 							$macAddressAdd['count'] = $count;
@@ -2091,6 +2365,7 @@
 					}
 				}else{
 					$insertMacAddress = "";
+                    $insertValues = [];
 					$macAddressAdd['count'] = 0;
 					$macAddressAdd['skipped'] = 0;
 					$macAddressAdd['processed'] = 0;
@@ -2115,35 +2390,43 @@
 						if($multiInput == true){
 							foreach($macAddress as $entry => $key){
 								if($multipsk){
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk[$entry], $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= "(?,LCASE(REPLACE(REPLACE(?,':',''),'-','')),?,?,?,?,?,?,?,?),";
+									array_push($insertValues, $key, $key, $fullName[$entry], $description[$entry], $email[$entry], $psk[$entry], $vlan, $dacl, $expirationDate, $createdBy);
 								}else{
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName[$entry]), $this->dbConnection->real_escape_string($description[$entry]), $this->dbConnection->real_escape_string($email[$entry]), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= "(?,LCASE(REPLACE(REPLACE(?,':',''),'-','')),?,?,?,?,?,?,?,?),";
+									array_push($insertValues, $key, $key, $fullName[$entry], $description[$entry], $email[$entry], $psk, $vlan, $dacl, $expirationDate, $createdBy);
 								}
 							}
 						}else{
 							foreach($macAddress as $entry => $key){
 								if($multipsk){
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk[$entry], $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= "(?,LCASE(REPLACE(REPLACE(?,':',''),'-','')),?,?,?,?,?,?,?,?),";
+									array_push($insertValues, $key, $key, $fullName, $description, $email, $psk[$entry], $vlan, $dacl, $expirationDate, $createdBy);
 								}else{
-									$insertMacAddress .= sprintf("('%s',LCASE(REPLACE(REPLACE('%s',':',''),'-','')),'%s','%s','%s','%s','%s','%s',%d,'%s'),", $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($key), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $psk, $vlan, $dacl, $expirationDate, $this->dbConnection->real_escape_string($createdBy));
+									$insertMacAddress .= "(?,LCASE(REPLACE(REPLACE(?,':',''),'-','')),?,?,?,?,?,?,?,?),";
+									array_push($insertValues, $key, $key, $fullName, $description, $email, $psk, $vlan, $dacl, $expirationDate, $createdBy);
 								}
 							}
 						}
 						
 						$insertMacAddress = substr($insertMacAddress, 0, -1);
 						
+						$bulkQueryValues = [];
 						$bulkQuery = sprintf("INSERT INTO `endpoints` (`macAddress`, `password`, `fullName`, `description`, `emailAddress`, `pskValue`, `vlan`, `dacl`, `expirationDate`, `createdBy`) VALUES%s", $insertMacAddress);
 						
-						$bulkQueryResult = $this->dbConnection->query($bulkQuery);
+						$bulkQueryResult = $this->preparedQuery($bulkQuery, $insertValues);
 						
 						if($bulkQueryResult){
-							$startInsertId = $this->dbConnection->insert_id;
+							
 							$affectRows = $this->dbConnection->affected_rows;
 							
 							foreach($macAddress as $entry => $key){
 								$macAddressAdd[$count]['macAddress'] = $key;
 								$macAddressAdd[$count]['exists'] = false;
-								$macAddressAdd[$count]['insertId'] = $startInsertId;
+								$inserted = $this->preparedQuery('SELECT id FROM endpoints WHERE macAddress=?', [$key]);
+                                $insertedRow = $inserted ? $inserted->fetch_assoc() : false;
+                                if (!$insertedRow) return false;
+                                $macAddressAdd[$count]['insertId'] = (int)$insertedRow['id'];
 								
 								if($multipsk){
 									$macAddressAdd[$count]['psk'] = $psk[$entry];
@@ -2153,7 +2436,7 @@
 								
 								$count++;
 								
-								$startInsertId++;
+								
 							}
 							
 							$macAddressAdd['count'] = $count;
@@ -2176,19 +2459,22 @@
 			
 			if(is_array($macAddress)){
 				$insertAssociation = "";
+                $associationValues = [];
 				
 				for($rowCount = 0; $rowCount < $macAddress['count']; $rowCount++){
 					if($macAddress[$rowCount]['exists'] != true){
-						$insertAssociation .= sprintf("('%d','%s','%d','%s'),", $this->dbConnection->real_escape_string($macAddress[$rowCount]['insertId']), $this->dbConnection->real_escape_string($macAddress[$rowCount]['macAddress']), $this->dbConnection->real_escape_string($epGroupID), $this->dbConnection->real_escape_string($createdBy));
+						$insertAssociation .= "(?,?,?,?),";
+						array_push($associationValues, $macAddress[$rowCount]['insertId'], $macAddress[$rowCount]['macAddress'], $epGroupID, $createdBy);
 					}
 				}
 				
 				if($insertAssociation != ""){
 					$insertAssociation = substr($insertAssociation, 0, -1);
 					
+					$bulkQueryValues = [];
 					$bulkQuery = sprintf("INSERT INTO endpointAssociations (`endpointId`, `macAddress`, `epGroupID`, `createdBy`) VALUES%s", $insertAssociation);
 					
-					$bulkQueryResult = $this->dbConnection->query($bulkQuery);
+					$bulkQueryResult = $this->preparedQuery($bulkQuery, $associationValues);
 					
 					if($bulkQueryResult){
 						return true;
@@ -2202,12 +2488,15 @@
 		}
 		
 		function addEndpointAssociation($endpointId, $macAddress, $epGroupID, $createdBy){
+            $macAddress = ipskCanonicalMac($macAddress);
+            if ($macAddress === false) return false;
 			
-			$query = "INSERT INTO endpointAssociations (`endpointId`, `macAddress`, `epGroupID`, `createdBy`) VALUES('$endpointId','$macAddress','$epGroupID','$createdBy')";
+			$queryValues = [];
+			$query = "INSERT INTO endpointAssociations (`endpointId`, `macAddress`, `epGroupID`, `createdBy`) SELECT id,macAddress,?,createdBy FROM endpoints WHERE id=? AND macAddress=?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, [$epGroupID, $endpointId, $macAddress]);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2217,11 +2506,12 @@
 
 		function addWirelessNetwork($ssidName, $ssidDescription, $createdBy){
 			
-			$query = sprintf("INSERT INTO wirelessNetworks (`ssidName`, `ssidDescription`, `createdBy`) VALUES('%s','%s','%s')", $this->dbConnection->real_escape_string($ssidName), $this->dbConnection->real_escape_string($ssidDescription), $this->dbConnection->real_escape_string($createdBy));
+			$queryValues = [$ssidName, $ssidDescription, $createdBy];
+			$query = "INSERT INTO wirelessNetworks (`ssidName`, `ssidDescription`, `createdBy`) VALUES(?,?,?)";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2230,12 +2520,14 @@
 		}
 
 		function addAuthorizationTemplate($authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, $termLengthSeconds, $pskLength, $vlan, $dacl, $createdBy){
+            if (!ipskValidPskPolicy($ciscoAVPairPSK, $pskLength)) { $this->lastError='Invalid PSK or generated key length.'; return false; }
 			
-			$query = sprintf("INSERT INTO authorizationTemplates (`authzPolicyName`, `authzPolicyDescription`, `ciscoAVPairPSK`, `termLengthSeconds`, `pskLength`, `vlan`, `dacl`, `createdBy`) VALUES('%s','%s','%s',%d,%d,'%s','%s','%s')", $this->dbConnection->real_escape_string($authzPolicyName), $this->dbConnection->real_escape_string($authzPolicyDescription), $this->dbConnection->real_escape_string($ciscoAVPairPSK), $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($pskLength), $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($createdBy));
+			$queryValues = [$authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, (int)($termLengthSeconds), (int)($pskLength), $vlan, $dacl, $createdBy];
+			$query = "INSERT INTO authorizationTemplates (`authzPolicyName`, `authzPolicyDescription`, `ciscoAVPairPSK`, `termLengthSeconds`, `pskLength`, `vlan`, `dacl`, `createdBy`) VALUES(?,?,?,?,?,?,?,?)";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2245,11 +2537,12 @@
 		
 		function addSponsorGroup($groupName, $groupDescription, $sponsorGroupAuthType, $members, $maxDevices, $groupType, $createdBy){
 			
-			$query = sprintf("INSERT INTO sponsorGroups (`sponsorGroupName`, `sponsorGroupDescription`, `sponsorGroupType`, `sponsorGroupAuthType`, `maxDevices`, `members`, `createdBy`) VALUES('%s','%s','%d','%d',%d,'%s','%s')", $this->dbConnection->real_escape_string($groupName), $this->dbConnection->real_escape_string($groupDescription), $this->dbConnection->real_escape_string($groupType), $this->dbConnection->real_escape_string($sponsorGroupAuthType), $this->dbConnection->real_escape_string($maxDevices), $this->dbConnection->real_escape_string(""), $this->dbConnection->real_escape_string($createdBy));
+			$queryValues = [$groupName, $groupDescription, (int)($groupType), (int)($sponsorGroupAuthType), (int)($maxDevices), "", $createdBy];
+			$query = "INSERT INTO sponsorGroups (`sponsorGroupName`, `sponsorGroupDescription`, `sponsorGroupType`, `sponsorGroupAuthType`, `maxDevices`, `members`, `createdBy`) VALUES(?,?,?,?,?,?,?)";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return $this->dbConnection->insert_id;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult ? $this->dbConnection->insert_id : false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2258,30 +2551,41 @@
 		}
 
 		function addInternalUser($userName, $fullName, $description, $email, $encryptedpassword, $createdBy){
+            return $this->atomic(function () use ($userName, $fullName, $description, $email, $encryptedpassword, $createdBy) {
 			
-			$query = sprintf("INSERT INTO internalUsers (`userName`, `fullName`, `description`, `email`, `password`, `dn`, `createdBy`) VALUES('%s','%s','%s','%s','%s','%s','%s')", $this->dbConnection->real_escape_string($userName), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($encryptedpassword), "CN=".$this->dbConnection->real_escape_string($userName).",CN=Users,DC=System,DC=Local", $this->dbConnection->real_escape_string($createdBy));
+			$queryValues = [$userName, $fullName, $description, $email, $encryptedpassword, "CN=".$userName.",CN=Users,DC=System,DC=Local", $createdBy];
+			$query = "INSERT INTO internalUsers (`userName`, `fullName`, `description`, `email`, `password`, `dn`, `createdBy`) VALUES(?,?,?,?,?,?,?)";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 			
-				$insertId = $this->dbConnection->insert_id;
+				if (!$queryResult) return false;
+                $insertId = $this->dbConnection->insert_id;
 				
 				$userSidId = 1000 + $insertId;
 				$userSid = "S-1-9-1556668800-1556668800-$userSidId";
 				
-				$sidQuery = "UPDATE `internalUsers` SET `sid`='$userSid' WHERE `id` = '$insertId'";
+				$sidQueryValues = [$userSid, $insertId];
+				$sidQuery = "UPDATE `internalUsers` SET `sid`=? WHERE `id` = ?";
 				
-				$queryResult = $this->dbConnection->query($sidQuery);
+				$queryResult = $this->preparedQuery($sidQuery, $sidQueryValues);
+                if (!$queryResult) return false;
 								
 				return $insertId;
 			}
 			catch (Exception $e) {
-				//error_log("Caught Exception: $e");
+				$this->lastError = 'Username already exists or could not be saved. Choose a unique username.';
 				return false;
 			}
+            });
 		}
 		
-		function addInternalGroup($groupName, $groupType, $groupDescription, $groupDn, $permission, $createdBy){
+		function addInternalGroup($groupName, $groupType, $groupDescription, $groupDn, $permission, $createdBy, $directoryId = null){
+            $sourceId = (int)$groupType === 0 ? 0 : $this->getDirectoryIdentitySource($directoryId);
+            if (!in_array((int)$groupType,[0,1],true) || $sourceId === false || ((int)$groupType === 1 && trim($groupDn) === '')) {
+                $this->lastError='Select a configured authentication directory for this external group.'; return false;
+            }
+
 			
 			if($groupType == 0){
 				$groupDnUpdate = "CN=".$groupName.",CN=Users,DC=System,DC=Local";
@@ -2289,9 +2593,10 @@
 				$groupDnUpdate = $groupDn;
 			}
 			
-			$query = sprintf("INSERT INTO internalGroups (`groupName`, `groupType`, `description`, `groupDn`, `permissions`, `createdBy`) VALUES('%s','%d','%s','%s',%d,'%s')", $this->dbConnection->real_escape_string($groupName), $this->dbConnection->real_escape_string($groupType), $this->dbConnection->real_escape_string($groupDescription), $this->dbConnection->real_escape_string($groupDnUpdate), $this->dbConnection->real_escape_string($permission), $this->dbConnection->real_escape_string($createdBy));
+			$queryValues = [$groupName, (int)($groupType), $groupDescription, $groupDnUpdate, (int)($permission), $createdBy, $sourceId];
+			$query = "INSERT INTO internalGroups (`groupName`, `groupType`, `description`, `groupDn`, `permissions`, `createdBy`, `directoryId`) VALUES(?,?,?,?,?,?,?)";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				return $this->dbConnection->insert_id;
@@ -2306,9 +2611,10 @@
 			
 			if($portProtocol){
 				
-				$query = sprintf("INSERT INTO sponsorPortals (`portalName`, `description`, `portalId`, `portalType`, `enabled`, `visible`, `portalHostname`, `portalTcpPort`, `portalSecure`, `authenticationDirectory`, `createdBy`) VALUES('%s','%s','%s','%d','1','1','%s','%d','%d','%d','%s')", $this->dbConnection->real_escape_string($portalName), $this->dbConnection->real_escape_string($portalDescription), $this->dbConnection->real_escape_string($portalGuid), $this->dbConnection->real_escape_string($portalType), $this->dbConnection->real_escape_string($sponsorHostname), $this->dbConnection->real_escape_string($portProtocol['portalPort']), $this->dbConnection->real_escape_string($portProtocol['portalSecure']), $this->dbConnection->real_escape_string($authDirectory), $this->dbConnection->real_escape_string($createdBy), $this->dbConnection->real_escape_string($createdBy));
+				$queryValues = [$portalName, $portalDescription, $portalGuid, (int)($portalType), $sponsorHostname, (int)($portProtocol['portalPort']), (int)($portProtocol['portalSecure']), (int)($authDirectory), $createdBy];
+				$query = "INSERT INTO sponsorPortals (`portalName`, `description`, `portalId`, `portalType`, `enabled`, `visible`, `portalHostname`, `portalTcpPort`, `portalSecure`, `authenticationDirectory`, `createdBy`) VALUES(?,?,?,?,'1','1',?,?,?,?,?)";
 				
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 				
 				if($queryResult){
 					return $this->dbConnection->insert_id;
@@ -2322,18 +2628,22 @@
 
 		function addSponsorInternalGroupMapping($internalGroupIds, $sponsorGroupId, $permissions, $createdBy){
 			$querysuffix = "";
+            $querysuffixValues = [];
 			
 			for($idCount = 0; $idCount < count($internalGroupIds); $idCount++){
-				$querysuffix .= "('$sponsorGroupId','$internalGroupIds[$idCount]','$permissions','$createdBy'),";
+				$querysuffix .= "(?,?,?,?),";
+				array_push($querysuffixValues, $sponsorGroupId, $internalGroupIds[$idCount], $permissions, $createdBy);
 			}
 			
 			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
+			$queryValues = [];
 			$query = sprintf("INSERT INTO sponsorGroupInternalMapping (`sponsorGroupId`, `internalGroupId`, `groupPermissions`, `createdBy`) VALUES %s", $querysuffix);
+			$queryValues = $querysuffixValues;
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2343,18 +2653,22 @@
 		
 		function addSponsorGroupPortalMapping($internalGroupIds, $sponsorPortalId, $createdBy){
 			$querysuffix = "";
+            $querysuffixValues = [];
 			
 			for($idCount = 0; $idCount < count($internalGroupIds); $idCount++){
-				$querysuffix .= "('$internalGroupIds[$idCount]','$sponsorPortalId','$createdBy'),";
+				$querysuffix .= "(?,?,?),";
+				array_push($querysuffixValues, $internalGroupIds[$idCount], $sponsorPortalId, $createdBy);
 			}
 			
 			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
+			$queryValues = [];
 			$query = sprintf("INSERT INTO sponsorGroupPortalMapping (`sponsorGroupId`, `sponsorPortalId`, `createdBy`) VALUES %s", $querysuffix);
+			$queryValues = $querysuffixValues;
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2364,22 +2678,27 @@
 
 		function addSponsorGroupSSIDMapping($wirelessIds, $sponsorGroupId, $createdBy){
 			$querysuffix = "";
+            $querysuffixValues = [];
 			
 			if(is_array($wirelessIds)){
 				for($idCount = 0; $idCount < count($wirelessIds); $idCount++){
-					$querysuffix .= "('$sponsorGroupId','$wirelessIds[$idCount]','$createdBy'),";
+					$querysuffix .= "(?,?,?),";
+					array_push($querysuffixValues, $sponsorGroupId, $wirelessIds[$idCount], $createdBy);
 				}
 			}else{
-				$querysuffix .= "('$sponsorGroupId','$wirelessIds','$createdBy'),";
+				$querysuffix .= "(?,?,?),";
+				array_push($querysuffixValues, $sponsorGroupId, $wirelessIds, $createdBy);
 			}
 			
 			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
+			$queryValues = [];
 			$query = sprintf("INSERT INTO sponsorGroupSSIDMapping (`sponsorGroupId`, `wirelessSSIDId`, `createdBy`) VALUES %s", $querysuffix);
+			$queryValues = $querysuffixValues;
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2389,22 +2708,27 @@
 		
 		function addSponsorGroupEPGMapping($endpointGroupIds, $sponsorGroupId, $createdBy){
 			$querysuffix = "";
+            $querysuffixValues = [];
 			
 			if(is_array($endpointGroupIds)){
 				for($idCount = 0; $idCount < count($endpointGroupIds); $idCount++){
-					$querysuffix .= "('$sponsorGroupId','$endpointGroupIds[$idCount]','$createdBy'),";
+					$querysuffix .= "(?,?,?),";
+					array_push($querysuffixValues, $sponsorGroupId, $endpointGroupIds[$idCount], $createdBy);
 				}
 			}else{
-				$querysuffix .= "('$sponsorGroupId','$endpointGroupIds','$createdBy'),";
+				$querysuffix .= "(?,?,?),";
+				array_push($querysuffixValues, $sponsorGroupId, $endpointGroupIds, $createdBy);
 			}
 			
 			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
+			$queryValues = [];
 			$query = sprintf("INSERT INTO sponsorGroupEPGMapping (`sponsorGroupId`, `endpointGroupId`, `createdBy`) VALUES %s", $querysuffix);
+			$queryValues = $querysuffixValues;
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2414,11 +2738,12 @@
 		
 		function addEndpointGroup($epGroupName, $epGroupDescription, $authzTemplate, $notificationPermission, $createdBy){
 			
-			$query = sprintf("INSERT INTO endpointGroups (`groupName`, `description`, `authzTemplateId`, `notificationPermission`, `createdBy`) VALUES('%s','%s',%d, %d,'%s')", $this->dbConnection->real_escape_string($epGroupName), $this->dbConnection->real_escape_string($epGroupDescription), $this->dbConnection->real_escape_string($authzTemplate), $this->dbConnection->real_escape_string($notificationPermission), $this->dbConnection->real_escape_string($createdBy));
+			$queryValues = [$epGroupName, $epGroupDescription, (int)($authzTemplate), (int)($notificationPermission), $createdBy];
+			$query = "INSERT INTO endpointGroups (`groupName`, `description`, `authzTemplateId`, `notificationPermission`, `createdBy`) VALUES(?,?,?, ?,?)";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2428,11 +2753,12 @@
 		
 		function addUserCacheEntry($sid, $userPrincipalName, $samAccountName, $userDn, $systemSid){
 			
-			$query = sprintf("INSERT INTO `userSidCache` (`sid`, `userPrincipalName`, `samAccountName`, `userDn`,`createdBy`) VALUES('%s','%s','%s','%s','%s')", $this->dbConnection->real_escape_string($sid), $this->dbConnection->real_escape_string($userPrincipalName), $this->dbConnection->real_escape_string($samAccountName), $this->dbConnection->real_escape_string($userDn), $systemSid);
+			$queryValues = [$sid, $userPrincipalName, $samAccountName, $userDn, $systemSid];
+			$query = "INSERT INTO `userSidCache` (`sid`, `userPrincipalName`, `samAccountName`, `userDn`,`createdBy`) VALUES(?,?,?,?,?)";
 				
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2440,7 +2766,8 @@
 			}
 		}
 		
-		function addLdapServer($adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy){
+		function addLdapServer($adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy, $identitySourceId = null){
+            return $this->atomic(function () use ($adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy, $identitySourceId) {
 			
 			
 			$nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
@@ -2449,22 +2776,27 @@
 
 			$encryptedPassword = base64_encode($nonce . $ciphertext);
 						
-			$query = sprintf("INSERT INTO `ldapServers` (`adConnectionName`, `adServer`, `adDomain`, `adUsername`, `adPassword`, `adBaseDN`, `adSecure`, `directoryType`, `createdBy`) VALUES('%s','%s','%s','%s','%s','%s','%s','%s','%s')", $this->dbConnection->real_escape_string($adConnectionName), $this->dbConnection->real_escape_string($adServer), $this->dbConnection->real_escape_string($adDomain), $this->dbConnection->real_escape_string($adUsername), $this->dbConnection->real_escape_string($encryptedPassword), $this->dbConnection->real_escape_string($adBaseDN), $this->dbConnection->real_escape_string($adSecure), $this->dbConnection->real_escape_string($directoryType), $this->dbConnection->real_escape_string($createdBy));
+			$queryValues = [$adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy];
+			$query = "INSERT INTO `ldapServers` (`adConnectionName`, `adServer`, `adDomain`, `adUsername`, `adPassword`, `adBaseDN`, `adSecure`, `directoryType`, `createdBy`) VALUES(?,?,?,?,?,?,?,?,?)";
 
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 
 			if($queryResult){
-				return $this->dbConnection->insert_id;
+				$directoryId = $this->dbConnection->insert_id;
+                if ($identitySourceId !== null && !$this->setDirectoryIdentitySource($directoryId, $identitySourceId)) { $this->lastError='Invalid identity source alias.'; return false; }
+                return $directoryId;
 			}else{
 				return false;
 			}
+            });
 		}
 		
 		function addHostname($hostname, $createdBy){
 					
-			$query = sprintf("INSERT INTO `portalHostnames` (`hostname`, `createdBy`) VALUES('%s','%s')", $this->dbConnection->real_escape_string($hostname), $this->dbConnection->real_escape_string($createdBy));
+			$queryValues = [$hostname, $createdBy];
+			$query = "INSERT INTO `portalHostnames` (`hostname`, `createdBy`) VALUES(?,?)";
 
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 
 			if($queryResult){
 				return $this->dbConnection->insert_id;
@@ -2475,9 +2807,10 @@
 
 		function addProtocolPort($protocol, $port, $createdBy){
 					
-			$query = sprintf("INSERT INTO `portalPorts` (`portalSecure`, `portalPort`, `createdBy`) VALUES('%s','%s','%s')", $this->dbConnection->real_escape_string($protocol), $this->dbConnection->real_escape_string($port), $this->dbConnection->real_escape_string($createdBy));
+			$queryValues = [$protocol, $port, $createdBy];
+			$query = "INSERT INTO `portalPorts` (`portalSecure`, `portalPort`, `createdBy`) VALUES(?,?,?)";
 
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 
 			if($queryResult){
 				return $this->dbConnection->insert_id;
@@ -2488,11 +2821,12 @@
 		
 		function deleteWirelessNetworkById($id){
 			
-			$query = sprintf("UPDATE wirelessNetworks SET `visible`='0' WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "UPDATE wirelessNetworks SET `visible`='0' WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2500,13 +2834,27 @@
 			}
 		}
 		
+        function canDeleteInternalObject($kind, $id) {
+            if (!in_array($kind,['user','group'],true) || !filter_var($id,FILTER_VALIDATE_INT) || $id <= 1) return false;
+            if ($kind === 'user') {
+                $target = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUserGroupMapping m JOIN internalGroups g ON g.id=m.groupId WHERE m.userId=? AND g.permissions=1 AND g.groupType=0 AND g.visible=1',[$id]);
+                $remaining = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUsers u JOIN internalUserGroupMapping m ON m.userId=u.id JOIN internalGroups g ON g.id=m.groupId WHERE u.id<>? AND u.enabled=1 AND g.permissions=1 AND g.groupType=0 AND g.visible=1',[$id]);
+            } else {
+                $target = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalGroups WHERE id=? AND permissions=1',[$id]);
+                $remaining = $this->preparedQuery('SELECT COUNT(*) AS total FROM internalUsers u JOIN internalUserGroupMapping m ON m.userId=u.id JOIN internalGroups g ON g.id=m.groupId WHERE g.id<>? AND u.enabled=1 AND g.permissions=1 AND g.groupType=0 AND g.visible=1',[$id]);
+            }
+            return $target && $remaining && ((int)$target->fetch_assoc()['total']===0 || (int)$remaining->fetch_assoc()['total']>0);
+        }
+
 		function deleteInternalUserGroupMappingById($id){
+            if (!$this->canDeleteInternalObject('group', $id)) return false;
 			
-			$query = sprintf("DELETE FROM `internalUserGroupMapping` WHERE `groupId` = %d", $this->dbConnection->real_escape_string($id));
+			$queryValues = [(int)($id)];
+			$query = "DELETE FROM `internalUserGroupMapping` WHERE `groupId` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2515,12 +2863,14 @@
 		}
 		
 		function deleteInternalUserGroupMappingByUserId($id){
+            if (!$this->canDeleteInternalObject('user', $id)) return false;
 			
-			$query = sprintf("DELETE FROM `internalUserGroupMapping` WHERE `userId` = %d", $this->dbConnection->real_escape_string($id));
+			$queryValues = [(int)($id)];
+			$query = "DELETE FROM `internalUserGroupMapping` WHERE `userId` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2529,12 +2879,14 @@
 		}
 
 		function deletePortalGroupMappingById($id){
+            if (!$this->canDeleteInternalObject('group', $id)) return false;
 			
-			$query = sprintf("DELETE FROM `sponsorGroupInternalMapping` WHERE `internalGroupId` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "DELETE FROM `sponsorGroupInternalMapping` WHERE `internalGroupId` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2543,12 +2895,14 @@
 		}
 
 		function deleteInternalGroupById($id){
+            if (!$this->canDeleteInternalObject('group', $id)) return false;
 			
-			$query = sprintf("DELETE FROM `internalGroups` WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "DELETE FROM `internalGroups` WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2557,12 +2911,14 @@
 		}
 
 		function deleteInternalUserById($id){
+            if (!$this->canDeleteInternalObject('user', $id)) return false;
 			
-			$query = sprintf("DELETE FROM `internalUsers` WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "DELETE FROM `internalUsers` WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2571,12 +2927,16 @@
 		}
 		
 		function deleteLdapServerById($id){
+            $references = $this->preparedQuery('SELECT (SELECT COUNT(*) FROM internalGroups WHERE directoryId=?) + (SELECT COUNT(*) FROM ldapServers WHERE identitySourceId=?) AS total', [$id,$id]);
+            if (!$references || (int)$references->fetch_assoc()['total'] > 0) { $this->lastError='Remove or reassign this directory’s group grants and server aliases before deleting it.'; return false; }
+
 			
-			$query = sprintf("DELETE FROM `ldapServers` WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "DELETE FROM `ldapServers` WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2586,11 +2946,12 @@
 		
 		function deleteAuthTemplateById($id){
 			
-			$query = sprintf("UPDATE authorizationTemplates SET `visible`='0' WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "UPDATE authorizationTemplates SET `visible`='0' WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2600,11 +2961,12 @@
 		
 		function deleteEndpointById($id){
 			
-			$query = sprintf("DELETE FROM `endpoints` WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "DELETE FROM `endpoints` WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2614,11 +2976,12 @@
 		
 		function deleteEndpointGroupById($id){
 			
-			$query = sprintf("UPDATE endpointGroups SET `visible`='0' WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "UPDATE endpointGroups SET `visible`='0' WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2628,11 +2991,12 @@
 		
 		function deleteEndpointAssociationbyId($id){
 			
-			$query = sprintf("DELETE FROM `endpointAssociations` WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "DELETE FROM `endpointAssociations` WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2642,11 +3006,12 @@
 		
 		function deleteSponsorGroupById($id){
 			
-			$query = sprintf("UPDATE sponsorGroups SET `visible`='0' WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "UPDATE sponsorGroups SET `visible`='0' WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2656,11 +3021,12 @@
 		
 		function deleteSponsorPortalById($id){
 			
-			$query = sprintf("UPDATE sponsorPortals SET `visible`='0', `enabled`='0' WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "UPDATE sponsorPortals SET `visible`='0', `enabled`='0' WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2672,18 +3038,22 @@
 			
 			if(is_array($ids)){
 				$removeIds = "";
+                $removeIdValues = [];
 				
 				foreach($ids as $idEntry){
-					$removeIds .= "'$idEntry',";
+					$removeIds .= "?,";
+                    $removeIdValues[] = $idEntry;
 				}
 				
-				$removeIds = substr($removeIds, 0, -1);
+				$removeIds = $removeIdValues ? substr($removeIds, 0, -1) : "NULL";
 
+				$queryValues = [];
 				$query = "DELETE FROM `portalHostnames` WHERE `id` IN ($removeIds)";
+				$queryValues = $removeIdValues;
 				
 				try {
-					$queryResult = $this->dbConnection->query($query);
-					return true;
+					$queryResult = $this->preparedQuery($query, $queryValues);
+					return $queryResult !== false;
 				}
 				catch (Exception $e) {
 					//error_log("Caught Exception: $e");
@@ -2698,18 +3068,22 @@
 			
 			if(is_array($ids)){
 				$removeIds = "";
+                $removeIdValues = [];
 				
 				foreach($ids as $idEntry){
-					$removeIds .= "'$idEntry',";
+					$removeIds .= "?,";
+                    $removeIdValues[] = $idEntry;
 				}
 				
-				$removeIds = substr($removeIds, 0, -1);
+				$removeIds = $removeIdValues ? substr($removeIds, 0, -1) : "NULL";
 
+				$queryValues = [];
 				$query = "DELETE FROM `portalPorts` WHERE `id` IN ($removeIds)";
+				$queryValues = $removeIdValues;
 				
 				try {
-					$queryResult = $this->dbConnection->query($query);
-					return true;
+					$queryResult = $this->preparedQuery($query, $queryValues);
+					return $queryResult !== false;
 				}
 				catch (Exception $e) {
 					//error_log("Caught Exception: $e");
@@ -2726,11 +3100,12 @@
 			
 			if($portProtocol){
 				
-				$query = sprintf("UPDATE sponsorPortals SET `portalName`='%s', `description`='%s', `portalType`='%d', `portalHostname`='%s', `portalTcpPort`='%s', `portalSecure`='%d', `authenticationDirectory`='%d' WHERE id='%d'", $this->dbConnection->real_escape_string($portalName), $this->dbConnection->real_escape_string($portalDescription), $this->dbConnection->real_escape_string($portalType), $this->dbConnection->real_escape_string($sponsorHostname), $this->dbConnection->real_escape_string($portProtocol['portalPort']), $this->dbConnection->real_escape_string($portProtocol['portalSecure']), $this->dbConnection->real_escape_string($authDirectory), $this->dbConnection->real_escape_string($portalId));
+				$queryValues = [$portalName, $portalDescription, (int)($portalType), $sponsorHostname, $portProtocol['portalPort'], (int)($portProtocol['portalSecure']), (int)($authDirectory), (int)($portalId)];
+				$query = "UPDATE sponsorPortals SET `portalName`=?, `description`=?, `portalType`=?, `portalHostname`=?, `portalTcpPort`=?, `portalSecure`=?, `authenticationDirectory`=? WHERE id=?";
 				
 				try {
-					$queryResult = $this->dbConnection->query($query);
-					return true;
+					$queryResult = $this->preparedQuery($query, $queryValues);
+					return $queryResult !== false;
 				}
 				catch (Exception $e) {
 					//error_log("Caught Exception: $e");
@@ -2742,31 +3117,45 @@
 		}		
 		
 		function updateSponsorGroupPortalMapping($sponsorGroupIds, $sponsorPortalId, $createdBy){
+            return $this->atomic(function () use ($sponsorGroupIds, $sponsorPortalId, $createdBy) {
 			$querysuffix = "";
+            $querysuffixValues = [];
 			
-			$deleteQuery = "DELETE FROM `sponsorGroupPortalMapping` WHERE `sponsorPortalId` = '$sponsorPortalId'";
+			$deleteQueryValues = [$sponsorPortalId];
+			$deleteQuery = "DELETE FROM `sponsorGroupPortalMapping` WHERE `sponsorPortalId` = ?";
 			
-			$queryResult = $this->dbConnection->query($deleteQuery);
+			$queryResult = $this->preparedQuery($deleteQuery, $deleteQueryValues);
+            if (!$queryResult) return false;
 						
 			for($idCount = 0; $idCount < count($sponsorGroupIds); $idCount++){
-				$querysuffix .= "('$sponsorGroupIds[$idCount]','$sponsorPortalId','$createdBy'),";
+				$querysuffix .= "(?,?,?),";
+				array_push($querysuffixValues, $sponsorGroupIds[$idCount], $sponsorPortalId, $createdBy);
 			}
 			
-			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
+			if ($querysuffix === '') return true;
+            $querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
+			$queryValues = [];
 			$query = sprintf("INSERT INTO sponsorGroupPortalMapping (`sponsorGroupId`, `sponsorPortalId`, `createdBy`) VALUES %s", $querysuffix);
+			$queryValues = $querysuffixValues;
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
 				return false;
 			}
+            });
 		}
 		
-		function updateInternalGroup($groupId, $groupName, $groupType, $groupDescription, $groupDn, $permission, $createdBy){
+		function updateInternalGroup($groupId, $groupName, $groupType, $groupDescription, $groupDn, $permission, $createdBy, $directoryId = null){
+            $sourceId = (int)$groupType === 0 ? 0 : $this->getDirectoryIdentitySource($directoryId);
+            if (!in_array((int)$groupType,[0,1],true) || $sourceId === false || ((int)$groupType === 1 && trim($groupDn) === '')) {
+                $this->lastError='Select a configured authentication directory for this external group.'; return false;
+            }
+
 			
 			if($groupType == 0){
 				$groupDnUpdate = "CN=".$groupName.",CN=Users,DC=System,DC=Local";
@@ -2774,11 +3163,12 @@
 				$groupDnUpdate = $groupDn;
 			}
 			
-			$query = sprintf("UPDATE `internalGroups` SET `groupName`='%s', `groupType`='%d', `description`='%s', `groupDn`='%s', `permissions`='%d' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($groupName), $this->dbConnection->real_escape_string($groupType), $this->dbConnection->real_escape_string($groupDescription), $this->dbConnection->real_escape_string($groupDnUpdate), $this->dbConnection->real_escape_string($permission), $this->dbConnection->real_escape_string($groupId));
+			$queryValues = [$groupName, (int)($groupType), $groupDescription, $groupDnUpdate, (int)($permission), $sourceId, (int)($groupId)];
+			$query = "UPDATE `internalGroups` SET `groupName`=?, `groupType`=?, `description`=?, `groupDn`=?, `permissions`=?, `directoryId`=? WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2786,38 +3176,33 @@
 			}
 		}
 
-		function updateInternalUserGroupMapping($internalGroupIds, $userId, $createdBy){
-			$querysuffix = "";
-			
-			$deleteQuery = "DELETE FROM `internalUserGroupMapping` WHERE `userId` = '$userId'";
-			
-			$queryResult = $this->dbConnection->query($deleteQuery);
-	
-			for($idCount = 0; $idCount < count($internalGroupIds); $idCount++){
-				$querysuffix .= "('$internalGroupIds[$idCount]','$userId','$createdBy'),";
-			}
-			
-			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
-			
-			$query = sprintf("INSERT INTO `internalUserGroupMapping` (`groupId`, `userId`, `createdBy`) VALUES %s", $querysuffix);
+        function updateInternalUserGroupMapping($internalGroupIds, $userId, $createdBy) {
+            if (!is_array($internalGroupIds) || !filter_var($userId,FILTER_VALIDATE_INT) || $userId < 1) return false;
+            foreach ($internalGroupIds as $id) if (!filter_var($id,FILTER_VALIDATE_INT) || $id < 1) return false;
+            $ids=array_values(array_unique(array_map('intval',$internalGroupIds)));
+            if ($userId == 1 && !in_array(1,$ids,true)) return false;
+            if (!$this->canDeleteInternalObject('user',$userId)) {
+                if (!$ids) return false;
+                $admin=$this->preparedQuery('SELECT COUNT(*) AS total FROM internalGroups WHERE permissions=1 AND groupType=0 AND visible=1 AND id IN ('.implode(',',array_fill(0,count($ids),'?')).')',$ids);
+                if (!$admin || (int)$admin->fetch_assoc()['total']===0) return false;
+            }
+            return $this->atomic(function () use ($ids, $userId, $createdBy) {
+                if (!$this->preparedQuery('DELETE FROM internalUserGroupMapping WHERE userId=?',[$userId])) throw new RuntimeException('Delete failed');
+                foreach ($ids as $id) {
+                    if (!$this->preparedQuery('INSERT INTO internalUserGroupMapping (groupId,userId,createdBy) VALUES (?,?,?)',[$id,$userId,$createdBy])) throw new RuntimeException('Insert failed');
+                }
+                return true;
+            });
+        }
 
-			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
-			}
-			catch (Exception $e) {
-				//error_log("Caught Exception: $e");
-				return false;
-			}
-		}
-		
 		function updateWirelessNetwork($ssidId, $ssidName, $ssidDescription, $createdBy){
 			
-			$query = sprintf("UPDATE `wirelessNetworks` SET `ssidName` = '%s', `ssidDescription` = '%s' WHERE `id` = %d", $ssidName, $ssidDescription, $ssidId);
+			$queryValues = [$ssidName, $ssidDescription, (int)($ssidId)];
+			$query = "UPDATE `wirelessNetworks` SET `ssidName` = ?, `ssidDescription` = ? WHERE `id` = ?";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2826,12 +3211,14 @@
 		}
 		
 		function updateAuthorizationTemplate($authzId, $authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, $termLengthSeconds, $pskLength, $vlan, $dacl, $createdBy){
+            if (!ipskValidPskPolicy($ciscoAVPairPSK, $pskLength)) { $this->lastError='Invalid PSK or generated key length.'; return false; }
 			
-			$query = sprintf("UPDATE `authorizationTemplates` SET `authzPolicyName`='%s', `authzPolicyDescription`='%s', `ciscoAVPairPSK`='%s', `termLengthSeconds`='%d', `pskLength`='%d', `vlan`='%s', `dacl`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($authzPolicyName), $this->dbConnection->real_escape_string($authzPolicyDescription), $this->dbConnection->real_escape_string($ciscoAVPairPSK), $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($pskLength), $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($authzId));
+			$queryValues = [$authzPolicyName, $authzPolicyDescription, $ciscoAVPairPSK, (int)($termLengthSeconds), (int)($pskLength), $vlan, $dacl, (int)($authzId)];
+			$query = "UPDATE `authorizationTemplates` SET `authzPolicyName`=?, `authzPolicyDescription`=?, `ciscoAVPairPSK`=?, `termLengthSeconds`=?, `pskLength`=?, `vlan`=?, `dacl`=? WHERE `id` = ?";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2841,11 +3228,12 @@
 		
 		function updateEndpointGroup($epGroupId, $epGroupName, $epGroupDescription, $authzTemplate, $notifyPermission, $createdBy){
 			
-			$query = sprintf("UPDATE `endpointGroups` SET `groupName`='%s', `description`='%s', `authzTemplateId`='%d', `notificationPermission`='%d' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($epGroupName), $this->dbConnection->real_escape_string($epGroupDescription), $this->dbConnection->real_escape_string($authzTemplate), $this->dbConnection->real_escape_string($notifyPermission), $this->dbConnection->real_escape_string($epGroupId));
+			$queryValues = [$epGroupName, $epGroupDescription, (int)($authzTemplate), (int)($notifyPermission), (int)($epGroupId)];
+			$query = "UPDATE `endpointGroups` SET `groupName`=?, `description`=?, `authzTemplateId`=?, `notificationPermission`=? WHERE `id` = ?";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2854,95 +3242,125 @@
 		}
 		
 		function updateSponsorGroupEPGMapping($endpointGroupIds, $sponsorGroupId, $createdBy){
+            return $this->atomic(function () use ($endpointGroupIds, $sponsorGroupId, $createdBy) {
 			$querysuffix = "";
+            $querysuffixValues = [];
 			
-			$deleteQuery = "DELETE FROM `sponsorGroupEPGMapping` WHERE `sponsorGroupId` = '$sponsorGroupId'";
+			$deleteQueryValues = [$sponsorGroupId];
+			$deleteQuery = "DELETE FROM `sponsorGroupEPGMapping` WHERE `sponsorGroupId` = ?";
 			
-			$queryResult = $this->dbConnection->query($deleteQuery);
+			$queryResult = $this->preparedQuery($deleteQuery, $deleteQueryValues);
+            if (!$queryResult) return false;
 			
 			if(is_array($endpointGroupIds)){
 				for($idCount = 0; $idCount < count($endpointGroupIds); $idCount++){
-					$querysuffix .= "('$sponsorGroupId','$endpointGroupIds[$idCount]','$createdBy'),";
+					$querysuffix .= "(?,?,?),";
+					array_push($querysuffixValues, $sponsorGroupId, $endpointGroupIds[$idCount], $createdBy);
 				}
 			}else{
-				$querysuffix .= "('$sponsorGroupId','$endpointGroupIds','$createdBy'),";
+				$querysuffix .= "(?,?,?),";
+				array_push($querysuffixValues, $sponsorGroupId, $endpointGroupIds, $createdBy);
 			}
 			
-			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
+			if ($querysuffix === '') return true;
+            $querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
+			$queryValues = [];
 			$query = sprintf("INSERT INTO `sponsorGroupEPGMapping` (`sponsorGroupId`, `endpointGroupId`, `createdBy`) VALUES %s", $querysuffix);
+			$queryValues = $querysuffixValues;
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
 				return false;
 			}
+            });
 		}
 		
 		function updateSponsorGroupSSIDMapping($wirelessIds, $sponsorGroupId, $createdBy){
+            return $this->atomic(function () use ($wirelessIds, $sponsorGroupId, $createdBy) {
 			$querysuffix = "";
+            $querysuffixValues = [];
 			
-			$deleteQuery = "DELETE FROM `sponsorGroupSSIDMapping` WHERE `sponsorGroupId` = '$sponsorGroupId'";
+			$deleteQueryValues = [$sponsorGroupId];
+			$deleteQuery = "DELETE FROM `sponsorGroupSSIDMapping` WHERE `sponsorGroupId` = ?";
 			
-			$queryResult = $this->dbConnection->query($deleteQuery);
+			$queryResult = $this->preparedQuery($deleteQuery, $deleteQueryValues);
+            if (!$queryResult) return false;
 			
 			if(is_array($wirelessIds)){
 				for($idCount = 0; $idCount < count($wirelessIds); $idCount++){
-					$querysuffix .= "('$sponsorGroupId','$wirelessIds[$idCount]','$createdBy'),";
+					$querysuffix .= "(?,?,?),";
+					array_push($querysuffixValues, $sponsorGroupId, $wirelessIds[$idCount], $createdBy);
 				}
 			}else{
-				$querysuffix .= "('$sponsorGroupId','$wirelessIds','$createdBy'),";
+				$querysuffix .= "(?,?,?),";
+				array_push($querysuffixValues, $sponsorGroupId, $wirelessIds, $createdBy);
 			}
 			
-			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
+			if ($querysuffix === '') return true;
+            $querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
+			$queryValues = [];
 			$query = sprintf("INSERT INTO sponsorGroupSSIDMapping (`sponsorGroupId`, `wirelessSSIDId`, `createdBy`) VALUES %s", $querysuffix);
+			$queryValues = $querysuffixValues;
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
 				return false;
 			}
+            });
 		}
 		
 		function updateSponsorInternalGroupMapping($internalGroupIds, $sponsorGroupId, $permissions, $createdBy){
+            return $this->atomic(function () use ($internalGroupIds, $sponsorGroupId, $permissions, $createdBy) {
 			$querysuffix = "";
+            $querysuffixValues = [];
 			
-			$deleteQuery = "DELETE FROM `sponsorGroupInternalMapping` WHERE `sponsorGroupId` = '$sponsorGroupId'";
+			$deleteQueryValues = [$sponsorGroupId];
+			$deleteQuery = "DELETE FROM `sponsorGroupInternalMapping` WHERE `sponsorGroupId` = ?";
 			
-			$queryResult = $this->dbConnection->query($deleteQuery);
+			$queryResult = $this->preparedQuery($deleteQuery, $deleteQueryValues);
+            if (!$queryResult) return false;
 			
 			for($idCount = 0; $idCount < count($internalGroupIds); $idCount++){
-				$querysuffix .= "('$sponsorGroupId','$internalGroupIds[$idCount]','$permissions','$createdBy'),";
+				$querysuffix .= "(?,?,?,?),";
+				array_push($querysuffixValues, $sponsorGroupId, $internalGroupIds[$idCount], $permissions, $createdBy);
 			}
 			
-			$querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
+			if ($querysuffix === '') return true;
+            $querysuffix = substr($querysuffix,0, strlen($querysuffix) - 1);
 			
+			$queryValues = [];
 			$query = sprintf("INSERT INTO `sponsorGroupInternalMapping` (`sponsorGroupId`, `internalGroupId`, `groupPermissions`, `createdBy`) VALUES %s", $querysuffix);
+			$queryValues = $querysuffixValues;
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
 				return false;
 			}
+            });
 		}
 		
 		function updateSponsorGroup($groupId, $groupName, $groupDescription, $sponsorGroupAuthType, $members, $maxDevices, $groupType, $createdBy){
 			
-			$query = sprintf("UPDATE `sponsorGroups` SET `sponsorGroupName`='%s', `sponsorGroupDescription`='%s', `sponsorGroupType`='%d', `sponsorGroupAuthType`='%d', `maxDevices`='%d', `members`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($groupName), $this->dbConnection->real_escape_string($groupDescription), $this->dbConnection->real_escape_string($groupType), $this->dbConnection->real_escape_string($sponsorGroupAuthType), $this->dbConnection->real_escape_string($maxDevices), $this->dbConnection->real_escape_string(""), $this->dbConnection->real_escape_string($groupId));
+			$queryValues = [$groupName, $groupDescription, (int)($groupType), (int)($sponsorGroupAuthType), (int)($maxDevices), "", (int)($groupId)];
+			$query = "UPDATE `sponsorGroups` SET `sponsorGroupName`=?, `sponsorGroupDescription`=?, `sponsorGroupType`=?, `sponsorGroupAuthType`=?, `maxDevices`=?, `members`=? WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -2952,19 +3370,23 @@
 		
 		function updateInternalUser($userId, $userName, $fullName, $description, $email, $createdBy){
 			
-			$query = sprintf("UPDATE `internalUsers` SET `userName`='%s', `fullName`='%s', `description`='%s', `email`='%s', `dn`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($userName), $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), "CN=".$this->dbConnection->real_escape_string($userName).",CN=Users,DC=System,DC=Local", $this->dbConnection->real_escape_string($userId));
+			$queryValues = [$userName, $fullName, $description, $email, "CN=".$userName.",CN=Users,DC=System,DC=Local", (int)($userId)];
+			$query = "UPDATE `internalUsers` SET `userName`=?, `fullName`=?, `description`=?, `email`=?, `dn`=? WHERE `id` = ?";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
-				//error_log("Caught Exception: $e");
+				$this->lastError = 'Username already exists or could not be saved. Choose a unique username.';
 				return false;
 			}
 		}
 		
-		function updateLdapServer($serverId, $adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy){
+		function updateLdapServer($serverId, $adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy, $identitySourceId = null){
+            return $this->atomic(function () use ($serverId, $adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, $createdBy, $identitySourceId) {
+            if ($identitySourceId !== null && !$this->setDirectoryIdentitySource($serverId, $identitySourceId)) { $this->lastError='Cannot change identity source: select an independent directory, and remove existing grants/aliases first.'; return false; }
+
 			
 			if($encryptedPassword != null){
 				$nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
@@ -2973,33 +3395,39 @@
 
 				$encryptedPassword = base64_encode($nonce . $ciphertext);
 							
-				$query = sprintf("UPDATE `ldapServers` SET `adConnectionName`='%s', `adServer`='%s', `adDomain`='%s', `adUsername`='%s', `adPassword`='%s', `adBaseDN`='%s', `adSecure`='%s', `directoryType`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($adConnectionName), $this->dbConnection->real_escape_string($adServer), $this->dbConnection->real_escape_string($adDomain), $this->dbConnection->real_escape_string($adUsername), $this->dbConnection->real_escape_string($encryptedPassword), $this->dbConnection->real_escape_string($adBaseDN), $this->dbConnection->real_escape_string($adSecure), $this->dbConnection->real_escape_string($directoryType), $this->dbConnection->real_escape_string($serverId));
+				$queryValues = [$adConnectionName, $adServer, $adDomain, $adUsername, $encryptedPassword, $adBaseDN, $adSecure, $directoryType, (int)($serverId)];
+				$query = "UPDATE `ldapServers` SET `adConnectionName`=?, `adServer`=?, `adDomain`=?, `adUsername`=?, `adPassword`=?, `adBaseDN`=?, `adSecure`=?, `directoryType`=? WHERE `id` = ?";
 			}else{
-				$query = sprintf("UPDATE `ldapServers` SET `adConnectionName`='%s', `adServer`='%s', `adDomain`='%s', `adUsername`='%s', `adBaseDN`='%s', `adSecure`='%s', `directoryType`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($adConnectionName), $this->dbConnection->real_escape_string($adServer), $this->dbConnection->real_escape_string($adDomain), $this->dbConnection->real_escape_string($adUsername), $this->dbConnection->real_escape_string($adBaseDN), $this->dbConnection->real_escape_string($adSecure), $this->dbConnection->real_escape_string($directoryType), $this->dbConnection->real_escape_string($serverId));
+				$queryValues = [$adConnectionName, $adServer, $adDomain, $adUsername, $adBaseDN, $adSecure, $directoryType, (int)($serverId)];
+				$query = "UPDATE `ldapServers` SET `adConnectionName`=?, `adServer`=?, `adDomain`=?, `adUsername`=?, `adBaseDN`=?, `adSecure`=?, `directoryType`=? WHERE `id` = ?";
 				
 			}
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
 				return false;
 			}
+            });
 		}
 
 		function updateEndpoint($endpointId, $fullName, $description, $email, $createdBy, $psk = null, $vlan = null, $dacl = null, $expirationDate = null){
+            if ($psk !== null && !ipskValidPsk(ipskPskPlain($psk))) { $this->lastError='PSK must be 8–63 printable ASCII characters or 64 hexadecimal digits.'; return false; }
 			
-			if($psk == null && $expirationDate == null){
-				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `vlan` = '%s', `dacl` = '%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($endpointId));
-			}elseif($psk != null && $expirationDate == null){
-				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s', `vlan` = '%s', `dacl` = '%s'  WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($endpointId));
-			}else{
-				$query = sprintf("UPDATE `endpoints` SET `fullName` = '%s', `description` = '%s', `emailAddress` = '%s', `pskValue` = '%s', `vlan` = '%s', `dacl` = '%s', `accountExpired` = 'False', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($fullName), $this->dbConnection->real_escape_string($description), $this->dbConnection->real_escape_string($email), $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($expirationDate), $this->dbConnection->real_escape_string($endpointId));
-			}
+            $query = "UPDATE endpoints SET fullName=?, description=?, emailAddress=?, vlan=?, dacl=?";
+            $queryValues = [$fullName, $description, $email, $vlan, $dacl];
+            if ($psk !== null) { $query .= ", pskValue=?"; $queryValues[] = $psk; }
+            if ($expirationDate !== null) {
+                $query .= ", accountExpired='False', expirationDate=?";
+                $queryValues[] = (int)$expirationDate;
+            }
+            $query .= " WHERE id=?";
+            $queryValues[] = (int)$endpointId;
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3008,12 +3436,14 @@
 		}
 
 		function updateEndpointPsk($endpointId, $psk){
+            if (!ipskValidPsk(ipskPskPlain($psk))) { $this->lastError='PSK must be 8–63 printable ASCII characters or 64 hexadecimal digits.'; return false; }
 			
-			$query = sprintf("UPDATE `endpoints` SET `pskValue` = '%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($psk), $this->dbConnection->real_escape_string($endpointId));
+			$queryValues = [$psk, (int)($endpointId)];
+			$query = "UPDATE `endpoints` SET `pskValue` = ? WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3023,11 +3453,12 @@
 
 		function updateEndpointVLANdACL($endpointId, $vlan, $dacl){
 			
-			$query = sprintf("UPDATE `endpoints` SET `vlan` = '%s', `dacl` = '%s' WHERE `id` = %d", $this->dbConnection->real_escape_string($vlan), $this->dbConnection->real_escape_string($dacl), $this->dbConnection->real_escape_string($endpointId));
+			$queryValues = [$vlan, $dacl, (int)($endpointId)];
+			$query = "UPDATE `endpoints` SET `vlan` = ?, `dacl` = ? WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3037,10 +3468,11 @@
 
 		function extendEndpoint($endpointId, $termLengthSeconds, $createdBy){
 			
-			$query = sprintf("UPDATE `endpoints` SET `accountExpired` = 'False', `expirationDate` = %d WHERE `id` = '%d'", $this->dbConnection->real_escape_string($termLengthSeconds), $this->dbConnection->real_escape_string($endpointId));
+			$queryValues = [(int)($termLengthSeconds), (int)($endpointId)];
+			$query = "UPDATE `endpoints` SET `accountExpired` = 'False', `expirationDate` = ? WHERE `id` = ?";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 				return $queryResult !== false;
 			}
 			catch (Exception $e) {
@@ -3051,11 +3483,12 @@
 		
 		function updateExpiredEndpoints(){
 			
+			$queryValues = [];
 			$query = "UPDATE `endpoints` SET `accountExpired` = 'True' WHERE `expirationDate` != 0 AND `expirationDate` < UNIX_TIMESTAMP(NOW())";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3065,10 +3498,12 @@
 
 		function getExpiringEndpoints($days = 5){
 			
-			$query = sprintf("SELECT macAddress,emailAddress FROM `endpoints` WHERE `expirationDate` != 0 AND (`expirationDate` < UNIX_TIMESTAMP(DATE_ADD(NOW(), INTERVAL %d DAY)) AND `expirationDate` > UNIX_TIMESTAMP(NOW()))",$this->dbConnection->real_escape_string($days));
+			$queryValues = [];
+			$query = "SELECT macAddress,emailAddress FROM `endpoints` WHERE `expirationDate` != 0 AND (`expirationDate` < UNIX_TIMESTAMP(DATE_ADD(NOW(), INTERVAL ? DAY)) AND `expirationDate` > UNIX_TIMESTAMP(NOW()))";
+			$queryValues = [(int)$days];
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
+				$queryResult = $this->preparedQuery($query, $queryValues);
 				if($queryResult){
 					if($queryResult->num_rows > 0){
 						return $queryResult;
@@ -3089,11 +3524,12 @@
 		
 		function resetUserPassword($userId, $encryptedpassword, $createdBy){
 			
-			$query = sprintf("UPDATE `internalUsers` SET `password`='%s' WHERE `id` = '%d'", $this->dbConnection->real_escape_string($encryptedpassword), $this->dbConnection->real_escape_string($userId));
+			$queryValues = [$encryptedpassword, (int)($userId)];
+			$query = "UPDATE `internalUsers` SET `password`=? WHERE `id` = ?";
 
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3103,11 +3539,12 @@
 		
 		function suspendEndpointAssociationbyId($id){
 			
-			$query = sprintf("UPDATE `endpoints` SET `accountEnabled` = 0 WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "UPDATE `endpoints` SET `accountEnabled` = 0 WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3117,11 +3554,12 @@
 		
 		function activateEndpointAssociationbyId($id){
 			
-			$query = sprintf("UPDATE `endpoints` SET `accountEnabled` = 1 WHERE `id` = %s", $this->dbConnection->real_escape_string($id));
+			$queryValues = [$id];
+			$query = "UPDATE `endpoints` SET `accountEnabled` = 1 WHERE `id` = ?";
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3130,9 +3568,10 @@
 		}
 		
 		function getDashboardStatsbyEPGroup(){
+			$queryValues = [];
 			$query = 'SELECT endpointGroups.groupName, COUNT(endpointAssociations.macAddress) as endpointCount FROM `endpointAssociations` INNER JOIN endpointGroups ON endpointGroups.id = endpointAssociations.epGroupId GROUP BY endpointGroups.id';
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -3146,9 +3585,10 @@
 		}
 		
 		function getEndpointGroupCount(){
+			$queryValues = [];
 			$query = 'SELECT COUNT(groupName) as endpointGroupCount FROM `endpointGroups`';
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -3163,9 +3603,10 @@
 		}
 		
 		function getTotalEndpointCount(){
+			$queryValues = [];
 			$query = 'SELECT COUNT(endpointAssociations.macAddress) as endpointCount FROM `endpointAssociations` INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId';
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -3180,9 +3621,10 @@
 		}
 		
 		function getTotalExpiredEndpointCount(){
-			$query = "SELECT COUNT(endpointAssociations.macAddress) as endpointCount FROM `endpointAssociations` INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId WHERE (endpoints.expirationDate != 0) AND (endpoints.accountExpired = 1 OR endpoints.expirationDate < '".time()."')";
+			$queryValues = [time()];
+			$query = "SELECT COUNT(endpointAssociations.macAddress) as endpointCount FROM `endpointAssociations` INNER JOIN endpoints ON endpoints.id = endpointAssociations.endpointId WHERE (endpoints.expirationDate != 0) AND (endpoints.accountExpired = 1 OR endpoints.expirationDate < ?)";
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -3197,9 +3639,10 @@
 		}
 		
 		function getTotalUnknownEndpointCount(){
+			$queryValues = [];
 			$query = 'SELECT COUNT(macAddress) as unknownEndpointCount FROM `unknownEndpoints`';
 			
-			$queryResult = $this->dbConnection->query($query);
+			$queryResult = $this->preparedQuery($query, $queryValues);
 			
 			if($queryResult){
 				if($queryResult->num_rows > 0){
@@ -3236,12 +3679,13 @@
 				$session = "Console Session";
 			}
 
-			$query = sprintf("INSERT INTO `logging` (`sessionID`, `fileName`, `functionName`, `className`,`classMethodName`, `lineNumber`, `message`, `logDataPayload`) VALUES('%s','%s','%s','%s','%s',%d,'%s','%s')", $session, $filename, $functionName, $className, $classMethodName, $lineNumber, $this->dbConnection->real_escape_string($message), $this->dbConnection->real_escape_string($payloadData));
+			$queryValues = [$session, $filename, $functionName, $className, $classMethodName, (int)($lineNumber), $message, $payloadData];
+			$query = "INSERT INTO `logging` (`sessionID`, `fileName`, `functionName`, `className`,`classMethodName`, `lineNumber`, `message`, `logDataPayload`) VALUES(?,?,?,?,?,?,?,?)";
 			
 			
 			try {
-				$queryResult = $this->dbConnection->query($query);
-				return true;
+				$queryResult = $this->preparedQuery($query, $queryValues);
+				return $queryResult !== false;
 			}
 			catch (Exception $e) {
 				//error_log("Caught Exception: $e");
@@ -3250,6 +3694,19 @@
 			
 		}
 		
+        private function redactLogData($value) {
+            if (is_array($value) || is_object($value)) {
+                $clean = [];
+                foreach ((array)$value as $key => $entry) {
+                    $clean[$key] = preg_match('/password|passphrase|psk|preshared|secret|token|cookie|authorization|credential|enc.?key|api.?key/i', (string)$key)
+                        ? '[REDACTED]' : $this->redactLogData($entry);
+                }
+                return $clean;
+            }
+            if (is_string($value) && preg_match('/^(?:Authorization|Proxy-Authorization|Cookie|Set-Cookie):/i', $value)) return '[REDACTED]';
+            return $value;
+        }
+
 		function generateLogData(...$inputData){
 			$inputIndex = 0;
 			
@@ -3323,7 +3780,7 @@
 			if($inputIndex != 0){
 				$logData['variables']['count'] = $inputIndex;
 			
-				return json_encode($logData);
+				return json_encode($this->redactLogData($logData));
 			}else{
 				return "";
 			}

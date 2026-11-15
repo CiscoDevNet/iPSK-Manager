@@ -27,6 +27,12 @@
 	$randomPassword = "";
 	$wifiSsid = '';
 	
+    if (ipskLoginSessionCheck() && !ipskCreationGrant($ipskISEDB, $sanitizedInput['associationGroup'] ?? null, 512)) {
+        http_response_code(403);
+        print 'The selected group is not authorized or its device limit has been reached.';
+        return;
+    }
+
 	if(!ipskLoginSessionCheck()){
 		$portalId = $_GET['portalId'];
 		$_SESSION = null;
@@ -68,6 +74,21 @@
 		if(isset($sanitizedInput['associationGroup']) && isset($sanitizedInput['macAddress']) && isset($sanitizedInput['endpointDescription']) && isset($sanitizedInput['emailAddress']) && isset($sanitizedInput['fullName'])) {	
 			$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 			
+			if($endpointGroupAuthorization['termLengthSeconds'] == 0){
+				$duration = $endpointGroupAuthorization['termLengthSeconds'];
+			}else{
+				$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
+			}
+			
+			$wirelessNetwork = $ipskISEDB->getWirelessNetworkById($sanitizedInput['wirelessSSID']);
+			
+			if($wirelessNetwork){
+				$wifiSsid = $wirelessNetwork['ssidName'];
+			}
+			
+			if (!$ipskISEDB->beginPortalEnrollment($sanitizedInput['associationGroup'], [$sanitizedInput['macAddress']])) {
+                http_response_code(409); print 'Device quota unavailable. Reload and try again.'; return;
+            }
 			if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
 				$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
 				$randomPSK = "psk=".$randomPassword;
@@ -85,19 +106,7 @@
 				$randomPSK = "psk=".$randomPassword;
 			}
 			
-			if($endpointGroupAuthorization['termLengthSeconds'] == 0){
-				$duration = $endpointGroupAuthorization['termLengthSeconds'];
-			}else{
-				$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
-			}
-			
-			$wirelessNetwork = $ipskISEDB->getWirelessNetworkById($sanitizedInput['wirelessSSID']);
-			
-			if($wirelessNetwork){
-				$wifiSsid = $wirelessNetwork['ssidName'];
-			}
-			
-			$endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID']);
+            $endpointId = $ipskISEDB->addEndpoint($sanitizedInput['macAddress'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID']);
 			
 			if($endpointId){
 				//LOG::Entry
@@ -106,7 +115,7 @@
 				$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 					
 					
-				if($ipskISEDB->addEndpointAssociation($endpointId, $sanitizedInput['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID'])){
+				if($ipskISEDB->addEndpointAssociation($endpointId, $sanitizedInput['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']) && $ipskISEDB->finishPortalEnrollment()){
 					//LOG::Entry
 					$logData = $ipskISEDB->generateLogData(Array("sanitizedInput"=>$sanitizedInput));
 					$logMessage = "REQUEST:SUCCESS;ACTION:SPONSORCREATE;METHOD:ADD-ENDPOINT-ASSOCIATION;MAC:".$sanitizedInput['macAddress'].";REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
@@ -163,6 +172,7 @@
 		$pageData['bulkButton'] = '';
 	}
 
+	$randomPassword = ipskHtml($randomPassword);
 	print <<< HTML
 <html lang="en">
   <head>

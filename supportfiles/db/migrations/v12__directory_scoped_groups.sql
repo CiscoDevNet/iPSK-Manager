@@ -1,0 +1,12 @@
+USE `{{DB_NAME}}`;
+SET @ipsk_add_alias = (SELECT COUNT(*)=0 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='ldapServers' AND COLUMN_NAME='identitySourceId');
+SET @ipsk_ddl = IF(@ipsk_add_alias, 'ALTER TABLE ldapServers ADD COLUMN identitySourceId INT NULL DEFAULT NULL', 'SELECT 1');
+PREPARE ipsk_scope_ddl FROM @ipsk_ddl;
+EXECUTE ipsk_scope_ddl;
+DEALLOCATE PREPARE ipsk_scope_ddl;
+SET @ipsk_add_scope = (SELECT COUNT(*)=0 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='internalGroups' AND COLUMN_NAME='directoryId');
+SET @ipsk_ddl = IF(@ipsk_add_scope, 'ALTER TABLE internalGroups ADD COLUMN directoryId INT NULL DEFAULT 0', 'SELECT 1');
+PREPARE ipsk_scope_ddl FROM @ipsk_ddl;
+EXECUTE ipsk_scope_ddl;
+DEALLOCATE PREPARE ipsk_scope_ddl;
+UPDATE internalGroups SET directoryId=NULL WHERE @ipsk_add_scope=1 AND groupType<>0;

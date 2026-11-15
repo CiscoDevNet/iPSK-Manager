@@ -26,60 +26,42 @@
 		die();
 	}
 	
+    if (!ipskEndpointPermission($ipskISEDB, $sanitizedInput['id'] ?? 0, 256)) {
+        http_response_code(403);
+        print 'You are not authorized to edit this endpoint.';
+        return;
+    }
+
 	if(is_numeric($sanitizedInput['id']) && $sanitizedInput['id'] != 0 && $sanitizedInput['confirmaction'] && isset($sanitizedInput['fullName']) && isset($sanitizedInput['emailAddress']) && isset($sanitizedInput['endpointDescription']) && isset($sanitizedInput['editAssociation']) && isset($sanitizedInput['associationGroup'])){
 		if($_SESSION['editAssociationEndpointId'] == $sanitizedInput['id']){
 			$endpoint = $ipskISEDB->getEndpointByAssociationId($sanitizedInput['id']);
 		
-			$endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
+			if (!$endpoint) { http_response_code(404); return; }
+            if ($sanitizedInput['editAssociation'] == 1) {
+                if (!ipskCreationGrant($ipskISEDB, $sanitizedInput['associationGroup'], 512, $endpoint['createdBy'], $endpoint['epGroupId'] == $sanitizedInput['associationGroup'] ? 0 : 1)) {
+                    http_response_code(403);
+                    print 'You are not authorized to use the destination group.';
+                    return;
+                }
+            } else {
+                // Metadata/key-only edits always retain the existing group's policy.
+                $sanitizedInput['associationGroup'] = $endpoint['epGroupId'];
+            }
+            $endpointGroupAuthorization = $ipskISEDB->getAuthorizationTemplatesbyEPGroupId($sanitizedInput['associationGroup']);
 			
-			if($sanitizedInput['editAssociation'] == 1){
-				
-				if($endpointGroupAuthorization['ciscoAVPairPSK'] == "*devicerandom*"){
-					$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-					$randomPSK = "psk=".$randomPassword;
-				}elseif($endpointGroupAuthorization['ciscoAVPairPSK'] == "*userrandom*"){
-					$userPsk = $ipskISEDB->getUserPreSharedKey($sanitizedInput['associationGroup'], $endpoint['createdBy']);
-					if(!$userPsk){
-						$randomPassword = $ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
-						$randomPSK = "psk=".$randomPassword;
-					}else{
-						$randomPassword = $userPsk;
-						$randomPSK = "psk=".$randomPassword;
-					}
-				}else{
-					$randomPassword = $endpointGroupAuthorization['ciscoAVPairPSK'];
-					$randomPSK = "psk=".$randomPassword;
-				}
-				
-				if($endpointGroupAuthorization['termLengthSeconds'] == 0){
-					$duration = $endpointGroupAuthorization['termLengthSeconds'];
-				}else{
-					$duration = time() + $endpointGroupAuthorization['termLengthSeconds'];
-				}
+            if($sanitizedInput['editAssociation'] == 1){
+                if (!$ipskISEDB->moveEndpointAssociation($sanitizedInput['id'], $sanitizedInput['associationGroup'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], true)) {
+                    http_response_code(400); print '<p class="text-danger">Unable to move endpoint. Check destination permissions and owner quota.</p>'; return;
+                }
 
-				$ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK,  $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration);
-				$ipskISEDB->deleteEndpointAssociationbyId($sanitizedInput['id']);
-				$ipskISEDB->addEndpointAssociation($endpoint['endpointId'], $endpoint['macAddress'], $sanitizedInput['associationGroup'], $_SESSION['logonSID']);
-				
 			}elseif($sanitizedInput['editPSK'] == 1){
-				$endPointPermissions = $ipskISEDB->getEndPointAssociationPermissions($sanitizedInput['id'],$_SESSION['authorizationGroups'], $_SESSION['portalSettings']['id']);
-				
-				if(isset($endPointPermissions['count'])){
-					
-					//Validate the randomly generated PSK matches the one submitted to the user - Prevent Tampering
-					if(password_verify($sanitizedInput['ciscoAVPairPSK'], $_SESSION['temp']['sponsoreditpsk'])){
-						for($idxId = 0; $idxId < $endPointPermissions['count']; $idxId++){
-							if($endPointPermissions[$idxId]['advancedPermissions'] & 1024){
-								$randomPSK = "psk=".$sanitizedInput['ciscoAVPairPSK'];
-					
-								$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
-							}
-						}
-					}
-				}
+                if (!ipskEndpointPermission($ipskISEDB, $sanitizedInput['id'], 256 | 1024)
+                    || !ipskConsumeGeneratedPsk($sanitizedInput['id'], $ipskISEDB->getEndPointAuthorizationPolicy($sanitizedInput['id']), $sanitizedInput['ciscoAVPairPSK'] ?? null)) {
+                    http_response_code(400); print '<p class="text-danger">Generate a fresh key for this endpoint and try again.</p>'; return;
+                }
+                $randomPSK = 'psk='.$sanitizedInput['ciscoAVPairPSK'];
+                $endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'], $sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], $randomPSK, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
 
-				//Revoke previously generated PSK for Enduser
-				unset($_SESSION['temp']);
 			}else{
 				$endpointId = $ipskISEDB->updateEndpoint($endpoint['endpointId'],$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $_SESSION['logonSID'], null, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl']);
 			}
@@ -111,7 +93,8 @@ HTML;
 		
 		$endpoint = $ipskISEDB->getEndpointByAssociationId($sanitizedInput['id']);
 
-		//Check if User is allowed to edit Endpoint
+		$storedPskForDisplay = $endpoint['pskValue'];
+        //Check if User is allowed to edit Endpoint
 		for($count = 0; $count < $_SESSION['authorizedEPGroups']['count']; $count++){
 			if($endpoint['epGroupId'] == $_SESSION['authorizedEPGroups'][$count]['endpointGroupId']){
 				if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 256){
@@ -133,7 +116,7 @@ HTML;
 				if(!isset($trackSeenObjects[$_SESSION['authorizedEPGroups'][$count]['endpointGroupId']])){
 					//Check if User is authorized for Create on EndPoint Group
 					if($_SESSION['authorizedEPGroups'][$count]['groupPermissions'] & 512){
-						if($ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']) < $_SESSION['authorizedEPGroups'][$count]['maxDevices']){
+						if(ipskQuotaAvailable($ipskISEDB->getUserEndpointCount($_SESSION['authorizedEPGroups'][$count]['endpointGroupId'], $_SESSION['logonSID']), $_SESSION['authorizedEPGroups'][$count]['maxDevices'])){
 							if($_SESSION['authorizedEPGroups'][$count]['termLengthSeconds'] == 0){
 								$termLength = "No Expiry";
 							}else{
@@ -190,6 +173,8 @@ HTML;
 			$editGroup = '';
 		}
 	
+$endpoint['pskValue'] = ipskEndpointPermission($ipskISEDB, $sanitizedInput['id'], 8) ? ipskHtml(ipskPskPlain($storedPskForDisplay)) : '';
+
 		print <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="editEndpoint" tabindex="-1" role="dialog" aria-labelledby="editEndpointModal" aria-hidden="true">

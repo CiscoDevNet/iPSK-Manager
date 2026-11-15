@@ -29,16 +29,14 @@
 	}
 	
 	//Define Initial Variables
-	$uploadFile = $_FILES['csvFile']['tmp_name'];
-	
-	if($sanitizedInput['uploadkey'] != ""){
-		unset($_SESSION['bulk-import'][$sanitizedInput['uploadkey']]);
-	}
+	if (!headers_sent()) { header('Content-Type: application/json'); }
+    $upload = ipskReadCsvUpload($_FILES['csvFile'] ?? null);
+    if (isset($upload['error'])) { print json_encode(ipskUploadFailure($upload['error'])); return; }
 	
 	//Check File Extension for a CSV File
 	if(strtolower(substr($_FILES['csvFile']['name'],strlen($_FILES['csvFile']['name']) - 4, 4)) == ".csv"){
 		//Import file data from the uploaded file
-		$tempfileUploadContents = file_get_contents($uploadFile);
+		$tempfileUploadContents = $upload['contents'];
 		
 		//Quickly Trim the Contents of the file
 		$fileUploadContents = trim($tempfileUploadContents);
@@ -65,6 +63,7 @@
 						if($csvHeader){
 							if(count($csvHeader) == 4){
 								$validHeaders = 0;
+                                    $fieldMapping = [];
 								
 								foreach($csvHeader as $entry => $data){
 									if(strtolower(trim($data)) == "macaddress"){ $validHeaders++; $fieldMapping['macaddress'] = $entry;}
@@ -74,7 +73,7 @@
 								}
 								
 								//Process CSV Contents if valid Headers are found
-								if($validHeaders == 4){
+								if($validHeaders == 4 && count($fieldMapping) === 4){
 									$entryCount = 0;
 									$filtereditems = 0;
 									$invalidItems = 0;
@@ -88,15 +87,15 @@
 											$lineCount++;
 											//Filter the content of the entry of the CSV
 											//NOTE: Quotation Marks (") are currently illegal
-											$tempEntrydata = filter_var(trim($data),FILTER_VALIDATE_REGEXP, Array('options'=> Array('regexp' => "/^(?:([a-z]|[A-Z]|[0-9]|-|:|,|'|@|\.|;|\/|\(|\)|\\|\&|#|\*|\s){1,})$/")));
+											$tempEntrydata = preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/', $data) ? false : trim($data);
 											
 											if($tempEntrydata != ""){
-												$temp = explode(",",$tempEntrydata);
+												$temp = str_getcsv($tempEntrydata, ',', '"', '');
 												
 												if(count($temp) == 4){		
 													$tempMacAddress = filter_var(trim($temp[$fieldMapping['macaddress']]),FILTER_VALIDATE_REGEXP, Array('options'=> Array('regexp' => '/^(?:[A-F]|[a-f]|[0-9]){2}(\:|-){1}(?:[A-F]|[a-f]|[0-9]){2}(\:|-){1}(?:[A-F]|[a-f]|[0-9]){2}(\:|-){1}(?:[A-F]|[a-f]|[0-9]){2}(\:|-){1}(?:[A-F]|[a-f]|[0-9]){2}(\:|-){1}(?:[A-F]|[a-f]|[0-9]){2}$/')));
 													$tempFullname = filter_var(trim($temp[$fieldMapping['fullname']]),FILTER_SANITIZE_STRING);
-													$tempEmail = filter_var(trim($temp[$fieldMapping['emailaddress']]),FILTER_SANITIZE_EMAIL);
+													$tempEmail = filter_var(trim($temp[$fieldMapping['emailaddress']]),FILTER_VALIDATE_EMAIL);
 													
 													if($tempMacAddress != "" && $tempFullname != "" && $tempEmail != ""){
 														$csvFile[$entryCount]['macAddress'] = $tempMacAddress;
@@ -124,9 +123,7 @@
 									
 									$csvFile['count'] = $entryCount;
 									
-									$uploadData = dechex(time());
-									
-									$_SESSION['bulk-import'][$uploadData] = $csvFile;
+									$uploadData = ipskStorePendingImport($csvFile);
 									
 									$returnResult['result'] = true;
 									$returnResult['validitems'] = $entryCount;

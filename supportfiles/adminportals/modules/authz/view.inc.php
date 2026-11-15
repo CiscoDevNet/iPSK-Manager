@@ -1,4 +1,9 @@
 <?php
+if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
+    http_response_code(403);
+    return;
+}
+
 	
 /**
  *@license
@@ -50,7 +55,8 @@
 		}
 	}
 	
-$htmlbody = <<<HTML
+$authorizationTemplate['ciscoAVPairPSK'] = ipskHtml($authorizationTemplate['ciscoAVPairPSK']);
+    $htmlbody = <<<HTML
 <!-- Modal -->
 <div class="modal fade" id="viewAuthz" tabindex="-1" role="dialog" aria-labelledby="viewAuthzModal" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">

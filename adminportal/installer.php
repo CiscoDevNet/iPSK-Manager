@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__."/../supportfiles/include/iPSKInstaller.php";
 
 /**
  *@license
@@ -27,7 +28,8 @@
 */
 	
 	ini_set('display_errors', 'Off');
-	session_start();
+	require_once __DIR__.'/../supportfiles/include/iPSKManagerFunctions.php';
+    ipskSessionHandler('installer');
 	
 	//Check if Configuration file exists, if it does return error 404 when trying to access installer
 	//Ignore if we are currently running the installer on the system
@@ -81,13 +83,14 @@ TEXT;
 			}
 		}
 		
-		//Limit the maximum length to 64 Characters
+		if ($alphabet === '') { throw new InvalidArgumentException('Password alphabet must not be empty'); }
+			//Limit the maximum length to 64 Characters
 		if($length > 64){ $length = 64;}
 		
 		$generatedPsk = "";
 		//Loop through and select random characters from the alphabet
 		for($char = 0; $char < $length; $char++){
-			$generatedPsk .= substr($alphabet, random_int(0,strlen($alphabet)) - 1, 1);
+			$generatedPsk .= substr($alphabet, random_int(0,strlen($alphabet) - 1), 1);
 		}
 
 		return $generatedPsk;
@@ -379,6 +382,8 @@ HTML;
 			
 			$ipskManagerAdminPassword = password_hash($_SESSION['adminpassword'], PASSWORD_DEFAULT);
 			
+            try {
+
 			try {
 				$dbConnection = new mysqli($_SESSION['dbhostname'], $_SESSION['rootusername'], $_SESSION['rootpassword']);
 			}
@@ -413,7 +418,7 @@ HTML;
 			$dbConnection->select_db($_SESSION['databasename']);
 			$actionValid = true;
 			
-			include_once("installer.inc.php");
+			include(__DIR__."/installer.inc.php");
 			
 			for($sqlCount = 0; $sqlCount < count($sqlProcedure); $sqlCount++){
 				if(!$dbConnection->query($sqlProcedure[$sqlCount])){
@@ -554,7 +559,7 @@ HTML;
 				$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Creation of Cisco ISE MySQL User Permissions Successful</div>";
 			}			
 			
-			if(!file_put_contents("../supportfiles/include/config.php", $configurationFile)){
+			if(!ipskWriteInstallerConfig(__DIR__."/../supportfiles/include/config.php", $configurationFile)){
 				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Error creating config.php file</div>";
 				goto Bail;
 			}else{
@@ -566,6 +571,10 @@ HTML;
 				}
 			}
 			
+            } catch (Throwable $e) {
+                $installProgress .= '<div class="text-danger">Installation step failed: '.htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'</div>';
+            }
+
 			Bail:
 			
 			if($_SESSION['installSuccess']){
@@ -576,41 +585,11 @@ HTML;
 				$finalizeButton = '';
 				$finalizeButtonScript = '';
 				
-				try {
-					$dbConnection->select_db("mysql");
-				}
-				catch (Error $e ) {}
-				
-				if($dbCreateFlag){
-					$deleteDbQuery = sprintf("DROP DATABASE `%s`", $dbConnection->real_escape_string($_SESSION['databasename']));
+                $cleanupResults = ipskCleanupInstallation($dbConnection ?? null, $_SESSION, ['database'=>$dbCreateFlag, 'manager'=>$managerUserCreateFlag, 'ise'=>$iseUserCreateFlag]);
+                foreach ($cleanupResults as $resource=>$success) {
+                    $installProgress .= '<div>'.htmlspecialchars($resource).' Cleanup '.($success ? 'Successful' : 'Failure — manual cleanup required').'</div>';
+                }
 
-					if(!$dbConnection->query($deleteDbQuery)){
-						$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Database Installation Cleanup Failure</div>";
-					}else{
-						$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Database Installation Cleanup Successful</div>";
-					}
-				}
-				
-				if($managerUserCreateFlag){
-					$deleteDbQuery = sprintf("DROP USER `%s`", $dbConnection->real_escape_string($_SESSION['databasename']));
-					
-					if(!$dbConnection->query($deleteDbQuery)){
-						$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>Database User Cleanup Failure</div>";
-					}else{
-						$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>Database User Cleanup Successful</div>";
-					}
-				}
-				
-				if($iseUserCreateFlag){
-					$deleteDbQuery = sprintf("DROP USER `%s`", $dbConnection->real_escape_string($_SESSION['iseusername']));
-					
-					if(!$dbConnection->query($deleteDbQuery)){
-						$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>ISE Database User Cleanup Failure</div>";
-					}else{
-						$installProgress .= "<div><span style=\"color: #2d8c32\" data-feather=\"check-circle\"></span>ISE Database User Cleanup Successful</div>";
-					}
-				}		
-		
 				$installProgress .= "<div><span style=\"color: #ff0000\" data-feather=\"x-circle\"></span>iPSK Manager Installation Failure</div>";
 					
 				$finalErrorText = '<p class="text-danger"><strong>The installation failed to finish correctly. Please re-run the installation again.</strong></p>';

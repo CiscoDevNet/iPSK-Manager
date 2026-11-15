@@ -266,6 +266,7 @@
   <script type="text/javascript" src="scripts/jquery.min.js"></script>
   <link href="styles/datatables.min.css" rel="stylesheet">
   <script type="text/javascript" src="scripts/datatables.min.js"></script>
+	<script type="text/javascript" src="scripts/datatables-compat.js"></script>
   <script type="text/javascript" src="scripts/feather.min.js"></script>
   <script type="text/javascript" src="scripts/popper.min.js"></script>
   <script type="text/javascript" src="scripts/bootstrap.bundle.min.js"></script>

@@ -44,9 +44,9 @@
 	use PHPMailer\PHPMailer\SMTP;
 	use PHPMailer\PHPMailer\Exception;
 
-	require("supportfiles/include/phpmailer/Exception.php");
-	require("supportfiles/include/phpmailer/PHPMailer.php");
-	require("supportfiles/include/phpmailer/SMTP.php");
+	require_once($ipskManagerPath."/supportfiles/include/phpmailer/Exception.php");
+	require_once($ipskManagerPath."/supportfiles/include/phpmailer/PHPMailer.php");
+	require_once($ipskManagerPath."/supportfiles/include/phpmailer/SMTP.php");
 
 	header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 	header("Cache-Control: post-check=0, pre-check=0", false);
@@ -194,7 +194,7 @@
 			
 			$headers .= 'From: ' . $mailFrom . "\r\n";
 			$headers .=	'Reply-To: ' . $mailFrom . "\r\n";
-			$headers .=	'X-Mailer: PHP/' . phpversion();
+			$headers .=	'X-Mailer: PHP/' . phpversion() . "\r\n";
 			
 			if(mail($to, $subject, $body, $headers, "-f ".$mailFrom)){
 				return true;
@@ -206,7 +206,7 @@
 		}
 	}
 
-	function sendHTMLEmail($to, $macAddresses, $smtpSettings, $ipskISEDB){
+	function sendHTMLEmail($to, $macAddresses, $subject, $smtpSettings, $ipskISEDB){
 		$sendTo = filter_var($to, FILTER_SANITIZE_EMAIL);
 
 		if($sendTo != ""){
@@ -221,11 +221,10 @@
 
 			$headers .= 'From: ' . $mailFrom . "\r\n";
 			$headers .=	'Reply-To: ' . $mailFrom . "\r\n";
-			$headers .=	'X-Mailer: PHP/' . phpversion();
+			$headers .=	'X-Mailer: PHP/' . phpversion() . "\r\n";
 			$headers .= "MIME-Version: 1.0\r\n";
 			$headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
 
-			$subject = $subject;
 			$body = htmlBody($macAddresses);
 
 			if(mail($to, $subject, $body, $headers, "-f ".$mailFrom)){

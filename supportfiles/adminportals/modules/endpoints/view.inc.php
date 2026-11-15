@@ -1,4 +1,9 @@
 <?php
+if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
+    http_response_code(403);
+    return;
+}
+
 	
 /**
  *@license
@@ -22,7 +27,7 @@
 
 	$endPointAssociation = $ipskISEDB->getEndPointAssociationById($sanitizedInput['id']);
 	
-	$endPointAssociation['pskValue'] = str_replace("psk=","",$endPointAssociation['pskValue']);
+	$endPointAssociation['pskValue'] = ipskHtml(ipskPskPlain($endPointAssociation['pskValue']));
 	
 	$endPointAssociation['createdBy'] = $ipskISEDB->getUserPrincipalNameFromCache($endPointAssociation['createdBy']);
 	

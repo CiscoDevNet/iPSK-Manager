@@ -1,4 +1,9 @@
 <?php
+if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
+    http_response_code(403);
+    return;
+}
+
 	
 /**
  *@license
@@ -27,7 +32,8 @@
 		$internalGroup = $ipskISEDB->getInternalGroupById($id);
 
 		if($internalGroup['groupType'] == 1){
-			$groupDn = '<label class="fw-bold" for="groupDn">External Group Distinguished Name:</label><div class="mb-3 input-group-sm fw-bold"><input type="text" class="form-control shadow" id="groupDn" value="'.$internalGroup['groupDn'].'" readonly></div>';	
+			$directoryLabel = ipskHtml(($ipskISEDB->getAuthDirectoryNames())[$internalGroup['directoryId']] ?? 'Review required — choose a directory');
+            $groupDn = '<p>Authentication directory: '.$directoryLabel.'</p><label class="fw-bold" for="groupDn">External Group Distinguished Name:</label><div class="mb-3 input-group-sm fw-bold"><input type="text" class="form-control shadow" id="groupDn" value="'.$internalGroup['groupDn'].'" readonly></div>';	
 		}else{
 			$groupDn = "";
 		}

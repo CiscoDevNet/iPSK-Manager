@@ -66,7 +66,7 @@ BEGIN
 		END IF;
 	END IF;
 	
-	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND endpoints.password = password ) THEN
+	IF EXISTS (SELECT * FROM endpoints WHERE endpoints.macAddress = @formattedMAC AND endpoints.password = password AND endpoints.accountEnabled = 1) THEN
 		SELECT 0,11,'This is a very good user, give him all access','no error';
 	ELSE
 		SELECT 3, 0, 'odbc','ODBC Authen Error';

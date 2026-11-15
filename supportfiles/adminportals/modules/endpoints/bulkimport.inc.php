@@ -1,4 +1,9 @@
 <?php
+if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
+    http_response_code(403);
+    return;
+}
+
 
 /**
  *@license
@@ -65,9 +70,8 @@
 		}
 		
 		if($sanitizedInput['bulkImportType'] == 1){
-			$macaddressArray = $_SESSION['bulk-import'][$sanitizedInput['uploadkey']];
-			
-			unset($_SESSION['bulk-import'][$sanitizedInput['uploadkey']]);
+			$macaddressArray = ipskTakePendingImport($sanitizedInput['uploadkey']);
+            if ($macaddressArray === false) { print '<p class="text-danger">Upload expired or already imported. Upload the CSV again.</p>'; return; }
 			
 			if($macaddressArray){
 				if($macaddressArray['count'] > 0){
@@ -96,6 +100,9 @@
 			if($macaddressArray['SearchResult']['total'] > 0){
 				foreach($macaddressArray['SearchResult']['resources'] as $entry){
 					$macAddressList[$count] = $entry['name'];
+                    if ($deviceRandom) {
+                        $randomPSKList[$count] = 'psk='.$ipskISEDB->generateRandomPassword($endpointGroupAuthorization['pskLength']);
+                    }
 					$count++;
 				}
 				
@@ -112,6 +119,10 @@
 			$macAddressInsertID = $ipskISEDB->addBulkEndpoints($macAddressList,$sanitizedInput['fullName'], $sanitizedInput['endpointDescription'], $sanitizedInput['emailAddress'], $randomPSKList, $endpointGroupAuthorization['vlan'], $endpointGroupAuthorization['dacl'], $duration, $_SESSION['logonSID']);
 		}
 		
+        if (!$macAddressInsertID && !empty($ipskISEDB->lastError)) {
+            print '<div class="alert alert-danger">'.ipskHtml($ipskISEDB->lastError).'</div>';
+            return;
+        }
 		if($macAddressInsertID){
 			if($macAddressInsertID['processed'] > 0){
 				//LOG::Entry

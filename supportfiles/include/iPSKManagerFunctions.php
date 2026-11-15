@@ -1,5 +1,91 @@
 <?php
 
+function ipskDirectoryOptions($database, $selected = 0, $zeroLabel = 'Select an authentication directory', $exclude = 0) {
+    $options = '<option value="0">'.ipskHtml($zeroLabel).'</option>';
+    foreach ($database->getAuthDirectoryNames() ?: [] as $id=>$label) {
+        if ((int)$id === 0 || (int)$id === (int)$exclude) continue;
+        $options .= '<option value="'.(int)$id.'"'.((int)$selected === (int)$id ? ' selected' : '').'>'.ipskHtml($label).'</option>';
+    }
+    return $options;
+}
+
+
+function ipskRenderDatabaseOperation($database, $file, $variables) {
+    ob_start();
+    $result = $database->atomic(function () use ($file, $variables) {
+        extract($variables, EXTR_SKIP);
+        include $file;
+        return http_response_code() < 400;
+    });
+    $output = ob_get_clean();
+    if ($result === false) {
+        if (http_response_code() >= 400 && http_response_code() < 500 && $output !== '') { print $output; return false; }
+        http_response_code(500);
+        print '<p class="text-danger">'.ipskHtml($database->lastError ?: 'Unable to save changes. Please retry.').'</p>';
+        return false;
+    }
+    print $output;
+    return true;
+}
+
+
+function ipskRememberGeneratedPsk($associationId, $policy, $psk) {
+    $_SESSION['pending-psks'][(string)$associationId] = ['hash'=>password_hash($psk, PASSWORD_DEFAULT), 'policy'=>hash('sha256', json_encode($policy)), 'expires'=>time()+600];
+}
+function ipskConsumeGeneratedPsk($associationId, $policy, $psk) {
+    $pending = $_SESSION['pending-psks'][(string)$associationId] ?? null;
+    unset($_SESSION['pending-psks'][(string)$associationId]);
+    return $pending && $policy && ipskValidPsk($psk) && $pending['expires'] > time()
+        && hash_equals($pending['policy'], hash('sha256', json_encode($policy)))
+        && strlen($psk) === min(63, (int)$policy['pskLength']) && password_verify($psk, $pending['hash']);
+}
+
+
+function ipskValidPsk($key) {
+    return is_string($key) && (preg_match('/^[\x20-\x7e]{8,63}$/D', $key) === 1 || preg_match('/^[a-fA-F0-9]{64}$/D', $key) === 1);
+}
+function ipskValidPskPolicy($key, $length) {
+    if (in_array($key, ['*devicerandom*','*userrandom*'], true)) {
+        return filter_var($length, FILTER_VALIDATE_INT) !== false && $length >= 8 && $length <= 63;
+    }
+    return ipskValidPsk($key);
+}
+
+
+function ipskReadCsvUpload($file) {
+    $errors = [UPLOAD_ERR_INI_SIZE=>'CSV exceeds the server upload size limit.', UPLOAD_ERR_FORM_SIZE=>'CSV exceeds the form size limit.', UPLOAD_ERR_PARTIAL=>'CSV upload was incomplete. Retry the upload.', UPLOAD_ERR_NO_FILE=>'Choose a CSV file. If one was selected, it may exceed the request size limit.', UPLOAD_ERR_NO_TMP_DIR=>'Upload temporary directory is unavailable.', UPLOAD_ERR_CANT_WRITE=>'Server could not write the upload.', UPLOAD_ERR_EXTENSION=>'A server extension stopped the upload.'];
+    $code = is_array($file) ? ($file['error'] ?? UPLOAD_ERR_NO_FILE) : UPLOAD_ERR_NO_FILE;
+    if ($code !== UPLOAD_ERR_OK) { return ['error'=>$errors[$code] ?? 'Invalid upload status. Retry the upload.']; }
+    $path = $file['tmp_name'] ?? null;
+    if (!is_string($path) || $path === '' || !is_file($path) || !is_readable($path)) { return ['error'=>'Uploaded CSV could not be read. Retry the upload.']; }
+    $contents = @file_get_contents($path);
+    if ($contents === false) { return ['error'=>'Uploaded CSV could not be read. Retry the upload.']; }
+    return ['contents'=>$contents];
+}
+function ipskUploadFailure($message) {
+    return ['result'=>false,'message'=>$message,'recordsprocessed'=>0,'validitems'=>0,'filtereditems'=>0,'invaliditems'=>0,'invalidchar'=>0,'uploadkey'=>''];
+}
+
+
+function ipskStorePendingImport($records) {
+    foreach (array_keys($_SESSION['bulk-import'] ?? []) as $key) {
+        if (($_SESSION['bulk-import-expiry'][$key] ?? 0) <= time()) {
+            unset($_SESSION['bulk-import'][$key], $_SESSION['bulk-import-expiry'][$key]);
+        }
+    }
+    do { $token = bin2hex(random_bytes(32)); } while (isset($_SESSION['bulk-import'][$token]));
+    $_SESSION['bulk-import'][$token] = $records;
+    $_SESSION['bulk-import-expiry'][$token] = time() + 1800;
+    return $token;
+}
+function ipskTakePendingImport($token) {
+    if (!is_string($token) || !preg_match('/^[a-f0-9]{64}$/D', $token)) { return false; }
+    $records = ($_SESSION['bulk-import-expiry'][$token] ?? 0) > time() ? ($_SESSION['bulk-import'][$token] ?? false) : false;
+    unset($_SESSION['bulk-import'][$token], $_SESSION['bulk-import-expiry'][$token]);
+    return $records;
+}
+
+
 /**
  *@license
  *
@@ -32,9 +118,18 @@
 		
 	$subModuleRegEx = "/^(?:create|new|add|edit|view|delete|enable|disable|extend|modify|update|suspend|activate|groups|updategroups|pass|updatepass|authzprofile|bulk|bulkimport)$/";
 	
-	function ipskSessionHandler(){
+	function ipskSessionHandler($scope = "portal"){
 		
-		session_start();
+        // Separate cookies even when the virtual hosts share PHP session storage.
+        session_name(['admin'=>'IPSKADMIN','installer'=>'IPSKINSTALLER'][$scope] ?? 'IPSKPORTAL');
+        session_start([
+            'use_strict_mode' => 1,
+            'use_only_cookies' => 1,
+            'cookie_httponly' => 1,
+            'cookie_secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'cookie_samesite' => 'Lax',
+        ]);
+        ipskProtectRequest();
 
 		if(!isset($_SESSION['creationTime'])) {
 			$_SESSION['creationTime'] = time();
@@ -48,31 +143,252 @@
 		}
 	}
 
-	function ipskLoginSessionCheck(){
-		
-		if(isset($_SESSION)){
-			if(isset($_SESSION['loggedIn']) && isset($_SESSION['logonDN']) && isset($_SESSION['logonUsername']) && isset($_SESSION['authenticationGranted']) && isset($_SESSION['authorizationGranted'])){
-				if($_SESSION['loggedIn'] == true && $_SESSION['authenticationGranted'] == true && $_SESSION['authorizationGranted'] == true){
-					if(isset($_SESSION['logoutTimer'])){
-						if($_SESSION['authorizationGranted'] > time()){
-							return true;
-						}else{
-							return false;
-						}
-					}else{
-						return true;
-					}
-				}else{
-					return false;
-				}
-			}else{
-				return false;
-			}
-		}else{
-			return false;
-		}	
-	}
-	
+    // Use the configured identity source, not a directory's display/domain label.
+    function ipskOpenLdapOwner($sourceId, $uid) {
+        if (!is_int($sourceId) || $sourceId < 1 || !is_string($uid) || $uid === '') return false;
+        return 'OL:'.$sourceId.':'.hash('sha256', $uid);
+    }
+
+    function ipskLoginSessionCheck() {
+        // Pre-upgrade external sessions contain unscoped ownership identifiers.
+        if (($_SESSION['identitySourceId'] ?? 0) > 0 && ($_SESSION['identityFormatVersion'] ?? 0) !== 1) {
+            ipskResetIdentity();
+            return false;
+        }
+        if (empty($_SESSION['loggedIn']) || empty($_SESSION['authenticationGranted']) ||
+            empty($_SESSION['authorizationGranted']) || !isset($_SESSION['logonDN'], $_SESSION['logonUsername'])) {
+            return false;
+        }
+        $now = time();
+        // A 30-minute idle window and 12-hour absolute lifetime apply to all portals.
+        $started = $_SESSION['authenticationTimestamp'] ?? $now;
+        $last = $_SESSION['lastActivity'] ?? $started;
+        if ((isset($_SESSION['logoutTimer']) && (!is_numeric($_SESSION['logoutTimer']) || $_SESSION['logoutTimer'] <= $now)) ||
+            $started + 43200 <= $now || $last + 1800 <= $now) {
+            ipskResetIdentity();
+            return false;
+        }
+        $_SESSION['authenticationTimestamp'] = $started;
+        $_SESSION['lastActivity'] = $now;
+        return true;
+    }
+
+    function ipskRotateSession() {
+        if (session_status() === PHP_SESSION_ACTIVE && !session_regenerate_id(true)) {
+            ipskResetIdentity();
+            throw new RuntimeException('Unable to establish a secure session');
+        }
+    }
+
+    function ipskResetIdentity() {
+        // Only navigation context survives a new authentication attempt.
+        $_SESSION = array_intersect_key($_SESSION ?? [], array_flip(['creationTime', 'sessionID', 'portalSettings', 'portalGET']));
+        $_SESSION['authenticationGranted'] = false;
+        $_SESSION['authorizationGranted'] = false;
+        $_SESSION['loggedIn'] = false;
+        $_SESSION['portalAuthorization'] = array_fill_keys(['viewall', 'viewgroup', 'viewowned', 'create', 'bulkcreate', 'viewallPSK', 'viewgroupPSK', 'viewownedPSK'], false);
+        $_SESSION['portalAuthorization']['viewallDn'] = '';
+    }
+
+
+
+
+
+
+    function ipskCsrfToken() {
+        if (empty($_SESSION['csrfToken'])) $_SESSION['csrfToken'] = bin2hex(random_bytes(32));
+        return $_SESSION['csrfToken'];
+    }
+
+    function ipskCsrfValid($token) {
+        return is_string($token) && isset($_SESSION['csrfToken']) && hash_equals($_SESSION['csrfToken'], $token);
+    }
+
+    function ipskCsrfHtml($html, $token) {
+        $field = '<input type="hidden" name="csrfToken" value="'.ipskHtml($token).'">';
+        $html = preg_replace('/(<form\b[^>]*\bmethod=["\']?post["\']?[^>]*>)/i', '$1'.$field, $html);
+        $json = json_encode($token, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        $script = '<script>(function(){const token='.$json.';const open=XMLHttpRequest.prototype.open;const send=XMLHttpRequest.prototype.send;XMLHttpRequest.prototype.open=function(method,url){this.ipskCsrfOrigin=new URL(url,location.href).origin===location.origin;this.ipskCsrfMethod=method.toUpperCase();return open.apply(this,arguments);};XMLHttpRequest.prototype.send=function(){if(this.ipskCsrfOrigin&&!/^(GET|HEAD|OPTIONS)$/.test(this.ipskCsrfMethod)){this.setRequestHeader("X-CSRF-Token",token);}return send.apply(this,arguments);};})();</script>';
+        return preg_replace('/(<head\b[^>]*>)/i', '$1'.$script, $html, 1);
+    }
+
+    function ipskProtectRequest() {
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        if (!in_array($method, ['GET','HEAD','OPTIONS'], true) &&
+            !ipskCsrfValid($_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrfToken'] ?? null)) {
+            http_response_code(403);
+            exit('The security token is missing or expired. Reload the page and try again.');
+        }
+        $token = ipskCsrfToken();
+        if (PHP_SAPI !== 'cli') {
+            ob_start(function ($html) use ($token) {
+                foreach (headers_list() as $header) {
+                    if (stripos($header, 'Content-Type:') === 0 && stripos($header, 'text/html') === false) return $html;
+                }
+                return ipskCsrfHtml($html, $token);
+            });
+        }
+    }
+
+    function ipskCanonicalMac($mac) {
+        if (!is_string($mac) || !preg_match('/\A(?:[0-9a-f]{12}|(?:[0-9a-f]{2}:){5}[0-9a-f]{2}|(?:[0-9a-f]{2}-){5}[0-9a-f]{2})\z/iD',$mac)) return false;
+        return implode(':',str_split(strtoupper(str_replace([':', '-'],'',$mac)),2));
+    }
+
+    function ipskPortalParameters($input) {
+        $out = [];
+        foreach (['client_mac', 'sessionId', 'redirect'] as $key) {
+            if (!isset($input[$key])) continue;
+            $value = $input[$key];
+            if (!is_string($value)) return false;
+            if ($key === 'client_mac') {
+                if (!preg_match('/\A(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}\z/iD', $value)) return false;
+                $value = strtoupper(str_replace('-', ':', $value));
+            } elseif ($key === 'sessionId') {
+                if (!preg_match('/\A[a-zA-Z0-9_.:-]{1,128}\z/D', $value)) return false;
+            } elseif ($value !== '' && (!filter_var($value, FILTER_VALIDATE_URL) ||
+                !in_array(strtolower(parse_url($value, PHP_URL_SCHEME) ?? ''), ['http','https'], true) ||
+                preg_match('/[\x00-\x20\x7f]/', $value))) return false;
+            $out[$key] = $value;
+        }
+        return $out;
+    }
+
+    function ipskPortalQuery($portalId, $parameters) {
+        return http_build_query(['portalId'=>$portalId] + $parameters, '', '&', PHP_QUERY_RFC3986);
+    }
+
+    function ipskUsername($value) {
+        return is_string($value) && trim($value) !== '' && preg_match('/\A[^\x00-\x1f\x7f]{1,255}\z/uD',$value) ? $value : false;
+    }
+
+    function ipskPskPlain($stored) {
+        return strncmp($stored, 'psk=', 4) === 0 ? substr($stored, 4) : $stored;
+    }
+
+    function ipskHtml($value) {
+        return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    function ipskRefreshPortalAuthorization($database, $portalId) {
+        $grants = $database->getPortalAuthGroups($portalId);
+        $matched = []; $bits = 0;
+        foreach ($grants ?: [] as $grant) {
+            if (!is_array($grant) || !in_array($grant['groupDn'], $_SESSION['memberOf'] ?? [], true)) continue;
+            $matched[] = $grant;
+            $bits |= $grant['groupPermissions'];
+        }
+        if (!$matched) { ipskResetIdentity(); return false; }
+        $matched['count'] = count($matched);
+        $_SESSION['authorizationGroups'] = $matched;
+        foreach (['create'=>512,'bulkcreate'=>2048,'viewall'=>4,'viewgroup'=>2,'viewowned'=>1,'viewallPSK'=>12,'viewgroupPSK'=>10,'viewownedPSK'=>9] as $name=>$mask) {
+            $_SESSION['portalAuthorization'][$name] = false;
+            foreach ($matched as $grant) {
+                if (is_array($grant) && ($grant['groupPermissions'] & $mask) === $mask) $_SESSION['portalAuthorization'][$name] = true;
+            }
+        }
+        $_SESSION['portalAuthorization']['viewallDn'] = '';
+        foreach ($matched as $grant) {
+            if (is_array($grant) && ($grant['groupPermissions'] & 4)) $_SESSION['portalAuthorization']['viewallDn'] = $grant['groupDn'];
+        }
+        $_SESSION['authorizedEPGroups'] = $database->getEndPointGroupAuthorizations($portalId, $matched) ?: ['count'=>0];
+        $_SESSION['authorizedWirelessNetworks'] = $database->getPortalWirelessNetworkAuthorization($portalId, $matched);
+        return true;
+    }
+
+    function ipskEndpointPermission($database, $associationId, $action = 0) {
+        $permissions = $database->getEndPointAssociationPermissions($associationId, $_SESSION['authorizationGroups'] ?? [], $_SESSION['portalSettings']['id']);
+        $endpoint = false;
+        foreach ($permissions ?: [] as $row) {
+            if (!is_array($row)) continue;
+            $bits = (int)$row['groupPermissions'];
+            if (($bits & $action) !== $action) continue;
+            if ($bits & 6) return true;
+            if ($bits & 1) {
+                $endpoint = $endpoint ?: $database->getEndpointByAssociationId($associationId);
+                if ($endpoint && $endpoint['createdBy'] === $_SESSION['logonSID']) return true;
+            }
+        }
+        return false;
+    }
+
+
+    function ipskMergeGroupGrants($rows) {
+        $groups = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) continue;
+            $id = $row['endpointGroupId'];
+            if (!isset($groups[$id])) $groups[$id] = $row + ['createMaximum'=>null,'bulkMaximum'=>null];
+            $groups[$id]['groupPermissions'] |= $row['groupPermissions'];
+            foreach ([512=>'createMaximum',2048=>'bulkMaximum'] as $permission=>$field) {
+                if (!($row['groupPermissions'] & $permission)) continue;
+                $old = $groups[$id][$field]; $new = (int)$row['maxDevices'];
+                $groups[$id][$field] = $old === null ? $new : (($old === 0 || $new === 0) ? 0 : max($old,$new));
+            }
+        }
+        $result=[];
+        foreach ($groups as $row) {
+            $row['maxDevices'] = $row['createMaximum'] ?? 0;
+            $row['bulkMaxDevices'] = $row['bulkMaximum'] ?? 0;
+            $row['viewPermissions'] = $row['groupPermissions'] & 15;
+            $row['advancedPermissions'] = $row['groupPermissions'] & 2032;
+            $result[]=$row;
+        }
+        $result['count']=count($result);
+        return $result;
+    }
+
+    function ipskQuotaAvailable($count, $maximum, $incoming = 1) {
+        return $count !== false && is_numeric($count) && $count >= 0 && is_numeric($maximum) && $maximum >= 0 &&
+            $incoming >= 0 && ($maximum == 0 || $count + $incoming <= $maximum);
+    }
+
+    function ipskCreationGrant($database, $groupId, $permission = 512, $quotaOwner = null, $incoming = 1) {
+        if (!filter_var($groupId, FILTER_VALIDATE_INT) || $groupId < 1 || empty($_SESSION['portalSettings']['id'])) return false;
+        $groups = $database->getEndPointGroupAuthorizations($_SESSION['portalSettings']['id'], $_SESSION['authorizationGroups'] ?? []);
+        $_SESSION['authorizedEPGroups'] = $groups ?: ['count' => 0];
+        $grant = false;
+        for ($i = 0; $i < ($groups['count'] ?? 0); $i++) {
+            if ($groups[$i]['endpointGroupId'] == $groupId && ($groups[$i]['groupPermissions'] & $permission) === $permission) {
+                $grant = $groups[$i];
+            }
+        }
+        if (!$grant) return false;
+        if ($permission === 2048) $grant['maxDevices'] = $grant['bulkMaxDevices'] ?? $grant['maxDevices'];
+        $count = $database->getUserEndpointCount($groupId, $quotaOwner ?? $_SESSION['logonSID']);
+        if (!ipskQuotaAvailable($count, $grant['maxDevices'], $incoming)) return false;
+        return $grant;
+    }
+
+    function ipskAdminSessionCheck() {
+        return ipskLoginSessionCheck() && isset($_SESSION['identitySourceId']) && ($_SESSION['adminAuthorized'] ?? false) === true;
+    }
+
+    // Routes are application capabilities, never filesystem paths supplied by callers.
+    function ipskPortalRoute($module, $template, $route) {
+        $routes = [
+            'captiveportal' => ['index', 'login', 'logoff', 'enroll', 'create', 'error', 'performcoa'],
+            'sponsorportal' => ['index', 'login', 'logoff', 'sponsor', 'manage', 'create', 'edit',
+                'view', 'delete', 'activate', 'suspend', 'extend', 'bulk', 'bulkimport',
+                'bulkupdate', 'fileupload', 'query'],
+        ];
+        if (!is_string($module) || !isset($routes[$module]) || $template !== 'default' ||
+            !is_string($route) || !in_array($route, array_map(function ($name) { return $name.'.php'; }, $routes[$module]), true)) {
+            return false;
+        }
+        return __DIR__.'/../portals/'.$module.'/'.$template.'/'.substr($route, 0, -4).'.inc.php';
+    }
+
+    function ipskPortalAsset($module, $route) {
+        if (!in_array($module, ['captiveportal', 'sponsorportal'], true) || !is_string($route) ||
+            !preg_match('~\A(?:scripts|styles|images)/[a-zA-Z0-9_.-]+\.(?:css|js|svg|gif|png|jpg|ico|jpeg)\z~D', $route)) {
+            return false;
+        }
+        $base = realpath(__DIR__.'/../portals/'.$module.'/commonfiles');
+        $path = realpath($base.'/'.$route);
+        return $base && $path && strncmp($path, $base.DIRECTORY_SEPARATOR, strlen($base) + 1) === 0 ? $path : false;
+    }
+
 	function convertBinSID($binSid) {
 		//Break apart the byte stream
 		$stringSid = unpack('Crevision/x/nauthhigh/Nauthlow/V*', $binSid);
@@ -166,7 +482,7 @@
 								),
 			'uploadkey'	=>	array('filter'    => FILTER_VALIDATE_REGEXP,
 								  'flags'     => '' ,
-								  'options'   => array('regexp' => '/^(?:[A-F]|[a-f]|[0-9]){8}$/')
+								  'options'   => array('regexp' => '/^[a-f0-9]{64}$/D')
 								),
 			'confirmaction'	=>	FILTER_VALIDATE_INT,
 			'wirelessSSID'	=>	FILTER_VALIDATE_INT,
@@ -183,6 +499,8 @@
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
 			'termLengthSeconds'	=>	FILTER_VALIDATE_INT,
+            'directoryId' => FILTER_VALIDATE_INT,
+            'identitySourceId' => FILTER_VALIDATE_INT,
 			'ciscoAVPairPSK'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
 								  'flags'	=>	FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK
 								  ),
@@ -240,7 +558,7 @@
 			'authDirectory'	=>	FILTER_VALIDATE_INT,
 			'inputUsername' => array('filter'	=>	FILTER_CALLBACK,
 									 'options'	=>	function ($value) {
-										return preg_replace('/[^a-zA-Z0-9@._+\- ]/', '', $value); // notice the added space at the end
+										return ipskUsername($value);
 									 }
 								),
 			'userName'	=>	array('filter'	=>	FILTER_UNSAFE_RAW,
@@ -401,6 +719,13 @@
 			}
 		}
 
+        foreach (['inputUsername','userName'] as $key) {
+            if (array_key_exists($key,$_POST)) $mysanitizedInputs[$key] = ipskUsername($_POST[$key]);
+        }
+        // Secrets are validated as secrets, never trimmed, stripped or HTML-encoded before storage.
+        foreach (['password','confirmpassword','ersPassword','mntPassword','smtpPassword','adPassword','ciscoAVPairPSK','presharedKey'] as $key) {
+            if (array_key_exists($key,$_POST)) $mysanitizedInputs[$key] = is_string($_POST[$key]) ? $_POST[$key] : false;
+        }
 		return $mysanitizedInputs;
 	}
 

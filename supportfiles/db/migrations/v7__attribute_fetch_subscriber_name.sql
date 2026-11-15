@@ -7,7 +7,7 @@ USE `{{DB_NAME}}`;
 DROP PROCEDURE IF EXISTS `iPSK_AttributeFetch`;
 
 DELIMITER $$
-CREATE DEFINER=`{{ISE_DB_USERNAME}}`@`%` PROCEDURE `iPSK_AttributeFetch` (IN `username` VARCHAR(64), OUT `result` INT)  SQL SECURITY INVOKER
+CREATE DEFINER={{ISE_DB_DEFINER}} PROCEDURE `iPSK_AttributeFetch` (IN `username` VARCHAR(64), OUT `result` INT)  SQL SECURITY INVOKER
 BEGIN
 	IF username = '*' THEN
 		SELECT username INTO @formattedMAC;

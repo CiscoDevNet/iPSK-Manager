@@ -89,17 +89,11 @@
 	$getPortal = isset($_GET['portal']) ?  $_GET['portal'] : '';
 	$getError = isset($_GET['error']) ?  $_GET['error'] : '';
 	
-	if(isset($_GET['client_mac'])){
-		$_SESSION['portalGET']['client_mac'] = $_GET['client_mac'];
-	}
-		
-	if(isset($_GET['redirect'])){
-		$_SESSION['portalGET']['redirect'] = $_GET['redirect'];
-	}	
-		
-	if(isset($_GET['sessionId'])){
-		$_SESSION['portalGET']['sessionId'] = $_GET['sessionId'];
-	}	
+    $portalParameters = ipskPortalParameters(array_merge($_SESSION['portalGET'] ?? [], $_GET));
+    if ($portalParameters === false) { http_response_code(400); return; }
+    $_SESSION['portalGET'] = array_merge($_SESSION['portalGET'] ?? [], $portalParameters);
+    $portalQuery = ipskPortalQuery(is_string($getPortalId) ? $getPortalId : '', $_SESSION['portalGET']);
+    $portalHomeJson = json_encode('index.php?'.$portalQuery, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 
 	if($getPortal == "" && $samlSettings['enabled'] == true && $getError == ""){
 		$getPortal = "login.php";
@@ -110,10 +104,17 @@
 	//echo $getPortal;
 	//die();
 	$sessionData = $_SESSION;
+    if (in_array($getPortal, ['create.php','bulkimport.php','bulkupdate.php','fileupload.php','performcoa.php','logoff.php'], true) &&
+        ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+        http_response_code(405);
+        header('Allow: POST');
+        return;
+    }
 	
 	if($getPortalId != "" && $getPortal != ""){
 		$portalId = $_GET['portalId'];
 		$portalSettings = $ipskISEDB->getPortalByGuid($portalId);
+        if (!$portalSettings) { http_response_code(404); return; }
 		
 		//Check Portal HTTPS Enforcement
 		if($portalSettings['enforceSecure'] && $portalSettings['portalSecure']){
@@ -155,15 +156,24 @@
 		}
 		
 		if($portalSettings){
-			$_SESSION['portalSettings'] = $portalSettings;
+			if (isset($_SESSION['portalSettings']['id']) && $_SESSION['portalSettings']['id'] != $portalSettings['id']) {
+                $_SESSION = ['creationTime' => time()];
+            }
+            $_SESSION['portalSettings'] = $portalSettings;
+            if (ipskLoginSessionCheck() && !ipskRefreshPortalAuthorization($ipskISEDB, $portalSettings['id'])) {
+                http_response_code(403);
+                return;
+            }
 			
-			$filename = "../supportfiles/portals/".$portalSettings['portalModule']."/".$portalSettings['portalTemplate']."/".substr($getPortal,0,strlen($getPortal) - 4).".inc.php";
-			if(file_exists($filename)){
+			$filename = ipskPortalRoute($portalSettings['portalModule'], $portalSettings['portalTemplate'], $getPortal);
+			if($filename !== false && file_exists($filename)){
 				header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 				header("Cache-Control: post-check=0, pre-check=0", false);
 				header("Pragma: no-cache");
 				
-				include ($filename);
+				if (in_array(basename($filename), ['edit.inc.php','bulkupdate.inc.php','activate.inc.php','suspend.inc.php','delete.inc.php','extend.inc.php'], true)) {
+                    ipskRenderDatabaseOperation($ipskISEDB, $filename, get_defined_vars());
+                } else { include ($filename); }
 			}else{
 				//LOG::Entry
 				$logData = $ipskISEDB->generateLogData(Array("filename"=>$filename), Array("sanitizedInput"=>$sanitizedInput));
@@ -184,8 +194,8 @@
 		}
 	}elseif(isset($_GET['portal'])){
 		if(isset($_SESSION['portalSettings'])){
-			$filename = "../supportfiles/portals/".$_SESSION['portalSettings']['portalModule']."/commonfiles/".$_GET['portal'];
-			if(file_exists($filename)){
+			$filename = ipskPortalAsset($_SESSION['portalSettings']['portalModule'], $_GET['portal']);
+			if($filename !== false && file_exists($filename)){
 				switch(substr($filename,strlen($filename) - 3, 3)) {
 					case "css":
 						$contentType = "text/css";

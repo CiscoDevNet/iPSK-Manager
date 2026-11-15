@@ -20,6 +20,7 @@
 	
 	
 	//Perform Login
+    ipskResetIdentity();
 	$_SESSION['portalAuthorization']['viewall'] = false;
 	$_SESSION['portalAuthorization']['viewallDn'] = "";
 	$_SESSION['portalAuthorization']['viewgroup'] = false;
@@ -130,7 +131,7 @@
 							$logMessage = "REQUEST:FAILURE{E2}[no_create_priv];ACTION:CAPTIVEAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USER:".$_SESSION['logonUsername'].";SID:".$_SESSION['logonSID'].";";
 							$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 							
-							header("Location: error.php?errorId=2&portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}");
+							header("Location: error.php?errorId=2&{$portalQuery}");
 							die();
 						}else{
 							if(!isset($_SESSION['authorizedEPGroups'])){
@@ -138,7 +139,7 @@
 								$_SESSION['authorizedWirelessNetworks'] = $ipskISEDB->getPortalWirelessNetworkAuthorization($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
 							}
 							
-							header("Location: enroll.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}");
+							header("Location: enroll.php?{$portalQuery}");
 							die();
 						}
 					}else{
@@ -173,9 +174,9 @@
 							
 				if($ldapCreds){
 				
-					$authorizedGroups = $ipskISEDB->getPortalAuthGroups($_SESSION['portalSettings']['id']);
+					$authorizedGroups = $ipskISEDB->getPortalAuthGroups($_SESSION['portalSettings']['id'], $ldapCreds['identitySourceId']);
 					
-					$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ldapCreds['directoryType'], $ipskISEDB);
+					$ldapClass = New BaseLDAPInterface($ldapCreds['adServer'], $ldapCreds['adDomain'], $ldapCreds['adUsername'], $ldapCreds['adPassword'], $ldapCreds['adBaseDN'], $ldapCreds['adSecure'], $ldapSettings['ldap-ssl-check'], $ldapCreds['directoryType'], $ipskISEDB, $ldapCreds['identitySourceId']);
 					
 					//START-[DO NOT REMOVE] - REMOVES PASSWORD FROM $ldapCreds
 					unset($ldapCreds['adPassword']);
@@ -240,7 +241,7 @@
 									$logMessage = "REQUEST:FAILURE{E2}[no_create_priv];ACTION:CAPTIVEAUTHZ;REMOTE-IP:".$_SERVER['REMOTE_ADDR'].";USERNAME:".$sanitizedInput["inputUsername"].";AUTHDIRECTORY:".$sanitizedInput['authDirectory'].";SID:".$_SESSION['logonSID'].";";
 									$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 									
-									header("Location: error.php?errorId=2&portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}");
+									header("Location: error.php?errorId=2&{$portalQuery}");
 									die();
 								}else{
 									if(!isset($_SESSION['authorizedEPGroups'])){
@@ -248,7 +249,7 @@
 										$_SESSION['authorizedWirelessNetworks'] = $ipskISEDB->getPortalWirelessNetworkAuthorization($_SESSION['portalSettings']['id'],$_SESSION['authorizationGroups']);
 									}
 									
-									header("Location: enroll.php?portalId=$portalId&sessionId={$sessionData['portalGET']['sessionId']}&client_mac={$sessionData['portalGET']['client_mac']}&redirect={$sessionData['portalGET']['redirect']}");
+									header("Location: enroll.php?{$portalQuery}");
 									die();
 								}
 							}else{

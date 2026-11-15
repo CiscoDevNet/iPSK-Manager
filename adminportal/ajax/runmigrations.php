@@ -28,9 +28,9 @@
 	include("../../supportfiles/include/iPSKManagerFunctions.php");
 	include("../../supportfiles/include/iPSKManagerDatabase.php");
 
-	ipskSessionHandler();
+	ipskSessionHandler('admin');
 
-	if(!ipskLoginSessionCheck()){
+	if(!ipskAdminSessionCheck()){
 		session_destroy();
 		http_response_code(401);
 		print json_encode(Array("success" => false, "error" => "Session expired. Please sign in again."));

@@ -22,7 +22,7 @@
 	//Core Components
 	include("../supportfiles/include/iPSKManagerFunctions.php");
 	
-	ipskSessionHandler();
+	ipskSessionHandler('admin');
 	
 ?><!doctype html>
 <html lang="en">

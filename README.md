@@ -30,6 +30,22 @@ Identity PSK Manager enables the following features/functionality:
 - Customizable Portal Groups
 - Customizable Sponsor & Captive Portals
 
+**What's New (November 2026)**
+
+- Refreshed bundled libraries: Bootstrap 5.3.8, Chart.js 4.6.1, DataTables 2.3.8 and compatible extensions, PHPMailer 7.2.0, and standalone Popper 1.16.1. All deployed copies are pinned in the [vendor manifest](supportfiles/vendor-manifest.json), with browser and real SMTP regression coverage.
+- Security and reliability fixes across the admin, sponsor, and captive portals, with regression coverage for the reviewed issues and database migration behavior.
+- Preserved arrow-key navigation and Escape dismissal in DataTables column menus alongside Bootstrap dropdowns.
+- Improved migration recovery when an earlier update left an ISE stored procedure missing; preserve its original owner, explain insufficient database privileges, and show optional migration credentials before applying updates.
+- Stronger route, session, and CSRF protection; authorization is rechecked for endpoint details, PSK access, edits, imports, and CoA operations.
+- OpenLDAP endpoint ownership, per-user keys and quotas are isolated by identity source. Schema 13 reconciles unambiguous legacy owners and stops for review when ownership is ambiguous.
+- [Directory-scoped group grants](#directory-scoped-group-grants-schema-12) prevent identical group DNs in separate directories from sharing administrator or portal permissions.
+- Per-user random keys are selected under the enrollment lock, so simultaneous sponsor, captive, and bulk enrollments share one key.
+- Atomic endpoint changes and concurrent quota enforcement; corrected unlimited quotas, endpoint ownership, reassignment, and expiration handling.
+- Consistent MAC address validation, safer CSV imports, unique internal usernames, and corrected PSK validation and random generation.
+- Safer SQL and LDAP queries, preserved password and PSK characters, escaped output, and sensitive-value redaction in new log entries.
+- Corrected ISE REST response handling, TLS verification, and request timeouts; repaired expiration email delivery and installer failure cleanup.
+- **Database schema 13 is required. Existing deployments must follow the [November 2026 upgrade checklist](#november-2026-upgrade-checklist-schema-13), including review of external group mappings and legacy OpenLDAP endpoint owners.**
+
 **What's New (April 2026)**
 - Added install detection if running in Podman
 - Various bug fixes 
@@ -80,22 +96,29 @@ Identity PSK Manager enables the following features/functionality:
 
 **Tools & Frameworks:**
 
-- Bootstrap v5.3.6
+- Bootstrap v5.3.8
 - jQuery v3.7.1
 - feathericon v4.29.2
-- Chart JS v4.4.9
+- Chart.js v4.6.1
 - ClipBoard Copy v2.0.11
-- DataTables v2.3.1
-- PHPMailer v6.10.0
+- DataTables v2.3.8 (Bootstrap 5 integration)
+- DataTables extensions: Buttons / Column visibility / Print v3.2.6, Responsive v3.0.8, Scroller v2.4.3, SearchPanes v2.3.5, StateRestore v1.4.3
+- PHPMailer v7.2.0
+- Standalone Popper v1.16.1 for existing portal scripts (Bootstrap bundles its own Popper v2.11.8)
+
+jQuery remains on v3.7.1 and DataTables on the v2 series to preserve the existing portal and extension APIs. Upgrading to jQuery 4 or DataTables 3 is a separate compatibility migration. Feather v4.29.2 and Clipboard v2.0.11 already match their current stable releases. See the [test instructions](tests/README.md) for offline PHP and browser checks.
 
 **We would like to thank all the authors & contributers on the previously mentioned Tools & Frameworks!**
 
 The Documentation and Guides available from these tools, contained the details needed to bring this Application to life.  Below are links to references used for the above Tools & Frameworks:
-- Bootstrap - Mobile first website Framework [https://getbootstrap.com/docs/5.0/getting-started/introduction/](https://getbootstrap.com/docs/5.0/getting-started/introduction/)
+- Bootstrap - Mobile first website Framework [https://getbootstrap.com/docs/5.3/getting-started/introduction/](https://getbootstrap.com/docs/5.3/getting-started/introduction/)
 - jQuery - Feature-rich JavaScript Library [https://api.jquery.com/](https://api.jquery.com/)
 - feathericon - Simply beautiful open sources icons - [https://feathericons.com/](https://feathericons.com/)
 - Chart JS - Simple and Flexible Javascript Charts - [https://www.chartjs.org/docs/latest/](https://www.chartjs.org/docs/latest/)
 - ClipBoard Copy - Javascript based copy to clipboard - [https://clipboardjs.com/](https://clipboardjs.com/)
+- DataTables - [v2.3.8 release notes](https://cdn.datatables.net/2.3.8/)
+- PHPMailer - [v7.2.0 release notes](https://github.com/PHPMailer/PHPMailer/releases/tag/v7.2.0)
+- Popper - [v1.16.1 source](https://github.com/floating-ui/floating-ui/tree/v1.16.1)
 
 ## Prerequisites
 
@@ -449,6 +472,9 @@ By following these steps, you will enable the `memberof` overlay on your OpenLDA
 
 ## Keeping iPSK Manager up to date
 #### The automated process documented in this section only applies with versions of iPSK Manager that are installed on your system that have this section in the README.
+
+**For the November 2026 update, complete the [before-update checklist](#before-updating) before pulling code or scheduling an automated update. This update requires database migrations and administrator review of external group mappings.**
+
 When there is an update to the Git repository, local iPSK Manager deployment can be updated without reinstallation.  We recomend you periodically update your iPSK Manager deployment so you get all the latest features and fixes.  You can choose to automate the update process by creating a cron job.
 
 To use this upgrade method you need to copy the config.php file from the supportfiles/include directory to someplace outside the iPSK Manager source code.  Automatic restoration of the config.php file will take place after upgrades if the config.php file is placed in the /opt/ipsk-manager directory on your host running iPSK Manager.
@@ -459,18 +485,124 @@ To use this upgrade method you need to copy the config.php file from the support
 admin@ubuntu:~$ sudo mkdir /opt/ipsk-manager
 admin@ubuntu:~$ sudo cp /var/www/iPSK-Manager/supportfiles/include/config.php /opt/ipsk-manager
 ```
-2. Go to iPSK Manager install directory
+3. Go to iPSK Manager install directory
 ```
 admin@ubuntu:~$ cd /var/www/iPSK-Manager
 ```
-3. Pull repository
+4. Pull repository
 ```
 admin@ubuntu:~$ sudo git pull
 ```
-4. After the repository is pulled open a web browser to the URL of the Admin Portal of iPSK Manager.  The installer script will detect your config.php in the backup directory (/opt/ipsk-manager) and automatically copy it, remove the installation files, and redirect you to the login screen.  At this point your iPSK Manager installation has been updated.
-5. If a database schema update is required, a modal will appear. Click **Apply Database Updates** to run the bundled migration scripts.
-6. If the configured DB user cannot create routines with the required permissions, the modal will reveal fields for alternate DB credentials. Enter a user with the needed rights (commonly the ISE DB user) and re-run. Credentials are used one time and not stored.
+5. After the repository is pulled open a web browser to the URL of the Admin Portal of iPSK Manager.  The installer script will detect your config.php in the backup directory (/opt/ipsk-manager) and automatically copy it, remove the installation files, and redirect you to the login screen.  The application files are now updated; complete the database migrations and post-update checks before returning the deployment to service.
+6. Sign in with the internal administrator account verified before the update. If a database schema update is required, a modal will appear. Click **Apply Database Updates** to run the bundled migration scripts.
+7. The modal offers **Optional migration database credentials** before the update starts. Leave them blank to use the configured application account, or enter a DBA-approved account with the required schema and routine privileges. If an attempt fails because it cannot read or replace routine definitions, enter the alternate credentials and retry. Credentials are used one time and not stored.
+8. Complete the [after-update checklist](#after-updating) below.
 
+
+### November 2026 upgrade checklist (schema 13)
+
+Fresh installations create schema 13 directly. Existing installations need the following preparation and migration steps; pulling code alone does not complete the upgrade.
+
+#### Before updating
+
+1. **Back up and plan recovery.** Take a restorable database backup, including stored routines and triggers, and save the application files, `supportfiles/include/config.php`, encryption key, and `DONOTDELETE-iPSKManager-Install.txt` securely. Preserve custom portal templates and deployed cron scripts. Schedule a maintenance window and pause enrollment, imports, endpoint changes, and expiration jobs while updating and migrating. Test the upgrade against a restored copy first where possible.
+2. **Verify internal administrator access.** Confirm a working internal administrator account and its password before changing code. External group grants will require manual review after schema 12. If admin SAML is enabled, establish and test an internal password login path before the maintenance window; temporarily disable SAML in Platform Configuration if necessary, accounting for the effect on other portals. An internal account alone does not bypass enabled SAML. Record which directory each external group belongs to and which LDAP servers represent the same trusted directory.
+3. **Check the current schema and database privileges.** Automatic migrations start at schema 6. For older installations, apply only the missing legacy updates in order through v6, following the instructions and installation-specific substitutions in `schemeupdate-v2.sql` and `schemaupdate-v3.sql` through `schemaupdate-v6.sql`. Arrange access to a database account able to alter tables and inspect/create/replace the required stored routines with their intended definers. Preserve the existing ISE ODBC account and routine definers.
+4. **Resolve conflicting legacy data.** Check for malformed endpoint MAC addresses and multiple endpoint records that become the same MAC when case, colons, and hyphens are normalized. Also check for duplicate internal usernames under the database column's collation, including case-only differences with the default collation. Resolve conflicts deliberately, preserving the intended owner, associations, and user memberships. Migrations v8 and v9 stop on these conflicts; they do not merge or delete records automatically.
+5. **Review OpenLDAP ownership.** Inventory configured directory domains and deliberate identity-source aliases. Legacy endpoint owners use `uid-domain`, which cannot distinguish independent directories with matching names. Review the [schema 13 ownership procedure](#openldap-ownership-upgrade-schema-13), including records from removed/renamed directories, before reopening enrollment.
+6. **Review local customizations.** Custom forms and scripts that change data must use POST and send the current session's CSRF token (`csrfToken` form field or `X-CSRF-Token` header). Bundled forms and same-origin XMLHttpRequest calls receive tokens automatically; custom clients such as `fetch` callers must supply them. Review authorization templates for the PSK requirements in the compatibility notes below, and prepare to refresh any separate copy of the expiration cron example.
+
+#### Apply the database updates
+
+Follow the update procedure above, sign in as the verified internal administrator, and select **Apply Database Updates**. Deploy the complete `supportfiles/db/migrations` directory with the code. The runner requires a continuous migration sequence and records each version only after it succeeds.
+
+| Schema | Change | Existing deployment impact |
+| --- | --- | --- |
+| 7 | Adds `subscriberName` to `iPSK_AttributeFetch`. | Applied if the December 2025 migration has not already run; requires routine replacement privileges. |
+| 8 | Normalizes endpoint and association MACs to uppercase colon notation and the MAC authentication password to lowercase without separators. | Invalid MACs or normalization collisions must be resolved before retrying. Endpoint PSKs are not rotated. |
+| 9 | Enforces unique internal usernames. | Conflicting usernames must be resolved before retrying. |
+| 10 | Makes `iPSK_AuthMACPlain` honor endpoint suspension. | Suspended endpoints using this procedure can no longer authenticate; its existing expiration behavior is preserved. |
+| 11 | Aligns association ownership with the endpoint's stored owner. | Own-only visibility can change where historical association ownership differed. Review affected sponsor access. |
+| 12 | Adds directory identity sources and scopes external group grants. | Legacy external groups remain unbound and grant no access until an administrator assigns their directory. |
+| 13 | Namespaces OpenLDAP endpoint ownership by identity source. | Unambiguous owners and their associations/cache migrate without changing PSKs. Ambiguous owners stop the update before ownership changes; review and resolve them as described below. |
+
+Confirm that the reported database version reaches **13**. If an update fails, keep the deployment in maintenance, resolve the reported data or privilege problem, and retry from the recorded version. Do not manually advance the version to bypass an error. Routine replacement includes preflight and recovery handling, but schema changes are not all transactional. If rollback is needed, restore the matching database, code, and configuration backups together.
+
+#### OpenLDAP ownership upgrade (schema 13)
+
+The new owner identifier is `OL:<identity-source-id>:<SHA-256 of the exact LDAP uid>`. Directory labels are not part of ownership. Explicit aliases share an identity source; independent directories must retain separate sources. Internal and Active Directory SIDs remain unchanged. Existing external sessions are invalidated and must authenticate again.
+
+During maintenance, back up first and apply updates with the verified internal administrator. Schema 13 uses the configured OpenLDAP domain suffixes to identify legacy owners and preserves existing endpoint keys, expiration and enabled state. It also reconciles association ownership and descriptive user-cache entries. If a legacy owner has multiple possible source/UID combinations, the `ipsk_ldap_owner_review_required` preflight fails before changing persistent ownership. Earlier successful schema versions remain recorded; resolve the ambiguity and retry. Never alias independent directories merely to make the migration pass.
+
+After schema 12 is present, run these read-only queries in the application database to review configured sources and legacy owners:
+
+```sql
+SELECT id, adConnectionName, adDomain, directoryType,
+       COALESCE(identitySourceId,id) AS identity_source_id
+FROM ldapServers;
+
+SELECT e.id, e.macAddress, e.createdBy,
+       GROUP_CONCAT(DISTINCT CONCAT(COALESCE(d.identitySourceId,d.id), ':',
+           LEFT(e.createdBy,CHAR_LENGTH(e.createdBy)-CHAR_LENGTH(d.adDomain)-1))
+           SEPARATOR ', ') AS candidate_source_and_uid
+FROM endpoints e
+LEFT JOIN ldapServers d ON d.directoryType=1
+ AND BINARY RIGHT(e.createdBy,CHAR_LENGTH(d.adDomain)+1)=BINARY CONCAT('-',d.adDomain)
+ AND CHAR_LENGTH(e.createdBy)>CHAR_LENGTH(d.adDomain)+1
+WHERE e.createdBy NOT REGEXP '^OL:[0-9]+:[a-f0-9]{64}$'
+  AND e.createdBy NOT REGEXP '^S-[0-9]+(-[0-9]+)+$'
+GROUP BY e.id,e.macAddress,e.createdBy;
+```
+
+Confirm the actual owner from trusted directory and enrollment records. A missing candidate can mean a removed/renamed directory; the migration leaves those owners unchanged rather than guessing, so own-only access will need manual reconciliation. An ambiguous legacy string can represent devices belonging to different people. Assign **reviewed endpoint IDs individually**, not every row with that string. For example, after replacing all fixture values below with the verified source, exact LDAP UID, old owner and endpoint IDs:
+
+```sql
+SET @review_source = 3;
+SET @review_uid = 'alice';
+SET @review_old_owner = 'alice-example.test';
+SET @review_owner = CONCAT('OL:', @review_source, ':',
+                          SHA2(CONVERT(@review_uid USING utf8mb4),256));
+START TRANSACTION;
+UPDATE endpoints SET createdBy=@review_owner
+WHERE id IN (101,102) AND BINARY createdBy=BINARY @review_old_owner;
+UPDATE endpointAssociations a JOIN endpoints e ON e.id=a.endpointId
+SET a.createdBy=e.createdBy WHERE e.id IN (101,102);
+SELECT e.id,e.macAddress,e.createdBy,a.createdBy AS association_owner
+FROM endpoints e JOIN endpointAssociations a ON a.endpointId=e.id
+WHERE e.id IN (101,102);
+-- Review the selected rows; use ROLLBACK instead if they are not correct.
+COMMIT;
+```
+
+Use the **identity source ID**, not an alternate server's row ID. Retain legitimate aliases already configured in schema 12. Retry **Apply Database Updates**, confirm schema **13**, and verify ownership and quotas before resuming enrollment. No PSKs are rotated automatically. Where deliberate aliases formerly used different domain labels, their devices now count toward the same owner's quota; review any existing multiple-key or over-quota cases without deleting working devices automatically. Keep the migration credential privileges described above, including permission to create temporary tables, until the update succeeds; then remove temporary credentials.
+
+#### Missing routine or DEFINER errors
+
+An older updater may report `Missing migration configuration: {{ISE_DB_DEFINER}}` when it cannot discover the owner of `iPSK_AttributeFetch`. This can happen when a previous failed update removed that procedure, or when the database account cannot inspect routine metadata.
+
+After installing the corrected updater, retry **Apply Database Updates** with a DBA-approved account in **Optional migration database credentials**. The account must be able to read existing routine definitions for recovery, create and replace routines with their original `DEFINER`, and update the application schema. Schema-level `ALL PRIVILEGES` alone may not be sufficient; the ISE ODBC account also may not have the required migration privileges. Have your DBA select appropriate rights for your MySQL/MariaDB version rather than changing the routine owner to the migration account.
+
+For a missing attribute-fetch or plain-MAC routine, the updater can recover its owner from the remaining known ISE routines only when their visible owners agree. It preserves both the account name and host, excludes unrelated routines, and never drops a procedure without a readable backup. If owners differ or cannot be inspected, stop and have your DBA restore the missing procedure from a matching backup before retrying. Do not advance the schema version manually or replace the token with an arbitrary database username.
+
+#### After updating
+
+1. **Verify migrated ownership and reauthenticate.** All existing external-directory sessions must sign in again. After binding the external groups in the next step, check own-only visibility, existing PSKs and device counts with an account from each independent source and an intended alias. Unknown legacy owners remain administrator-managed until explicitly assigned; do not reopen their enrollment until this review is complete.
+2. **Bind external group grants before restoring external access.** In **Groups**, edit every external row marked **Review required**, select its **Authentication directory**, and save. For alternate LDAP servers serving the same trusted directory, configure their **Identity source** explicitly as described [below](#directory-scoped-group-grants-schema-12). Keep independent directories separate. Test external administrator and portal access, including an account that should be denied. Restore SAML if it was temporarily disabled, then test that login path too.
+3. **Start fresh sessions and imports.** Have administrators and portal users sign out and sign in again, then hard-refresh the browser to load the matching JavaScript and CSS and reload open forms. Purge cached static assets from any reverse proxy or CDN used by the deployment. Update library copies in any custom portal templates as well. Re-upload any CSV files that were pending before the update and generate fresh sponsor PSKs for unfinished enrollment forms. Old session state and pending tokens must not be reused.
+4. **Refresh expiration jobs if used.** Update deployed copies from `expire-endpoints-cron-example.php.txt`, preserving the deployment's `ipskManagerPath`, settings, and schedule. Updating the repository example does not update a copy installed elsewhere. Verify the configured expiration behavior and email delivery before resuming scheduled jobs.
+5. **Verify the deployment's integrations and permissions.** Check ISE ODBC authentication and attribute retrieval, ERS/MnT operations including CoA where enabled, LDAP/SAML login, and SMTP delivery. Confirm that suspended endpoints are denied when using `iPSK_AuthMACPlain`. Exercise a permitted endpoint creation, edit, import, and expiration extension; verify quota limits and own-only access with a sponsor account. Review any ownership changes made by v11.
+6. **Resume service after validation.** Restore enrollment and scheduled jobs once migrations, group bindings, and integration checks pass. Keep the backups available for recovery.
+
+#### Compatibility notes for existing deployments
+
+- **Library refresh:** Deploy JavaScript and CSS together, including the DataTables extensions and Bootstrap integration. The library refresh itself adds no schema migration and keeps the application's PHP 8.0+ requirement; the subsequent OpenLDAP ownership fix requires schema 13. For custom PHPMailer subclasses, review the [v7 changes](https://github.com/PHPMailer/PHPMailer/releases/tag/v7.0.0): `lang()`, `setLanguage()`, and `$language` are now static. The bundled application does not override them. Retest SMTP delivery after replacing the mail classes.
+- **PSKs:** New or edited keys must be 8–63 printable ASCII characters or exactly 64 hexadecimal digits. Random-key policy lengths must be 8–63; review legacy templates configured for 64-character random passphrases. Existing endpoint keys are not automatically rotated. Correct invalid templates before creating or changing endpoints with them.
+- **Per-user keys:** No migration or key rotation is required for the enrollment concurrency fix. Existing keys remain valid. If earlier concurrent enrollments left multiple keys for one owner/group, review those devices and coordinate any manual key changes with their users; this update does not silently rotate working credentials.
+- **Sessions and uploads:** Sessions expire after 30 minutes of inactivity or 12 hours overall, and configured earlier logout deadlines still apply. CSV uploads use single-use tokens valid for 30 minutes. Generated sponsor PSK tokens are single-use, expire after 10 minutes, and are invalidated by changes to the associated policy. CSV headers must contain each of `macaddress`, `fullname`, `emailaddress`, and `description` exactly once; their order and case may vary.
+- **Stored credentials:** Passwords and PSKs now retain their original characters. Previously stored values are not automatically decoded or rewritten. If an integration fails because a legacy secret was stored with escaped characters, re-enter the intended secret and retest that integration.
+- **ISE REST calls:** Default timeouts are 5 seconds to connect and 30 seconds overall. TLS verification checks the certificate chain and hostname without requiring OCSP stapling. Ensure the configured ISE hostname and certificate trust work with verification enabled.
+- **Nested LDAP groups:** Traversal detects cycles and stops with denied access if a query fails or the traversal reaches its 10,000-entry safety limit. Test representative users if the deployment uses large nested group memberships.
+- **Historical logs:** Sensitive-value redaction applies to newly written log entries. Existing log records and backups are not retroactively scrubbed; review previously exposed secrets and rotate affected credentials if needed.
 
 ## GUI Logging
 Logging via GUI can be enabled by editing the **'additionalmenus.json'** file in **/var/www/iPSK-Manager/supportfiles/adminportals/modules/** directory. Change the "menuEnabled" flag at the end to 1 (default is 0) as shown below and refresh admin GUI and you will see 'System Logging' option visible just below 'About' settings. 
@@ -604,6 +736,14 @@ Active Directory nested group support can be enabled in the Platform Configurato
 
 **NOTE:**
 - To support nested groups, the LDAP process goes through each group assigned to a user and searches those groups to see if it is a member of another group. Depending on the number of groups assigned to a user and how many of those groups are nested groups, there could be a noticeable delay in logging in. The use of nested groups should be avoided if possible.
+
+## Directory-scoped group grants (schema 12)
+
+External identity groups must select an **Authentication directory** as well as the group DN. Administrator and portal grants apply only to that identity source. Identical DNs in independent directories do not share permissions.
+
+Every LDAP server is an independent identity source by default. In its **Identity source** selector, choose another directory only when the server is an alternate server for that same trusted directory. Such an explicit alias shares the primary source's group grants. Alias chains are rejected, and a source with existing grants or aliases cannot be reassigned until those references are reviewed and removed.
+
+Before upgrading, verify that you can sign in with an internal administrator account. Apply the schema migrations from the administrator portal. Schema 12 leaves legacy external group mappings unbound because their intended directory cannot be inferred. In **Groups**, edit each row marked **Review required**, select its intended directory, and save it. External administrator and portal access remains denied for unbound mappings. Internal groups remain available, including for applying the upgrade. Existing sessions must sign in again to establish their identity-source binding.
 
 ## Authors
 
