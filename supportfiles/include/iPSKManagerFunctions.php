@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/iPSKManagerLoginNotice.php';
 
 function ipskDirectoryOptions($database, $selected = 0, $zeroLabel = 'Select an authentication directory', $exclude = 0) {
     $options = '<option value="0">'.ipskHtml($zeroLabel).'</option>';

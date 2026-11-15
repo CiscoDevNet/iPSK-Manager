@@ -64,3 +64,26 @@ independent sources and explicit aliases, verifies PSK/ownership/quota separatio
 and applies schema 13 to legacy data, including ambiguous owners, non-ASCII UIDs,
 injected write failures, cache collisions and retries. LDAP transport is simulated;
 all ownership queries and migrations use the disposable database.
+
+
+Issue 105 is covered by `issue-105.php` in `tests/run.sh`, including actual login
+forms/handlers over loopback HTTP. `database-integration.php` also checks schema 14,
+default-off behavior, migration retries, long Unicode text, failed saves and revision
+changes on MySQL/MariaDB. No live application configuration or identity provider is used.
+
+For the browser regression, serve **only the test fixtures** on loopback, for example:
+
+```sh
+docker run --rm --name ipsk-notice-test-web -p 127.0.0.1:8088:8080 \
+  -v "$PWD:/app:ro" -w /app php:8.3-cli php -S 0.0.0.0:8080 -t tests
+```
+
+Then, in another terminal, with Playwright installed as described above:
+
+```sh
+IPSK_NOTICE_TEST_URL=http://127.0.0.1:8088 node tests/login-notice-browser.cjs
+```
+
+The browser test covers the shared settings editor, all three password/SSO flows,
+JavaScript enabled/disabled, unchecked-form rejection, safe text and mobile layout.
+Stop the fixture server when finished; do not expose the test directory publicly.

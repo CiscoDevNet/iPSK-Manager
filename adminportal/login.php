@@ -31,7 +31,6 @@
 	include("../supportfiles/include/BaseLDAPClass.php");
 	
 	ipskSessionHandler('admin');
-    ipskResetIdentity();
 	
 	if(isset($_POST['logoff'])){
 		$_SESSION = null;
@@ -62,6 +61,9 @@
 
 	$samlSettings = $ipskISEDB->getGlobalClassSetting("saml-settings");
 	$samlLogin = (isset($samlSettings['enabled'])) ? $samlSettings['enabled'] : false;
+    $loginNotice = ipskLoginNoticeGate($ipskISEDB, 'login.php', 'index.php', $samlLogin);
+    if ($loginNotice === false) return;
+    ipskResetIdentity();
 	
 	if ($samlLogin) {
 		$samlUsernameField = ($samlSettings['usernamefield'] != '') ? $samlSettings['usernamefield'] : 'REMOTE_USER';
@@ -108,6 +110,7 @@
 								$_SESSION['authorizationGranted'] = true;
                                 $_SESSION['adminAuthorized'] = true;
 								$_SESSION['authorizationTimestamp'] = time();
+                                ipskRecordLoginNoticeAcceptance($ipskISEDB, 'admin', $loginNotice);
 								
 								//LOG::Entry
 								$logData = $ipskISEDB->generateLogData(Array("authorizedGroups"=>$authorizedGroups), Array("sanitizedInput"=>$sanitizedInput));
@@ -177,6 +180,7 @@
 											$_SESSION['authorizationGranted'] = true;
                                 $_SESSION['adminAuthorized'] = true;
 											$_SESSION['authorizationTimestamp'] = time();
+                                ipskRecordLoginNoticeAcceptance($ipskISEDB, 'admin', $loginNotice);
 											
 											//LOG::Entry
 											$logData = $ipskISEDB->generateLogData(Array("authorizedGroups"=>$authorizedGroups), Array("ldapCreds"=>$ldapCreds), Array("sanitizedInput"=>$sanitizedInput));

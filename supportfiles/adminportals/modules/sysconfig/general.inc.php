@@ -24,6 +24,7 @@ if (!function_exists('ipskAdminSessionCheck') || !ipskAdminSessionCheck()) {
  */
 
 $alphabetArray = Array(1=>"abcdefghijkmnopqrstuvwxyz", 2=>"ABCDEFGHJKLMNPQRSTUVWXYZ", 4=>"123456789", 8=>'!?#$%@*()',16=>'lIO0');
+print ipskLoginNoticeEditor($ipskISEDB);
 print <<< HTML
 <div class="container-fluid">
 	<div class="row row-cols-1 row-cols-md-2 g-4">

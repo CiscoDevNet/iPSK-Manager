@@ -49,6 +49,8 @@
 	unset($dbPassword);
 	//END-[DO NOT REMOVE] - EMPTIES/REMOVES ENCRYTION KEY/DB PASSWORD VARIABLE
 	
+    try { $loginNotice = $ipskISEDB->getLoginNotice(); }
+    catch (Throwable $error) { http_response_code(503);print 'The login notice could not be loaded. Please try again.';return; }
 	$idxID = 0;
 	
 	$adminPortalSettings = $ipskISEDB->getGlobalClassSetting("admin-portal");
@@ -165,8 +167,10 @@
 					print '<input type="hidden" name="authDirectory" value="0">';
 				}
 			?>
+                    <?php print ipskLoginNoticeFields($loginNotice); ?>
 					<button class="btn btn-primary btn-block mt-2 mb-3 shadow" id="loginbtn" type="submit">Sign in</button>
 				</form>
+                <?php print ipskLoginNoticeButtonScript(); ?>
 			</div>
 			<div class="card-footer">
 				Copyright &copy; 2025 Cisco and/or its affiliates.

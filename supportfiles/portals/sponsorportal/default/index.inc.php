@@ -27,6 +27,8 @@ if(isset($_GET['error'])){
 	$logMessage = "REQUEST:FAILURE[index_error]];ACTION:SPONSORPORTAL;CLIENTIP:".$_SERVER['REMOTE_ADDR'].";HOSTNAME:".$_SERVER['SERVER_NAME'].";TCPPORT:".$_SERVER['SERVER_PORT'].";";
 	$ipskISEDB->addLogEntry($logMessage, __FILE__, __FUNCTION__, __CLASS__, __METHOD__, __LINE__, $logData);
 }
+try { $loginNotice = $ipskISEDB->getLoginNotice(); }
+catch (Throwable $error) { http_response_code(503);print 'The login notice could not be loaded. Please try again.';return; }
 ?>
 <!doctype html>
 <html lang="en">
@@ -67,8 +69,10 @@ if(isset($_GET['error'])){
 					<input type="text" name="inputUsername" id="inputUsername" class="form-control mt-2 mb-3 shadow" placeholder="Username" required autofocus>
 					<label for="inputPassword" class="visually-hidden">Password</label>
 					<input type="password" name="inputPassword" id="inputPassword" class="form-control mt-2 mb-3 shadow" placeholder="Password" required>
+                    <?php print ipskLoginNoticeFields($loginNotice); ?>
 					<button class="btn btn-primary btn-block mt-2 mb-3 shadow" id="loginbtn" type="submit">Sign in</button>
 				</form>
+                <?php print ipskLoginNoticeButtonScript(); ?>
 			</div>
 			<div class="card-footer bg-light">
 				Copyright &copy; 2025 Cisco and/or its affiliates.

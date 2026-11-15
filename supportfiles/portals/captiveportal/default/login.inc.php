@@ -20,6 +20,11 @@
 	
 	
 	//Perform Login
+    $loginNoticeScope = 'portal-'.(int)$_SESSION['portalSettings']['id'];
+    $noticeSamlSettings = $ipskISEDB->getGlobalClassSetting('saml-settings');
+    $noticeQuery = ipskPortalQuery($portalId, $_SESSION['portalGET'] ?? []);
+    $loginNotice = ipskLoginNoticeGate($ipskISEDB, 'login.php?'.$noticeQuery, 'index.php?'.$noticeQuery, !empty($noticeSamlSettings['enabled']));
+    if ($loginNotice === false) return;
     ipskResetIdentity();
 	$_SESSION['portalAuthorization']['viewall'] = false;
 	$_SESSION['portalAuthorization']['viewallDn'] = "";
@@ -123,6 +128,7 @@
 						
 						$_SESSION['authorizationGranted'] = true;
 						$_SESSION['authorizationTimestamp'] = time();
+                            ipskRecordLoginNoticeAcceptance($ipskISEDB, $loginNoticeScope, $loginNotice);
 						$ipskISEDB->addUserCacheEntry($_SESSION['logonSID'],$_SESSION['userPrincipalName'],$_SESSION['sAMAccountName'],$_SESSION['logonDN'], $systemSID);
 						
 						if($_SESSION['portalAuthorization']['create'] == false){
@@ -233,6 +239,7 @@
 								
 								$_SESSION['authorizationGranted'] = true;
 								$_SESSION['authorizationTimestamp'] = time();
+                            ipskRecordLoginNoticeAcceptance($ipskISEDB, $loginNoticeScope, $loginNotice);
 								$ipskISEDB->addUserCacheEntry($_SESSION['logonSID'],$_SESSION['userPrincipalName'],$_SESSION['sAMAccountName'],$_SESSION['logonDN'], $systemSID);
 								
 								if($_SESSION['portalAuthorization']['create'] == false){

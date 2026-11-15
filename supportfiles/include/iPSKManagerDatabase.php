@@ -34,7 +34,7 @@
 	
 	class iPSKManagerDatabase {
 	
-		public $requiredSchemaVersion = 13;
+		public $requiredSchemaVersion = 14;
 		public $autoMigrationBaselineVersion = 6;
 		public $platformClassVersion = 1;
 		public $lastFuncModVersion = 1;
@@ -356,6 +356,28 @@
 				return false;
 			}
 		}
+
+        function loginNoticesAvailable() { return (int)$this->dbSchemaVersion >= 14; }
+
+        function getLoginNotice() {
+            if (!is_numeric($this->dbSchemaVersion)) throw new RuntimeException('Unable to determine schema version.');
+            $disabled=['enabled'=>false,'text'=>'','revision'=>''];
+            // Internal recovery login must remain available before the migration.
+            if (!$this->loginNoticesAvailable()) return $disabled;
+            $result=$this->preparedQuery('SELECT enabled,noticeText,revision FROM loginNotices WHERE id=1',[]);
+            if (!$result) throw new RuntimeException('Unable to read login notice.');
+            $row=$result->fetch_assoc();
+            if (!$row) return $disabled;
+            $notice=ipskLoginNoticeInput((string)$row['enabled'],$row['noticeText']);
+            if ($notice === false || !preg_match('/\A[a-f0-9]{64}\z/D',$row['revision'])) throw new RuntimeException('Invalid stored login notice.');
+            return $notice+['revision'=>$row['revision']];
+        }
+
+        function saveLoginNotice($enabled, $text, $actor) {
+            $notice=ipskLoginNoticeInput($enabled,$text);
+            if (!$this->loginNoticesAvailable() || $notice === false) return false;
+            return $this->preparedQuery('INSERT INTO loginNotices (id,enabled,noticeText,revision,updatedBy) VALUES (1,?,?,?,?) ON DUPLICATE KEY UPDATE enabled=VALUES(enabled),noticeText=VALUES(noticeText),revision=VALUES(revision),updatedBy=VALUES(updatedBy)',[(int)$notice['enabled'],$notice['text'],bin2hex(random_bytes(32)),$actor]) !== false;
+        }
 
 		function getGlobalClassSetting($className){
 			$queryValues = [$className];
