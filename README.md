@@ -33,6 +33,7 @@ Identity PSK Manager enables the following features/functionality:
 **What's New (November 2026)**
 
 - Added an optional [shared login notice](#shared-login-notice) for administrator, sponsor and captive logins, including SSO (issue #105). Configure its plain text and acknowledgment requirement in Platform Configuration; schema 14 stores it in the database so Docker rebuilds preserve it.
+- Corrected the login-notice save route so the admin router accepts the new action; regression coverage now exercises the production dispatcher. Omitted optional fields no longer emit PHP 8.3 deprecation messages into the save response. Deploy this correction and reload Platform Configuration before retrying a failed save. No additional migration is needed if schema 14 is already applied.
 
 - Refreshed bundled libraries: Bootstrap 5.3.8, Chart.js 4.6.1, DataTables 2.3.8 and compatible extensions, PHPMailer 7.2.0, and standalone Popper 1.16.1. All deployed copies are pinned in the [vendor manifest](supportfiles/vendor-manifest.json), with browser and real SMTP regression coverage.
 - Security and reliability fixes across the admin, sponsor, and captive portals, with regression coverage for the reviewed issues and database migration behavior.

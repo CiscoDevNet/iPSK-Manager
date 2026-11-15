@@ -67,7 +67,9 @@ all ownership queries and migrations use the disposable database.
 
 
 Issue 105 is covered by `issue-105.php` in `tests/run.sh`, including actual login
-forms/handlers over loopback HTTP. `database-integration.php` also checks schema 14,
+forms/handlers over loopback HTTP and notice saves through the production admin
+router, sanitizer and operation wrapper. Traversal/unknown routes, invalid CSRF
+and unauthenticated saves are rejected. `database-integration.php` also checks schema 14,
 default-off behavior, migration retries, long Unicode text, failed saves and revision
 changes on MySQL/MariaDB. No live application configuration or identity provider is used.
 

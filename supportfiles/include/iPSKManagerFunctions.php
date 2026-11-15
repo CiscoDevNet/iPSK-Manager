@@ -117,7 +117,7 @@ function ipskTakePendingImport($token) {
  */
 	$maxModuleKeywordLength = 15;
 		
-	$subModuleRegEx = "/^(?:create|new|add|edit|view|delete|enable|disable|extend|modify|update|suspend|activate|groups|updategroups|pass|updatepass|authzprofile|bulk|bulkimport)$/";
+	$subModuleRegEx = "/^(?:create|new|add|edit|view|delete|enable|disable|extend|modify|update|suspend|activate|groups|updategroups|pass|updatepass|authzprofile|bulk|bulkimport|loginnotice)$/";
 	
 	function ipskSessionHandler($scope = "portal"){
 		
@@ -711,10 +711,10 @@ function ipskTakePendingImport($token) {
 			foreach ($mysanitizedInputs as $key => $value) {
 				if (in_array($key, $stringKeysToSanitize)) {
 					if (!in_array($key, ['password', 'confirmpassword', 'ersPassword', 'mntPassword', 'smtpPassword'])) {
-						$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value), ENT_QUOTES, 'UTF-8');
+						$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value ?? ''), ENT_QUOTES, 'UTF-8');
 					} else {
 						// Just trim to remove whitespace, preserve all characters
-						$mysanitizedInputs[$key] = trim($value);
+						$mysanitizedInputs[$key] = trim($value ?? '');
 					}
 				}
 			}
@@ -755,7 +755,7 @@ function ipskTakePendingImport($token) {
 		if (is_iterable($mysanitizedInputs)) {
 			foreach ($mysanitizedInputs as $key => $value) {
 				if (in_array($key, $stringKeysToSanitize)) {
-					$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value), ENT_QUOTES, 'UTF-8');
+					$mysanitizedInputs[$key] = htmlspecialchars(strip_tags($value ?? ''), ENT_QUOTES, 'UTF-8');
 				} 
 			}
 		}

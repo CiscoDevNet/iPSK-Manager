@@ -8,6 +8,8 @@ ipskSessionHandler($kind==='admin'?'admin':'portal');
 class NoticeAuthenticationReached extends RuntimeException {}
 class NoticeHttpDatabase {
     function loginNoticesAvailable(){return true;}
+    function getISEERSSettings(){return ['enabled'=>false];}
+    function atomic($operation){return $operation();}
     function saveLoginNotice($enabled,$text,$actor){$_SESSION['fixtureNotice']=ipskLoginNoticeInput($enabled,$text)+['revision'=>bin2hex(random_bytes(32))];return true;}
     function getLoginNotice(){
         if(isset($_SESSION['fixtureNotice']))return $_SESSION['fixtureNotice'];
@@ -33,8 +35,16 @@ $sanitizedInput=['inputUsername'=>$_POST['inputUsername']??'','authDirectory'=>0
 $inputPassword=$_POST['inputPassword']??'';
 $_SERVER['REMOTE_USER']='fixture';
 if(in_array($_GET['action']??'', ['editor','save'],true)){
-    $_SESSION=array_merge($_SESSION,validSession(),['adminAuthorized'=>true,'logonSID'=>'fixture-admin','authenticationTimestamp'=>time(),'lastActivity'=>time()]);
-    if($_GET['action']==='save'){include __DIR__.'/../supportfiles/adminportals/modules/sysconfig/loginnotice.inc.php';}
+    if($_GET['action']==='editor')$_SESSION=array_merge($_SESSION,validSession(),['adminAuthorized'=>true,'logonSID'=>'fixture-admin','authenticationTimestamp'=>time(),'lastActivity'=>time()]);
+    if($_GET['action']==='save'){
+        // Exercise the production session guard, input sanitizer, route dispatch and
+        // operation wrapper. Only bootstrap/database I/O are supplied by this fixture.
+        set_error_handler(function($severity,$message,$file,$line){throw new ErrorException($message,0,$severity,$file,$line);});
+        $source=file_get_contents(__DIR__.'/../adminportal/ajax/getmodule.php');
+        $moduleFileName='';$previousDirectory=getcwd();
+        chdir(__DIR__.'/../adminportal/ajax');
+        try{eval(substr($source,strpos($source,'if(!ipskAdminSessionCheck())')));}finally{chdir($previousDirectory);restore_error_handler();}
+    }
     else{print '<!doctype html><html><head><meta charset="utf-8"><title>Notice editor</title><script src="scripts/jquery.min.js"></script></head><body>'.ipskLoginNoticeEditor($ipskISEDB).'</body></html>';}
     return;
 }

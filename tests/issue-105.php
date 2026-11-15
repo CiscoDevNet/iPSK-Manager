@@ -36,6 +36,24 @@ withHttpFixture(function($base){
         foreach($http_response_header as $header)if(preg_match('/Set-Cookie: ([^;]+)/i',$header,$m))$cookie=$m[1];
         preg_match('/HTTP\/\S+ (\d+)/',$http_response_header[0],$m);return [(int)$m[1],$body];
     };
+    [$code,$html]=$request(['kind'=>'admin','action'=>'editor']);
+    // The editor has no POST form: obtain the session token from a normal sign-in form.
+    [$code,$form]=$request(['kind'=>'admin']);preg_match('/name="csrfToken" value="([a-f0-9]+)"/',$form,$matches);
+    $save=['csrfToken'=>$matches[1],'module'=>'sysconfig','sub-module'=>'loginnotice','noticeEnabled'=>'1','noticeText'=>'Route regression & café'];
+    [$code,$body]=$request(['kind'=>'admin','action'=>'save'],$save);
+    verify($code===200 && trim($body)==='Login notice saved.','Production admin router rejected notice save: HTTP '.$code);
+    [$code,$html]=$request(['kind'=>'admin','action'=>'editor']);verify(str_contains($html,'Route regression &amp; café'),'Routed save did not persist');
+    foreach(['../loginnotice','loginnotice/../update',['loginnotice'],'notaroute'] as $route){
+        [$code,$body]=$request(['kind'=>'admin','action'=>'save'],array_replace($save,['sub-module'=>$route]));
+        verify($code===404 && !str_contains($body,'Login notice saved.'),'Invalid route accepted');
+    }
+    [$code,$body]=$request(['kind'=>'admin','action'=>'save'],array_replace($save,['csrfToken'=>'invalid']));verify($code===403,'Routed save bypassed CSRF');
+    // Discard the editor session before testing the independent login flows.
+    $cookie='';
+    [$code,$form]=$request(['kind'=>'admin']);preg_match('/name="csrfToken" value="([a-f0-9]+)"/',$form,$matches);
+    [$code,$body]=$request(['kind'=>'admin','action'=>'save'],array_replace($save,['csrfToken'=>$matches[1]]));
+    verify(!str_contains($body,'Login notice saved.') && str_contains($body,'window.location'),'Unauthenticated router request saved a notice');
+    $cookie='';
     foreach(['admin','sponsor','captive'] as $kind){
         [$code,$html]=$request(['kind'=>$kind]);verify($code===200 && str_contains($html,'&lt;script&gt;') && str_contains($html,'name="loginNoticeAccepted"'),'Notice form missing/unsafe: '.$kind);
         preg_match('/name="csrfToken" value="([a-f0-9]+)"/',$html,$m);$token=$m[1];
@@ -58,4 +76,4 @@ withHttpFixture(function($base){
         [$code,$body]=$request(['kind'=>$kind,'action'=>'login','mode'=>'failure']);verify($code===503 && !str_contains($body,'AUTHENTICATION_REACHED'),'Read failure bypassed notice');
     }
 });
-ob_end_clean();echo "PASS issue 105: actual admin/sponsor/captive forms and login gates, SSO, stale/missing/forged acceptance, CSRF, text safety, admin-only save, audit and disabled defaults\n";
+ob_end_clean();echo "PASS issue 105: actual admin/sponsor/captive forms and login gates, SSO, stale/missing/forged acceptance, CSRF, text safety, admin-only routed save, route rejection, audit and disabled defaults\n";
