@@ -18,7 +18,7 @@ $GLOBALS['ldapEntries']=function($filter,$connection){return ['count'=>1,0=>['dn
 $source=file_get_contents(__DIR__.'/../adminportal/login.php');$start=strpos($source,'if($sanitizedInput["inputUsername"] != "" && $inputPassword != "" && is_numeric($sanitizedInput["authDirectory"]))');$dispatch=str_replace('die();','throw new Login56Complete();',substr($source,$start));
 foreach([[1,[1],false,false,true],[2,[1],false,false,false],[3,[1],false,false,true],[2,[1,2],false,false,true],[1,[1],true,false,false],[1,[1],false,true,false],[1,[0],false,false,false],[99,[1],false,false,false]] as [$directory,$grants,$badPassword,$different,$expected]){
     $_SESSION=[];$GLOBALS['differentGroup']=$different;$c=new Directory56Connection();$c->grants=$grants;$ipskISEDB=new Directory56Database();(new ReflectionProperty(iPSKManagerDatabase::class,'dbConnection'))->setValue($ipskISEDB,$c);
-    $sanitizedInput=['inputUsername'=>'alice','authDirectory'=>$directory];$inputPassword=$badPassword?'wrong':($directory===2?'second-password':'first-password');$samlLogin=false;$systemSID='fixture';
+    $sanitizedInput=['inputUsername'=>'alice','authDirectory'=>$directory];$inputPassword=$badPassword?'wrong':($directory===2?'second-password':'first-password');$loginNotice=['enabled'=>false];$samlLogin=false;$systemSID='fixture';
     try{eval($dispatch);}catch(Login56Complete $e){}
     verify(($_SESSION['adminAuthorized']??false)===$expected,'Directory collision/alias grant incorrect');
     if($expected)verify($_SESSION['identitySourceId']===($directory===3?1:$directory),'Authenticated scope not bound');

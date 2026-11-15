@@ -269,6 +269,7 @@ try {
     verify($db->getPortalAdminGroups($primary)['count']===1,'Migration retry erased reviewed bindings');
     echo "PASS review 56 integration: independent/aliased sources, all portal grants, explicit bindings and fail-closed retryable migration\n";
     require __DIR__.'/ownership-integration.inc.php';
+    require __DIR__.'/login-notice-integration.inc.php';
     echo "PASS migration integration: resolves existing definer without environment and replaces routine successfully\n";
     echo "PASS database integration: real schema, prepared queries, literal secrets, settings, group lookup, bulk insert IDs\n";
 } finally {

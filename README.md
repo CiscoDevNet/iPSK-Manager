@@ -32,6 +32,10 @@ Identity PSK Manager enables the following features/functionality:
 
 **What's New (November 2026)**
 
+- Added an optional [shared login notice](#shared-login-notice) for administrator, sponsor and captive logins, including SSO (issue #105). Configure its plain text and acknowledgment requirement in Platform Configuration; schema 14 stores it in the database so Docker rebuilds preserve it.
+- Moved the shared login-notice editor below the existing General settings cards into a compact, collapsed section with an enabled/disabled status. Expand it to edit; no migration or configuration changes are required for this layout update.
+- Corrected the login-notice save route so the admin router accepts the new action; regression coverage now exercises the production dispatcher. Omitted optional fields no longer emit PHP 8.3 deprecation messages into the save response. Deploy this correction and reload Platform Configuration before retrying a failed save. No additional migration is needed if schema 14 is already applied.
+
 - Refreshed bundled libraries: Bootstrap 5.3.8, Chart.js 4.6.1, DataTables 2.3.8 and compatible extensions, PHPMailer 7.2.0, and standalone Popper 1.16.1. All deployed copies are pinned in the [vendor manifest](supportfiles/vendor-manifest.json), with browser and real SMTP regression coverage.
 - Security and reliability fixes across the admin, sponsor, and captive portals, with regression coverage for the reviewed issues and database migration behavior.
 - Preserved arrow-key navigation and Escape dismissal in DataTables column menus alongside Bootstrap dropdowns.
@@ -44,7 +48,7 @@ Identity PSK Manager enables the following features/functionality:
 - Consistent MAC address validation, safer CSV imports, unique internal usernames, and corrected PSK validation and random generation.
 - Safer SQL and LDAP queries, preserved password and PSK characters, escaped output, and sensitive-value redaction in new log entries.
 - Corrected ISE REST response handling, TLS verification, and request timeouts; repaired expiration email delivery and installer failure cleanup.
-- **Database schema 13 is required. Existing deployments must follow the [November 2026 upgrade checklist](#november-2026-upgrade-checklist-schema-13), including review of external group mappings and legacy OpenLDAP endpoint owners.**
+- **Database schema 14 is required. Existing deployments must follow the [November 2026 upgrade checklist](#november-2026-upgrade-checklist-schema-14), including review of external group mappings and legacy OpenLDAP endpoint owners.**
 
 **What's New (April 2026)**
 - Added install detection if running in Podman
@@ -499,9 +503,9 @@ admin@ubuntu:~$ sudo git pull
 8. Complete the [after-update checklist](#after-updating) below.
 
 
-### November 2026 upgrade checklist (schema 13)
+### November 2026 upgrade checklist (schema 14)
 
-Fresh installations create schema 13 directly. Existing installations need the following preparation and migration steps; pulling code alone does not complete the upgrade.
+Fresh installations create schema 14 directly. Existing installations need the following preparation and migration steps; pulling code alone does not complete the upgrade.
 
 #### Before updating
 
@@ -525,8 +529,9 @@ Follow the update procedure above, sign in as the verified internal administrato
 | 11 | Aligns association ownership with the endpoint's stored owner. | Own-only visibility can change where historical association ownership differed. Review affected sponsor access. |
 | 12 | Adds directory identity sources and scopes external group grants. | Legacy external groups remain unbound and grant no access until an administrator assigns their directory. |
 | 13 | Namespaces OpenLDAP endpoint ownership by identity source. | Unambiguous owners and their associations/cache migrate without changing PSKs. Ambiguous owners stop the update before ownership changes; review and resolve them as described below. |
+| 14 | Creates the shared login-notice table. | Disabled by default. Existing login behavior continues until an administrator saves and enables a notice. Retrying the migration preserves saved text and revisions. |
 
-Confirm that the reported database version reaches **13**. If an update fails, keep the deployment in maintenance, resolve the reported data or privilege problem, and retry from the recorded version. Do not manually advance the version to bypass an error. Routine replacement includes preflight and recovery handling, but schema changes are not all transactional. If rollback is needed, restore the matching database, code, and configuration backups together.
+Confirm that the reported database version reaches **14**. If an update fails, keep the deployment in maintenance, resolve the reported data or privilege problem, and retry from the recorded version. Do not manually advance the version to bypass an error. Routine replacement includes preflight and recovery handling, but schema changes are not all transactional. If rollback is needed, restore the matching database, code, and configuration backups together.
 
 #### OpenLDAP ownership upgrade (schema 13)
 
@@ -574,7 +579,7 @@ WHERE e.id IN (101,102);
 COMMIT;
 ```
 
-Use the **identity source ID**, not an alternate server's row ID. Retain legitimate aliases already configured in schema 12. Retry **Apply Database Updates**, confirm schema **13**, and verify ownership and quotas before resuming enrollment. No PSKs are rotated automatically. Where deliberate aliases formerly used different domain labels, their devices now count toward the same owner's quota; review any existing multiple-key or over-quota cases without deleting working devices automatically. Keep the migration credential privileges described above, including permission to create temporary tables, until the update succeeds; then remove temporary credentials.
+Use the **identity source ID**, not an alternate server's row ID. Retain legitimate aliases already configured in schema 12. Retry **Apply Database Updates**, confirm that schema **13** completes and subsequent updates reach **14**, and verify ownership and quotas before resuming enrollment. No PSKs are rotated automatically. Where deliberate aliases formerly used different domain labels, their devices now count toward the same owner's quota; review any existing multiple-key or over-quota cases without deleting working devices automatically. Keep the migration credential privileges described above, including permission to create temporary tables, until the update succeeds; then remove temporary credentials.
 
 #### Missing routine or DEFINER errors
 
@@ -591,7 +596,8 @@ For a missing attribute-fetch or plain-MAC routine, the updater can recover its 
 3. **Start fresh sessions and imports.** Have administrators and portal users sign out and sign in again, then hard-refresh the browser to load the matching JavaScript and CSS and reload open forms. Purge cached static assets from any reverse proxy or CDN used by the deployment. Update library copies in any custom portal templates as well. Re-upload any CSV files that were pending before the update and generate fresh sponsor PSKs for unfinished enrollment forms. Old session state and pending tokens must not be reused.
 4. **Refresh expiration jobs if used.** Update deployed copies from `expire-endpoints-cron-example.php.txt`, preserving the deployment's `ipskManagerPath`, settings, and schedule. Updating the repository example does not update a copy installed elsewhere. Verify the configured expiration behavior and email delivery before resuming scheduled jobs.
 5. **Verify the deployment's integrations and permissions.** Check ISE ODBC authentication and attribute retrieval, ERS/MnT operations including CoA where enabled, LDAP/SAML login, and SMTP delivery. Confirm that suspended endpoints are denied when using `iPSK_AuthMACPlain`. Exercise a permitted endpoint creation, edit, import, and expiration extension; verify quota limits and own-only access with a sponsor account. Review any ownership changes made by v11.
-6. **Resume service after validation.** Restore enrollment and scheduled jobs once migrations, group bindings, and integration checks pass. Keep the backups available for recovery.
+6. **Configure the optional shared login notice.** After schema 14 is applied, use **Platform Configuration → General → Shared login notice** to enter your organization's text and enable the acknowledgment requirement if desired. Test admin, sponsor, captive and SSO sign-ins used by your deployment. Existing sessions continue; new login attempts must acknowledge the current revision. No `disclaimer.html` file or Docker bind mount is needed.
+7. **Resume service after validation.** Restore enrollment and scheduled jobs once migrations, group bindings, and integration checks pass. Keep the backups available for recovery.
 
 #### Compatibility notes for existing deployments
 
@@ -615,6 +621,17 @@ Note: Rest of the logging settings are under Platform Configuration > Advanced S
 
 ## Expiring Endpoint Email
 The expire-endpoints-cron-example.php script has been updated to support sending an email to the owners of endpoints with a list of devices that are about to expire. You can configure the number of days before expiration to start emailing the owners. The frequency of emails sent to owners depends on how often you schedule the script to run as a cron job before the endpoint expires.
+
+## Shared login notice
+
+Issue [#105](https://github.com/CiscoDevNet/iPSK-Manager/issues/105) is implemented as **one shared, optional notice** stored in the application database. It applies to administrator, sponsor and captive sign-ins, including SSO. Configure it under **Platform Configuration → General → Shared login notice** by expanding the compact **Shared login notice** section below the existing settings cards. It starts collapsed and shows whether the notice is enabled. Use **Save login notice** independently of the other settings on that page.
+
+- Enter plain text (up to 20,000 UTF-8 bytes) and select **Require agreement before sign-in**. Empty enabled notices and oversized/invalid input are rejected. HTML is displayed literally, including scripts and links; it is not executed. Line breaks and Unicode text are preserved.
+- Password login pages show an expandable notice and a required, initially unchecked acknowledgment. SSO users get an acknowledgment page before application login proceeds. The form works without JavaScript; the server also checks acceptance, the current notice revision and the session's CSRF token.
+- Every save creates a new revision. A form opened before a change must reload and acknowledge the current text. Successful sign-ins can record `LOGIN-NOTICE-ACCEPTED` with the revision, portal scope, authenticated SID and log timestamp, subject to the application's normal logging settings and retention. This is not a separate permanent acceptance archive; historical notice text is not retained automatically.
+- Disable the checkbox and save to restore the existing sign-in flow while retaining the text for later use. Current authenticated sessions are not interrupted by notice changes; acknowledgment is required on subsequent sign-ins. Captive controller/MAC/session redirect parameters remain intact.
+
+**Existing deployments:** back up the database, deploy the code and complete **Apply Database Updates** through schema **14** before enabling the feature. Internal recovery login remains available while upgrading from a known earlier schema. The migration creates `loginNotices` and does not enable a notice automatically or change existing users, endpoints, PSKs or ISE routines. Once schema 14 is active, failure to read the notice blocks new sign-ins instead of bypassing it. Include this table in normal database backups; Docker rebuilds require no notice file to be copied or mounted. Custom login templates must render the current acknowledgment fields and submit them through the existing login handlers.
 
 ## VLAN and dACL Attributes
 Authorization Templates now include two optional fields: VLAN and dACL. If these fields are set, endpoints added will have a VLAN and/or dACL assigned, which can be referenced from ISE via the ODBC stored procedure call. These values can be used in Authorization Profiles to create a single dynamic Authorization Profile.
